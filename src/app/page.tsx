@@ -4,7 +4,7 @@
 import type { ChangeEvent, FormEvent } from 'react';
 import { useState, useEffect } from 'react';
 import NextImage from 'next/image'; // Renamed to avoid conflict with Lucide Image icon
-import { UploadCloud, Image as ImageIcon, Loader2, AlertTriangle, Wand2, ScanSearch, ShoppingBag, Tags, PackageSearch } from 'lucide-react';
+import { UploadCloud, Image as ImageIcon, Loader2, AlertTriangle, Wand2, ScanSearch, ShoppingBag, Tags, PackageSearch, Languages } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -17,9 +17,10 @@ import { useToast } from '@/hooks/use-toast';
 import { Separator } from '@/components/ui/separator';
 
 // AI Flow imports
-import { identifyObjects, type IdentifyObjectsOutput } from '@/ai/flows/identify-objects';
+import { identifyObjects, type IdentifyObjectsOutput, type TranslatedObjectType } from '@/ai/flows/identify-objects';
 import { searchRelatedProducts, type SearchRelatedProductsOutput } from '@/ai/flows/search-related-products';
 import { extractProductProperties, type ExtractProductPropertiesOutput } from '@/ai/flows/extract-product-properties';
+
 
 // Define the type for a single item in the search results
 type ProductSearchResultItem = {
@@ -28,8 +29,8 @@ type ProductSearchResultItem = {
 };
 
 type AnalysisResults = {
-  objects: IdentifyObjectsOutput['objects'] | null;
-  relatedProducts: ProductSearchResultItem[] | null; // Updated type
+  objects: TranslatedObjectType[] | null; 
+  relatedProducts: ProductSearchResultItem[] | null;
   productProperties: ExtractProductPropertiesOutput | null;
 };
 
@@ -37,6 +38,14 @@ const initialResultsState: AnalysisResults = {
   objects: null,
   relatedProducts: null,
   productProperties: null,
+};
+
+const languageMap: Record<string, string> = {
+  es: 'Espanhol',
+  fr: 'Francês',
+  de: 'Alemão',
+  zh: 'Chinês (Simplificado)',
+  ja: 'Japonês',
 };
 
 export default function ImageInsightExplorerPage() {
@@ -101,10 +110,11 @@ export default function ImageInsightExplorerPage() {
     setProgressValue(0);
 
     try {
-      setCurrentStep('Identifying objects...');
+      setCurrentStep('Identifying & translating objects...');
       setProgressValue(25);
-      const objectsResult = await identifyObjects({ photoDataUri: imageDataUri });
-      if (!objectsResult || !objectsResult.objects || objectsResult.objects.length === 0) {
+      const objectsAndTranslationsResult: IdentifyObjectsOutput = await identifyObjects({ photoDataUri: imageDataUri });
+      
+      if (!objectsAndTranslationsResult || !objectsAndTranslationsResult.identifiedItems || objectsAndTranslationsResult.identifiedItems.length === 0) {
         toast({ title: 'Analysis Complete', description: 'No objects identified in the image.', variant: 'default' });
         setResults(prev => ({ ...prev, objects: [] }));
         setProgressValue(100);
@@ -112,24 +122,26 @@ export default function ImageInsightExplorerPage() {
         setCurrentStep(null);
         return;
       }
-      setResults(prev => ({ ...prev, objects: objectsResult.objects }));
-      toast({ title: 'Step Complete', description: 'Objects identified successfully!', variant: 'default' });
+      setResults(prev => ({ ...prev, objects: objectsAndTranslationsResult.identifiedItems }));
+      toast({ title: 'Step Complete', description: 'Objects identified and translated successfully!', variant: 'default' });
       setProgressValue(50);
 
+      const englishObjectNames = objectsAndTranslationsResult.identifiedItems.map(item => item.original);
+
       setCurrentStep('Searching for related products...');
-      const relatedProductsResult = await searchRelatedProducts({ objects: objectsResult.objects });
-       if (!relatedProductsResult || !relatedProductsResult.searchResults || relatedProductsResult.searchResults.length === 0) { // Updated condition
+      const relatedProductsResult = await searchRelatedProducts({ objects: englishObjectNames });
+       if (!relatedProductsResult || !relatedProductsResult.searchResults || relatedProductsResult.searchResults.length === 0) {
           toast({ title: 'Step Complete', description: 'No related products found for any object.', variant: 'default' });
-          setResults(prev => ({...prev, relatedProducts: []})) // Updated to empty array
+          setResults(prev => ({...prev, relatedProducts: []}))
       } else {
-        setResults(prev => ({ ...prev, relatedProducts: relatedProductsResult.searchResults })); // Updated to use searchResults
+        setResults(prev => ({ ...prev, relatedProducts: relatedProductsResult.searchResults }));
         toast({ title: 'Step Complete', description: 'Related products found!', variant: 'default' });
       }
       setProgressValue(75);
       
       const allProducts: string[] = [];
-      if (relatedProductsResult && relatedProductsResult.searchResults) { // Updated condition
-        relatedProductsResult.searchResults.forEach(item => { // Iterate over searchResults
+      if (relatedProductsResult && relatedProductsResult.searchResults) {
+        relatedProductsResult.searchResults.forEach(item => {
           item.relatedProducts.forEach(product => {
             if (!allProducts.includes(product)) {
               allProducts.push(product);
@@ -179,7 +191,7 @@ export default function ImageInsightExplorerPage() {
     reader.readAsDataURL(selectedFile);
   };
 
-  const hasResults = results.objects || (results.relatedProducts && results.relatedProducts.length > 0) || results.productProperties;
+  const hasResults = results.objects && results.objects.length > 0 || (results.relatedProducts && results.relatedProducts.length > 0) || results.productProperties;
 
   return (
     <div className="flex flex-col items-center min-h-screen p-4 sm:p-8 selection:bg-primary/20">
@@ -191,7 +203,7 @@ export default function ImageInsightExplorerPage() {
           </h1>
         </div>
         <p className="text-lg text-muted-foreground">
-          Upload an image to identify objects and discover related products and their properties.
+          Upload an image to identify objects, see translations, and discover related products.
         </p>
       </header>
 
@@ -260,39 +272,71 @@ export default function ImageInsightExplorerPage() {
             <Separator />
             <h2 className="text-3xl font-semibold text-center text-primary">Analysis Results</h2>
             
-            {results.objects && (
+            {results.objects && results.objects.length > 0 && (
               <Card className="shadow-md">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2 text-xl">
                     <ScanSearch className="w-6 h-6 text-primary" />
-                    Identified Objects
+                    Identified Objects & Translations
                   </CardTitle>
-                  {results.objects.length === 0 && <CardDescription>No objects were clearly identified in the image.</CardDescription>}
+                  <CardDescription>Objects found in the image with their translations.</CardDescription>
                 </CardHeader>
-                {results.objects.length > 0 && (
-                    <CardContent>
-                    <div className="flex flex-wrap gap-2">
-                        {results.objects.map((obj, index) => (
-                        <Badge key={index} variant="secondary" className="text-sm px-3 py-1">{obj}</Badge>
-                        ))}
-                    </div>
-                    </CardContent>
-                )}
+                <CardContent>
+                  <Accordion type="single" collapsible className="w-full">
+                    {results.objects.map((item, index) => (
+                      <AccordionItem key={`${item.original}-${index}`} value={`${item.original}-${index}`}>
+                        <AccordionTrigger className="text-base font-medium hover:text-primary">
+                           <div className="flex items-center gap-2">
+                                <Languages className="w-5 h-5 text-muted-foreground"/>
+                                Original: <span className="font-semibold text-foreground">{item.original}</span>
+                            </div>
+                        </AccordionTrigger>
+                        <AccordionContent>
+                          {Object.keys(item.translations).length > 0 ? (
+                            <ul className="space-y-1 text-sm text-muted-foreground list-disc pl-5">
+                              {Object.entries(item.translations).map(([langCode, translation]) => (
+                                <li key={langCode}>
+                                  <span className="font-medium text-foreground">{languageMap[langCode] || langCode}:</span> {translation}
+                                </li>
+                              ))}
+                            </ul>
+                          ) : (
+                            <p className="text-sm text-muted-foreground italic">No translations available for {item.original}.</p>
+                          )}
+                        </AccordionContent>
+                      </AccordionItem>
+                    ))}
+                  </Accordion>
+                </CardContent>
               </Card>
             )}
+             {results.objects && results.objects.length === 0 && selectedFile && !error && (
+                 <Card className="shadow-md">
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-2 text-xl">
+                            <ScanSearch className="w-6 h-6 text-primary" />
+                            Identified Objects
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <p className="text-muted-foreground">No objects were clearly identified in the image.</p>
+                    </CardContent>
+                 </Card>
+            )}
 
-            {results.relatedProducts && results.relatedProducts.length > 0 && ( // Updated condition
+
+            {results.relatedProducts && results.relatedProducts.length > 0 && (
               <Card className="shadow-md">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2 text-xl">
                     <ShoppingBag className="w-6 h-6 text-primary" />
                     Related Products
                   </CardTitle>
-                  <CardDescription>Products found related to the identified objects.</CardDescription>
+                  <CardDescription>Products found related to the identified objects (based on original names).</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <Accordion type="single" collapsible className="w-full">
-                    {results.relatedProducts.map((item) => ( // Iterate over array
+                    {results.relatedProducts.map((item) => (
                       item.relatedProducts.length > 0 && (
                         <AccordionItem key={item.objectName} value={item.objectName}>
                             <AccordionTrigger className="text-base font-medium hover:text-primary">
@@ -302,13 +346,13 @@ export default function ImageInsightExplorerPage() {
                                 </div>
                             </AccordionTrigger>
                             <AccordionContent>
-                            {item.relatedProducts.length > 0 ? ( // Use item.relatedProducts
+                            {item.relatedProducts.length > 0 ? (
                                 <ul className="list-disc pl-5 space-y-1 text-muted-foreground">
                                 {item.relatedProducts.map((product, index) => (
                                     <li key={index}>{product}</li>
                                 ))}
                                 </ul>
-                            ) : ( // This case might not be hit if empty relatedProducts arrays are filtered by AI or earlier logic
+                            ) : (
                                 <p className="text-sm text-muted-foreground italic">No specific products found for {item.objectName}.</p>
                             )}
                             </AccordionContent>
@@ -360,14 +404,14 @@ export default function ImageInsightExplorerPage() {
             )}
           </div>
         )}
-        {/* Fallback for when no results are displayed after loading (e.g. no objects identified) */}
-        {!isLoading && !hasResults && selectedFile && !error && (
+        
+        {!isLoading && !hasResults && selectedFile && !error && !(results.objects && results.objects.length === 0) && (
             <Card className="shadow-md">
                 <CardHeader>
                     <CardTitle className="flex items-center gap-2 text-xl">Analysis Complete</CardTitle>
                 </CardHeader>
                 <CardContent>
-                    <p className="text-muted-foreground">The image was processed, but no further details could be extracted based on the initial findings. You can try with a different image.</p>
+                    <p className="text-muted-foreground">The image was processed, but no further details could be extracted. You can try with a different image.</p>
                 </CardContent>
             </Card>
         )}
@@ -375,8 +419,8 @@ export default function ImageInsightExplorerPage() {
       </main>
       <footer className="mt-12 py-6 text-center text-sm text-muted-foreground border-t w-full max-w-4xl">
         <p>&copy; {new Date().getFullYear()} Image Insight Explorer. Powered by Genkit AI.</p>
+        <p>Translations provided for: Spanish, French, German, Chinese (Simplified), Japanese.</p>
       </footer>
     </div>
   );
 }
-
