@@ -1,3 +1,4 @@
+
 'use server';
 /**
  * @fileOverview Fluxo Genkit para encontrar lojas que vendem um produto específico usando uma ferramenta.
@@ -8,19 +9,19 @@
  */
 
 import { ai } from '@/ai/genkit';
-import { findStoresTool, FindStoresToolInputSchema, FindStoresToolOutputSchema } from '@/ai/tools/find-stores-tool';
+import { findStoresTool } from '@/ai/tools/find-stores-tool'; // Import the tool directly
 import { z } from 'genkit';
 
-export const FindProductStoresInputSchema = z.object({
+const _FindProductStoresInputSchema = z.object({
   productName: z.string().describe('O nome do produto para o qual encontrar lojas.'),
 });
-export type FindProductStoresInput = z.infer<typeof FindProductStoresInputSchema>;
+export type FindProductStoresInput = z.infer<typeof _FindProductStoresInputSchema>;
 
-export const FindProductStoresOutputSchema = z.object({
+const _FindProductStoresOutputSchema = z.object({
   productName: z.string().describe('O nome do produto para o qual as lojas foram pesquisadas.'),
   foundStores: z.array(z.string()).describe('Uma lista de lojas que supostamente vendem o produto. Esta lista vem da findStoresTool.'),
 });
-export type FindProductStoresOutput = z.infer<typeof FindProductStoresOutputSchema>;
+export type FindProductStoresOutput = z.infer<typeof _FindProductStoresOutputSchema>;
 
 export async function findProductStores(input: FindProductStoresInput): Promise<FindProductStoresOutput> {
   return findProductStoresFlow(input);
@@ -28,8 +29,8 @@ export async function findProductStores(input: FindProductStoresInput): Promise<
 
 const findStoresPrompt = ai.definePrompt({
   name: 'findStoresPrompt',
-  input: { schema: FindProductStoresInputSchema },
-  output: { schema: FindProductStoresOutputSchema },
+  input: { schema: _FindProductStoresInputSchema },
+  output: { schema: _FindProductStoresOutputSchema },
   tools: [findStoresTool],
   prompt: `Você é um assistente de IA encarregado de encontrar lojas que vendem um determinado produto.
 Nome do Produto: {{{productName}}}
@@ -61,8 +62,8 @@ Exemplo se NENHUMA loja for encontrada:
 const findProductStoresFlow = ai.defineFlow(
   {
     name: 'findProductStoresFlow',
-    inputSchema: FindProductStoresInputSchema,
-    outputSchema: FindProductStoresOutputSchema,
+    inputSchema: _FindProductStoresInputSchema,
+    outputSchema: _FindProductStoresOutputSchema,
   },
   async (input) => {
     const { output } = await findStoresPrompt(input);

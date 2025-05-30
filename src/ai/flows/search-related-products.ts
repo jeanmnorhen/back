@@ -1,3 +1,4 @@
+
 // src/ai/flows/search-related-products.ts
 'use server';
 /**
@@ -11,20 +12,20 @@
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 
-const SearchRelatedProductsInputSchema = z.object({
+const _SearchRelatedProductsInputSchema = z.object({
   objects: z.array(z.string()).describe('A list of identified objects from the image.'),
 });
-export type SearchRelatedProductsInput = z.infer<typeof SearchRelatedProductsInputSchema>;
+export type SearchRelatedProductsInput = z.infer<typeof _SearchRelatedProductsInputSchema>;
 
-const ProductSearchResultSchema = z.object({
+const _ProductSearchResultSchema = z.object({
   objectName: z.string().describe("The original object identified in the image."),
   relatedProducts: z.array(z.string()).describe("A list of products related to this object.")
 });
 
-const SearchRelatedProductsOutputSchema = z.object({
-  searchResults: z.array(ProductSearchResultSchema).describe("A list of search results, one for each input object that has related products.")
+const _SearchRelatedProductsOutputSchema = z.object({
+  searchResults: z.array(_ProductSearchResultSchema).describe("A list of search results, one for each input object that has related products.")
 });
-export type SearchRelatedProductsOutput = z.infer<typeof SearchRelatedProductsOutputSchema>;
+export type SearchRelatedProductsOutput = z.infer<typeof _SearchRelatedProductsOutputSchema>;
 
 export async function searchRelatedProducts(input: SearchRelatedProductsInput): Promise<SearchRelatedProductsOutput> {
   return searchRelatedProductsFlow(input);
@@ -32,8 +33,8 @@ export async function searchRelatedProducts(input: SearchRelatedProductsInput): 
 
 const prompt = ai.definePrompt({
   name: 'searchRelatedProductsPrompt',
-  input: {schema: SearchRelatedProductsInputSchema},
-  output: {schema: SearchRelatedProductsOutputSchema},
+  input: {schema: _SearchRelatedProductsInputSchema},
+  output: {schema: _SearchRelatedProductsOutputSchema},
   prompt: `You are an AI assistant that helps users find products related to objects identified in an image.
 
 Given the following list of objects, for each object, provide its name and a list of related products.
@@ -71,8 +72,8 @@ If no products are found for any object, return an empty "searchResults" array:
 const searchRelatedProductsFlow = ai.defineFlow(
   {
     name: 'searchRelatedProductsFlow',
-    inputSchema: SearchRelatedProductsInputSchema,
-    outputSchema: SearchRelatedProductsOutputSchema,
+    inputSchema: _SearchRelatedProductsInputSchema,
+    outputSchema: _SearchRelatedProductsOutputSchema,
   },
   async input => {
     const {output} = await prompt(input);

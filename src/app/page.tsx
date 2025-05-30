@@ -3,8 +3,8 @@
 
 import type { ChangeEvent, FormEvent } from 'react';
 import { useState, useEffect } from 'react';
-import NextImage from 'next/image'; // Renamed to avoid conflict with Lucide Image icon
-import { UploadCloud, Image as ImageIcon, Loader2, AlertTriangle, Wand2, ScanSearch, ShoppingBag, Tags, PackageSearch, Languages } from 'lucide-react';
+import NextImage from 'next/image';
+import { UploadCloud, Image as ImageIcon, Loader2, AlertTriangle, Wand2, ScanSearch, ShoppingBag, Tags, PackageSearch, Languages, Store } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -20,24 +20,34 @@ import { Separator } from '@/components/ui/separator';
 import { identifyObjects, type IdentifyObjectsOutput, type TranslatedObjectType } from '@/ai/flows/identify-objects';
 import { searchRelatedProducts, type SearchRelatedProductsOutput } from '@/ai/flows/search-related-products';
 import { extractProductProperties, type ExtractProductPropertiesOutput } from '@/ai/flows/extract-product-properties';
+import { findProductStores, type FindProductStoresInput, type FindProductStoresOutput } from '@/ai/flows/find-product-stores-flow';
 
 
-// Define the type for a single item in the search results
 type ProductSearchResultItem = {
   objectName: string;
   relatedProducts: string[];
 };
 
+type StoreSearchResults = {
+  [productName: string]: {
+    isLoading: boolean;
+    stores: string[] | null;
+    error?: string | null;
+  }
+}
+
 type AnalysisResults = {
-  objects: TranslatedObjectType[] | null; 
-  relatedProducts: SearchRelatedProductsOutput['searchResults'] | null; // Updated to use the direct type from flow
+  objects: TranslatedObjectType[] | null;
+  relatedProducts: SearchRelatedProductsOutput['searchResults'] | null;
   productProperties: ExtractProductPropertiesOutput | null;
+  storeSearch: StoreSearchResults;
 };
 
 const initialResultsState: AnalysisResults = {
   objects: null,
   relatedProducts: null,
   productProperties: null,
+  storeSearch: {},
 };
 
 const languageMap: Record<string, string> = {
@@ -64,7 +74,6 @@ export default function ImageInsightExplorerPage() {
   const { toast } = useToast();
 
   useEffect(() => {
-    // Clean up preview URL when component unmounts or file changes
     return () => {
       if (previewUrl) {
         URL.revokeObjectURL(previewUrl);
@@ -193,7 +202,46 @@ export default function ImageInsightExplorerPage() {
     reader.readAsDataURL(selectedFile);
   };
 
-  const hasResults = results.objects && results.objects.length > 0 || (results.relatedProducts && results.relatedProducts.length > 0) || results.productProperties;
+  const handleFindStores = async (productName: string) => {
+    setResults(prev => ({
+      ...prev,
+      storeSearch: {
+        ...prev.storeSearch,
+        [productName]: { isLoading: true, stores: null, error: null }
+      }
+    }));
+
+    try {
+      const storeResults: FindProductStoresOutput = await findProductStores({ productName });
+      setResults(prev => ({
+        ...prev,
+        storeSearch: {
+          ...prev.storeSearch,
+          [productName]: { isLoading: false, stores: storeResults.foundStores, error: null }
+        }
+      }));
+      if (storeResults.foundStores.length > 0) {
+        toast({ title: 'Stores Found', description: `Found stores for ${productName}.`, variant: 'default' });
+      } else {
+        toast({ title: 'No Stores Found', description: `No stores found for ${productName}.`, variant: 'default' });
+      }
+    } catch (err) {
+      console.error(`Error finding stores for ${productName}:`, err);
+      const errorMessage = err instanceof Error ? err.message : 'Unknown error finding stores.';
+      setResults(prev => ({
+        ...prev,
+        storeSearch: {
+          ...prev.storeSearch,
+          [productName]: { isLoading: false, stores: null, error: errorMessage }
+        }
+      }));
+      toast({ title: 'Error Finding Stores', description: errorMessage, variant: 'destructive' });
+    }
+  };
+
+  const hasResults = (results.objects && results.objects.length > 0) || 
+                     (results.relatedProducts && results.relatedProducts.length > 0) || 
+                     results.productProperties;
 
   return (
     <div className="flex flex-col items-center min-h-screen p-4 sm:p-8 selection:bg-primary/20">
@@ -205,7 +253,7 @@ export default function ImageInsightExplorerPage() {
           </h1>
         </div>
         <p className="text-lg text-muted-foreground">
-          Upload an image to identify objects, see translations, and discover related products.
+          Upload an image to identify objects, see translations, and discover related products and stores.
         </p>
       </header>
 
@@ -339,10 +387,10 @@ export default function ImageInsightExplorerPage() {
                   <CardDescription>Products found related to the identified objects (based on original names).</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <Accordion type="single" collapsible className="w-full">
+                  <Accordion type="multiple" className="w-full">
                     {results.relatedProducts.map((item) => (
                       item.relatedProducts.length > 0 && (
-                        <AccordionItem key={item.objectName} value={item.objectName}>
+                        <AccordionItem key={item.objectName} value={`related-${item.objectName}`}>
                             <AccordionTrigger className="text-base font-medium hover:text-primary">
                                 <div className="flex items-center gap-2">
                                     <PackageSearch className="w-5 h-5 text-muted-foreground"/>
@@ -351,9 +399,51 @@ export default function ImageInsightExplorerPage() {
                             </AccordionTrigger>
                             <AccordionContent>
                             {item.relatedProducts.length > 0 ? (
-                                <ul className="list-disc pl-5 space-y-1 text-muted-foreground">
+                                <ul className="space-y-3">
                                 {item.relatedProducts.map((product, index) => (
-                                    <li key={index}>{product}</li>
+                                    <li key={index} className="p-3 border rounded-md bg-muted/30">
+                                        <div className="flex justify-between items-center mb-2">
+                                            <span className="text-foreground">{product}</span>
+                                            <Button 
+                                                size="sm" 
+                                                variant="outline" 
+                                                onClick={() => handleFindStores(product)}
+                                                disabled={results.storeSearch[product]?.isLoading}
+                                            >
+                                                {results.storeSearch[product]?.isLoading ? (
+                                                    <Loader2 className="w-4 h-4 animate-spin" />
+                                                ) : (
+                                                    <Store className="w-4 h-4 mr-2" />
+                                                )}
+                                                Find Stores
+                                            </Button>
+                                        </div>
+                                        {results.storeSearch[product]?.isLoading && (
+                                            <p className="text-sm text-muted-foreground flex items-center gap-1">
+                                                <Loader2 className="w-3 h-3 animate-spin" /> Searching for stores...
+                                            </p>
+                                        )}
+                                        {results.storeSearch[product]?.error && (
+                                            <p className="text-sm text-destructive flex items-center gap-1">
+                                                <AlertTriangle className="w-3 h-3" /> {results.storeSearch[product]?.error}
+                                            </p>
+                                        )}
+                                        {results.storeSearch[product]?.stores && results.storeSearch[product]?.stores!.length === 0 && !results.storeSearch[product]?.isLoading && (
+                                            <p className="text-sm text-muted-foreground italic">No stores found for {product}.</p>
+                                        )}
+                                        {results.storeSearch[product]?.stores && results.storeSearch[product]?.stores!.length > 0 && (
+                                            <div className="mt-2">
+                                                <h4 className="text-xs font-semibold text-muted-foreground mb-1">Available in:</h4>
+                                                <div className="flex flex-wrap gap-2">
+                                                    {results.storeSearch[product]?.stores!.map((storeName, storeIdx) => (
+                                                        <Badge key={storeIdx} variant="secondary" className="flex items-center gap-1">
+                                                            <Store className="w-3 h-3"/> {storeName}
+                                                        </Badge>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        )}
+                                    </li>
                                 ))}
                                 </ul>
                             ) : (
@@ -378,10 +468,10 @@ export default function ImageInsightExplorerPage() {
                   <CardDescription>Key properties extracted for the identified products.</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <Accordion type="single" collapsible className="w-full">
+                  <Accordion type="multiple" className="w-full">
                     {results.productProperties.map((productItem) => (
                       productItem.properties.length > 0 && (
-                        <AccordionItem key={productItem.product} value={productItem.product}>
+                        <AccordionItem key={productItem.product} value={`prop-${productItem.product}`}>
                             <AccordionTrigger className="text-base font-medium hover:text-primary">
                                 <div className="flex items-center gap-2">
                                     <Wand2 className="w-5 h-5 text-muted-foreground"/>

@@ -1,3 +1,4 @@
+
 // This is an auto-generated file from Firebase Studio.
 
 'use server';
@@ -13,14 +14,14 @@
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 
-const ExtractProductPropertiesInputSchema = z.array(
+const _ExtractProductPropertiesInputSchema = z.array(
   z.string().describe('A product name or description.')
 );
 export type ExtractProductPropertiesInput = z.infer<
-  typeof ExtractProductPropertiesInputSchema
+  typeof _ExtractProductPropertiesInputSchema
 >;
 
-const ExtractProductPropertiesOutputSchema = z.array(
+const _ExtractProductPropertiesOutputSchema = z.array(
   z.object({
     product: z.string().describe('The product name or description.'),
     properties: z.array(
@@ -31,7 +32,7 @@ const ExtractProductPropertiesOutputSchema = z.array(
   })
 );
 export type ExtractProductPropertiesOutput = z.infer<
-  typeof ExtractProductPropertiesOutputSchema
+  typeof _ExtractProductPropertiesOutputSchema
 >;
 
 export async function extractProductProperties(
@@ -42,8 +43,8 @@ export async function extractProductProperties(
 
 const prompt = ai.definePrompt({
   name: 'extractProductPropertiesPrompt',
-  input: {schema: ExtractProductPropertiesInputSchema},
-  output: {schema: ExtractProductPropertiesOutputSchema},
+  input: {schema: _ExtractProductPropertiesInputSchema},
+  output: {schema: _ExtractProductPropertiesOutputSchema},
   prompt: `You are an expert product analyst. Given a list of products, you will identify key properties for each product.
 
 Products:
@@ -58,8 +59,8 @@ For each product, list at least three key properties, such as "color", "size", "
 const extractProductPropertiesFlow = ai.defineFlow(
   {
     name: 'extractProductPropertiesFlow',
-    inputSchema: ExtractProductPropertiesInputSchema,
-    outputSchema: ExtractProductPropertiesOutputSchema,
+    inputSchema: _ExtractProductPropertiesInputSchema,
+    outputSchema: _ExtractProductPropertiesOutputSchema,
   },
   async input => {
     const {output} = await prompt(input);
