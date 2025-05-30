@@ -13,7 +13,7 @@
 - **UC1: Análise de Imagem Simples:**
     - O usuário seleciona uma imagem do seu dispositivo.
     - O usuário faz o upload da imagem.
-    - O sistema exibe os objetos identificados na imagem.
+    - O sistema exibe os objetos identificados na imagem e suas traduções.
 - **UC2: Descoberta de Produtos Relacionados:**
     - Após a identificação de objetos (UC1), o sistema busca e exibe produtos comercialmente disponíveis que são relevantes para os objetos identificados.
 - **UC3: Extração de Propriedades de Produtos:**
@@ -29,40 +29,44 @@ O aplicativo "Image Insight Explorer" está em um estágio funcional, implementa
 - **UI Components:** ShadCN UI.
 - **Estilização:** Tailwind CSS.
 - **Funcionalidades AI:** Genkit, utilizando o modelo Gemini do Google AI.
+- **Tradução:** Objetos identificados são traduzidos para Espanhol, Francês, Alemão, Chinês (Simplificado) e Japonês.
 
 Principais funcionalidades implementadas:
 - Upload de imagens (com validação de tipo e tamanho).
 - Pré-visualização da imagem selecionada.
 - Processamento de imagem em três etapas assíncronas:
-    1. `identifyObjects`: Identifica objetos na imagem.
-    2. `searchRelatedProducts`: Busca produtos relacionados aos objetos.
+    1. `identifyObjects`: Identifica objetos na imagem e traduz seus nomes.
+    2. `searchRelatedProducts`: Busca produtos relacionados aos objetos (usando nomes em inglês).
     3. `extractProductProperties`: Extrai propriedades dos produtos encontrados.
-- Exibição dos resultados em seções distintas (Objetos Identificados, Produtos Relacionados, Propriedades dos Produtos) usando componentes Accordion.
+- Exibição dos resultados em seções distintas (Objetos Identificados e Traduções, Produtos Relacionados, Propriedades dos Produtos) usando componentes Accordion.
 - Barra de progresso e mensagens de status durante a análise.
 - Sistema de notificações (toast) para feedback ao usuário.
 - Design responsivo e tema customizado (claro e escuro).
+- Configuração para deployment na Vercel (`vercel.json`).
 
 ## 4. Pontos de Atenção
 
-- **Precisão da IA:** A qualidade dos resultados (objetos, produtos, propriedades) depende da precisão dos modelos Genkit e Gemini. Casos de ambiguidade ou imagens de baixa qualidade podem levar a resultados subótimos.
+- **Precisão da IA:** A qualidade dos resultados (objetos, traduções, produtos, propriedades) depende da precisão dos modelos Genkit e Gemini. Casos de ambiguidade ou imagens de baixa qualidade podem levar a resultados subótimos.
 - **Limites da API:** O uso das APIs de IA (Google AI) pode estar sujeito a cotas e limitações.
 - **Tamanho da Imagem:** Atualmente, há um limite de 5MB para upload, o que é uma boa prática, mas deve ser comunicado claramente.
-- **Performance:** O processamento de IA pode levar alguns segundos. A experiência do usuário durante o carregamento é crucial e foi parcialmente endereçada com a barra de progresso e etapas.
+- **Performance:** O processamento de IA, especialmente com traduções, pode levar alguns segundos. A experiência do usuário durante o carregamento é crucial e foi parcialmente endereçada com a barra de progresso e etapas.
 - **Gerenciamento de Erros:** Embora haja tratamento de erros, é importante continuar refinando para cobrir mais casos de borda.
 - **Custo:** O uso de modelos de IA generativa pode incorrer em custos, dependendo do volume de uso. **É crucial que este projeto não gere custos significativos ou inesperados.**
 - **Não gerar custo:** Este projeto tem como premissa fundamental não gerar custos operacionais. Todas as escolhas de tecnologia e arquitetura devem levar essa restrição em consideração.
+- **Configuração de Ambiente na Vercel:** As variáveis de ambiente (API keys, etc.) precisam ser configuradas no painel da Vercel para o deploy funcionar corretamente.
 
 ## 5. Próximos Passos
 
 - **Melhorias na UI/UX:**
     - Permitir que o usuário clique em um produto para ver mais detalhes (simulando uma página de produto ou link externo).
     - Adicionar opções de filtragem ou ordenação para os resultados.
-    - Internacionalização da interface.
+    - Internacionalização da interface do usuário (além das traduções dos objetos).
 - **Funcionalidades Adicionais de IA:**
     - Permitir que o usuário refine a busca de produtos com texto adicional.
     - Explorar a geração de descrições criativas para os cenários da imagem.
     - Implementar edição de imagem básica ou sugestões de melhoria baseadas em IA.
 - **Infraestrutura e Operações:**
+    - **Deployment na Vercel:** Finalizar configuração e testar o deploy na Vercel.
     - Implementar logging mais robusto para monitoramento e depuração.
     - Considerar otimizações de custo para as chamadas de IA (reiterando a importância de não gerar custo).
     - Autenticação de usuários para salvar históricos de análise (se aplicável).
@@ -97,7 +101,7 @@ A configuração de layout e tema da UI é gerenciada principalmente através do
 - **Primary (`--primary`):** `260 58% 74%` (#9B7EDE - Violeta Suave)
 - **Accent (`--accent`):** `160 49% 67%` (#7ED6BA - Ciano Suave)
 
-O layout geral da página principal (`src/app/page.tsx`) é centralizado, com um cabeçalho, uma área principal para upload e exibição de resultados, e um rodapé. Componentes ShadCN como Card, Accordion, Button, Progress, Badge, Input, Label, e Toast são utilizados para construir a interface. A fonte principal é Geist Sans, com Geist Mono como fallback (após correção da instalação).
+O layout geral da página principal (`src/app/page.tsx`) é centralizado, com um cabeçalho, uma área principal para upload e exibição de resultados, e um rodapé. Componentes ShadCN como Card, Accordion, Button, Progress, Badge, Input, Label, e Toast são utilizados para construir a interface. A fonte principal é Geist Sans (com fallback para Inter, após correção da instalação de Geist Mono).
 
 ## 7. Processo de Atualização e Manutenção
 
