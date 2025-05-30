@@ -48,7 +48,7 @@ O aplicativo "Image Insight Explorer" está em um estágio funcional, implementa
 - **UI Components:** ShadCN UI.
 - **Estilização:** Tailwind CSS.
 - **Funcionalidades AI:** Genkit, utilizando o modelo Gemini do Google AI.
-    - `identifyObjects`: Identifica objetos na imagem e traduz seus nomes para Espanhol, Francês, Alemão, Chinês (Simplificado) e Japonês.
+    - `identifyObjects`: Identifica objetos na imagem e traduz seus nomes para Espanhol, Francês, Alemão, Chinês (Simplificado), Japonês, Português (Brasil) e Português (Portugal).
     - `searchRelatedProducts`: Busca produtos relacionados aos objetos (usando nomes em inglês).
     - `extractProductProperties`: Extrai propriedades dos produtos encontrados.
     - `findProductStoresFlow` (com `findStoresTool`): Busca lojas que vendem um produto específico (atualmente com dados simulados pela ferramenta, com planejamento para conectar ao Firebase).
@@ -226,7 +226,7 @@ Esta estrutura visa balancear a normalização (evitando duplicação excessiva 
     - **Novo:** Permitir que o usuário clique em um produto para ver mais detalhes (combinando dados da IA e do Firebase, incluindo URLs de venda e histórico de preços).
     - **Novo:** Desenvolver interfaces (protegidas por autenticação) para gerenciamento de lojas e disponibilidade de produtos (CRUD), incluindo URLs de produtos em lojas específicas e preços.
     - Adicionar opções de filtragem ou ordenação nos resultados.
-    - Internacionalização completa da interface do usuário (além dos dados já traduzidos).
+    - Internacionalização completa da interface do usuário (além dos dados já traduzidos para Espanhol, Francês, Alemão, Chinês Simplificado, Japonês, Português (Brasil) e Português (Portugal)).
 - **Autenticação e Autorização:**
     - Implementar autenticação de usuários Firebase para permitir o gerenciamento de dados (lojas, produtos, preços).
 - **Refinamento das Regras de Segurança do Firebase.**
@@ -264,7 +264,7 @@ A configuração de layout e tema da UI é gerenciada principalmente através do
 - **Primary (`--primary`):** `260 58% 74%` (#9B7EDE - Violeta Suave)
 - **Accent (`--accent`):** `160 49% 67%` (#7ED6BA - Ciano Suave)
 
-O layout geral da página principal (`src/app/page.tsx`) é centralizado, com um cabeçalho, uma área principal para upload e exibição de resultados, e um rodapé. Componentes ShadCN como Card, Accordion, Button, Progress, Badge, Input, Label, e Toast são utilizados para construir a interface. A fonte principal é Geist Sans.
+O layout geral da página principal (`src/app/page.tsx`) é centralizado, com um cabeçalho, uma área principal para upload e exibição de resultados, e um rodapé. Componentes ShadCN como Card, Accordion, Button, Progress, Badge, Input, Label, e Toast são utilizados para construir a interface. A fonte principal é Geist Sans. O rodapé agora informa que as traduções são fornecidas para: Espanhol, Francês, Alemão, Chinês (Simplificado), Japonês, Português (Brasil), Português (Portugal).
 
 ## 8. Processo de Atualização e Manutenção
 

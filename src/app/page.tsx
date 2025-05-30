@@ -30,7 +30,7 @@ type ProductSearchResultItem = {
 
 type AnalysisResults = {
   objects: TranslatedObjectType[] | null; 
-  relatedProducts: ProductSearchResultItem[] | null;
+  relatedProducts: SearchRelatedProductsOutput['searchResults'] | null; // Updated to use the direct type from flow
   productProperties: ExtractProductPropertiesOutput | null;
 };
 
@@ -46,6 +46,8 @@ const languageMap: Record<string, string> = {
   de: 'Alemão',
   zh: 'Chinês (Simplificado)',
   ja: 'Japonês',
+  pt_BR: 'Português (Brasil)',
+  pt_PT: 'Português (Portugal)',
 };
 
 export default function ImageInsightExplorerPage() {
@@ -292,13 +294,15 @@ export default function ImageInsightExplorerPage() {
                             </div>
                         </AccordionTrigger>
                         <AccordionContent>
-                          {Object.keys(item.translations).length > 0 ? (
+                          {Object.entries(item.translations).filter(([, translation]) => translation !== undefined).length > 0 ? (
                             <ul className="space-y-1 text-sm text-muted-foreground list-disc pl-5">
-                              {Object.entries(item.translations).map(([langCode, translation]) => (
-                                <li key={langCode}>
-                                  <span className="font-medium text-foreground">{languageMap[langCode] || langCode}:</span> {translation}
-                                </li>
-                              ))}
+                              {Object.entries(item.translations).map(([langCode, translation]) => 
+                                translation && languageMap[langCode] && (
+                                  <li key={langCode}>
+                                    <span className="font-medium text-foreground">{languageMap[langCode]}:</span> {translation}
+                                  </li>
+                                )
+                              )}
                             </ul>
                           ) : (
                             <p className="text-sm text-muted-foreground italic">No translations available for {item.original}.</p>
@@ -419,7 +423,7 @@ export default function ImageInsightExplorerPage() {
       </main>
       <footer className="mt-12 py-6 text-center text-sm text-muted-foreground border-t w-full max-w-4xl">
         <p>&copy; {new Date().getFullYear()} Image Insight Explorer. Powered by Genkit AI.</p>
-        <p>Translations provided for: Spanish, French, German, Chinese (Simplified), Japanese.</p>
+        <p>Translations provided for: Spanish, French, German, Chinese (Simplified), Japanese, Portuguese (Brazil), Portuguese (Portugal).</p>
       </footer>
     </div>
   );

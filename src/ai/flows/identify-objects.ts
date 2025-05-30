@@ -30,7 +30,9 @@ const _TranslatedObjectSchema = z.object({
     de: z.string().optional().describe('Translation to German.'),
     zh: z.string().optional().describe('Translation to Chinese (Simplified).'),
     ja: z.string().optional().describe('Translation to Japanese.'),
-  }).describe('An object where keys are language codes (e.g., "es", "fr") and values are the translated object names. Properties are optional if a translation is not available.'),
+    pt_BR: z.string().optional().describe('Translation to Portuguese (Brazil).'),
+    pt_PT: z.string().optional().describe('Translation to Portuguese (Portugal).'),
+  }).describe('An object where keys are language codes (e.g., "es", "fr", "pt_BR") and values are the translated object names. Properties are optional if a translation is not available.'),
 });
 export type TranslatedObjectType = z.infer<typeof _TranslatedObjectSchema>;
 
@@ -58,7 +60,7 @@ Example: {"objects": ["cat", "table", "plant"]}`,
 // Prompt to translate a list of object names
 const BatchTranslateObjectsInputSchema = z.object({
   objectNames: z.array(z.string()).describe('A list of object names in English.'),
-  languageCodes: z.array(z.string()).describe('A list of ISO 639-1 language codes to translate to.'),
+  languageCodes: z.array(z.string()).describe('A list of ISO 639-1 language codes with region (e.g., pt-BR) to translate to.'),
 });
 const BatchTranslateObjectsOutputSchema = z.array(_TranslatedObjectSchema);
 
@@ -75,27 +77,27 @@ Input Object Names (English):
 {{/each}}
 
 Target Language Codes: {{#each languageCodes}}{{{this}}}{{#unless @last}}, {{/unless}}{{/each}}
-(Language codes example: "es" for Spanish, "fr" for French, "de" for German, "zh" for Chinese Simplified, "ja" for Japanese)
+(Language codes example: "es" for Spanish, "fr" for French, "de" for German, "zh" for Chinese Simplified, "ja" for Japanese, "pt-BR" for Portuguese (Brazil), "pt-PT" for Portuguese (Portugal))
 
 Please provide the output as a JSON array. Each object in the array should correspond to an original English object name and must contain:
 1. An "original" field: a string with the original English object name.
-2. A "translations" field: an object where keys are the target language codes (e.g., "es", "fr", "de", "zh", "ja") and values are the translated names in those languages.
+2. A "translations" field: an object where keys are the target language codes (e.g., "es", "fr", "de", "zh", "ja", "pt_BR", "pt_PT" - use underscore for Brazil/Portugal variants in JSON keys) and values are the translated names in those languages.
 
 Example:
-If Input Object Names are ["cat", "dog"] and Target Language Codes are ["es", "fr"], the output should be:
+If Input Object Names are ["cat", "dog"] and Target Language Codes are ["es", "pt-BR"], the output should be:
 [
   {
     "original": "cat",
     "translations": {
       "es": "gato",
-      "fr": "chat"
+      "pt_BR": "gato"
     }
   },
   {
     "original": "dog",
     "translations": {
       "es": "perro",
-      "fr": "chien"
+      "pt_BR": "cachorro"
     }
   }
 ]
@@ -124,26 +126,31 @@ const identifyObjectsFlow = ai.defineFlow(
     const englishObjectNames = visionOutput.objects;
 
     // Step 2: Translate the identified object names
-    const targetLanguageCodes = ['es', 'fr', 'de', 'zh', 'ja']; // Spanish, French, German, Chinese (Simplified), Japanese
+    const targetLanguageCodes = ['es', 'fr', 'de', 'zh', 'ja', 'pt-BR', 'pt-PT']; 
     
     const {output: translationOutput} = await batchTranslateObjectsPrompt({
       objectNames: englishObjectNames,
       languageCodes: targetLanguageCodes,
     });
 
+    const createEmptyTranslations = (): TranslatedObjectType['translations'] => {
+        const translations: TranslatedObjectType['translations'] = {};
+        if (targetLanguageCodes.includes('es')) translations.es = undefined;
+        if (targetLanguageCodes.includes('fr')) translations.fr = undefined;
+        if (targetLanguageCodes.includes('de')) translations.de = undefined;
+        if (targetLanguageCodes.includes('zh')) translations.zh = undefined;
+        if (targetLanguageCodes.includes('ja')) translations.ja = undefined;
+        if (targetLanguageCodes.includes('pt-BR')) translations.pt_BR = undefined;
+        if (targetLanguageCodes.includes('pt-PT')) translations.pt_PT = undefined;
+        return translations;
+    };
+    
     if (!translationOutput) {
         // Fallback: if translation fails, return original objects without translations
-        const emptyTranslations: TranslatedObjectType['translations'] = {};
-        if (targetLanguageCodes.includes('es')) emptyTranslations.es = undefined;
-        if (targetLanguageCodes.includes('fr')) emptyTranslations.fr = undefined;
-        if (targetLanguageCodes.includes('de')) emptyTranslations.de = undefined;
-        if (targetLanguageCodes.includes('zh')) emptyTranslations.zh = undefined;
-        if (targetLanguageCodes.includes('ja')) emptyTranslations.ja = undefined;
-
         return { 
             identifiedItems: englishObjectNames.map(name => ({
                 original: name,
-                translations: emptyTranslations 
+                translations: createEmptyTranslations()
             }))
         };
     }
@@ -151,19 +158,20 @@ const identifyObjectsFlow = ai.defineFlow(
     const finalItems: TranslatedObjectType[] = englishObjectNames.map(originalName => {
         const translatedItem = translationOutput.find(tItem => tItem.original === originalName);
         if (translatedItem) {
-            return translatedItem;
+            // Ensure all expected language keys are present, even if undefined
+            const completeTranslations = createEmptyTranslations();
+            if (translatedItem.translations) {
+                for (const langKey in translatedItem.translations) {
+                    if (Object.prototype.hasOwnProperty.call(completeTranslations, langKey)) {
+                        (completeTranslations as any)[langKey] = (translatedItem.translations as any)[langKey];
+                    }
+                }
+            }
+            return { ...translatedItem, translations: completeTranslations };
         }
-        const emptyTranslationsForSingle: TranslatedObjectType['translations'] = {};
-        if (targetLanguageCodes.includes('es')) emptyTranslationsForSingle.es = undefined;
-        if (targetLanguageCodes.includes('fr')) emptyTranslationsForSingle.fr = undefined;
-        if (targetLanguageCodes.includes('de')) emptyTranslationsForSingle.de = undefined;
-        if (targetLanguageCodes.includes('zh')) emptyTranslationsForSingle.zh = undefined;
-        if (targetLanguageCodes.includes('ja')) emptyTranslationsForSingle.ja = undefined;
-        return { original: originalName, translations: emptyTranslationsForSingle }; 
+        return { original: originalName, translations: createEmptyTranslations() }; 
     });
-
 
     return { identifiedItems: finalItems };
   }
 );
-
