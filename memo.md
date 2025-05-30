@@ -7,10 +7,12 @@
 - Traduzir os nomes dos objetos identificados para múltiplos idiomas.
 - Fornecer uma lista de produtos relacionados aos objetos identificados.
 - Extrair e exibir propriedades chave dos produtos relacionados.
-- **Novo:** Permitir a busca por lojas que vendem um produto específico (usando IA e ferramentas).
+- Permitir a busca por lojas que vendem um produto específico (usando IA e ferramentas).
+- **Novo:** Permitir que o sistema utilize a localização GPS do usuário (com consentimento) para otimizar a busca por lojas.
+- **Novo:** Permitir o cadastro de URLs de produtos em lojas específicas.
 - Integrar com Firebase Realtime Database para:
     - Manter um catálogo de produtos com informações multilíngues.
-    - Registrar lojas.
+    - Registrar lojas, incluindo sua localização geográfica.
     - Rastrear o histórico de preços dos produtos em diferentes lojas.
 - Oferecer uma interface de usuário intuitiva e responsiva para facilitar a interação.
 
@@ -32,9 +34,12 @@
     - O sistema exibe informações do produto, incluindo dados multilíngues e histórico de preços por loja.
 - **UC6: Gerenciamento de Dados de Produtos (Futuro, com Autenticação):**
     - Usuários autenticados (administradores) poderão adicionar/editar produtos, lojas e registrar preços.
-- **UC7 (Novo): Busca de Lojas para um Produto (IA com Ferramenta):**
+- **UC7: Busca de Lojas para um Produto (IA com Ferramenta e DB):**
     - O usuário (ou sistema, após identificar um produto) pode solicitar a busca de lojas que vendem um produto específico.
-    - O sistema (via IA e uma ferramenta `findStoresTool`) retorna uma lista de lojas que vendem o produto (inicialmente com dados simulados).
+    - O sistema (via IA e uma ferramenta `findStoresTool` conectada ao Firebase) retorna uma lista de lojas que vendem o produto.
+    - **Novo:** Opcionalmente, se o usuário fornecer sua localização, o sistema pode priorizar lojas próximas.
+- **UC8 (Novo): Cadastro de Informações de Lojas e Produtos:**
+    - Usuários administradores (ou o sistema via IA no futuro, para sugestões) poderão cadastrar novas lojas, incluindo sua localização (coordenadas GPS), e os produtos que vendem com seus respectivos URLs de site de venda e preços.
 
 ## 3. Estado Atual
 
@@ -46,15 +51,16 @@ O aplicativo "Image Insight Explorer" está em um estágio funcional, implementa
     - `identifyObjects`: Identifica objetos na imagem e traduz seus nomes para Espanhol, Francês, Alemão, Chinês (Simplificado) e Japonês.
     - `searchRelatedProducts`: Busca produtos relacionados aos objetos (usando nomes em inglês).
     - `extractProductProperties`: Extrai propriedades dos produtos encontrados.
-    - **Novo:** `findProductStoresFlow` (com `findStoresTool`): Busca lojas que vendem um produto específico (atualmente com dados simulados pela ferramenta).
-- **Testes:** Configuração inicial de Jest para testes unitários dos fluxos de AI.
+    - `findProductStoresFlow` (com `findStoresTool`): Busca lojas que vendem um produto específico (atualmente com dados simulados pela ferramenta, com planejamento para conectar ao Firebase).
+- **Testes:** Configuração de Jest para testes unitários, com testes iniciais para `identifyObjects` e `findProductStoresFlow`.
 - **Banco de Dados:** Configuração inicial do Firebase Realtime Database (inicialização e definição da estrutura de dados).
+- **Deployment:** Configurado para Vercel.
 
 Principais funcionalidades implementadas:
 - Upload de imagens (com validação de tipo e tamanho).
 - Pré-visualização da imagem selecionada.
 - Processamento de imagem em três etapas assíncronas com IA (identificação, busca de produtos, extração de propriedades).
-- Exibição dos resultados da IA em seções distintas.
+- Exibição dos resultados da IA em seções distintas, incluindo traduções de objetos.
 - Barra de progresso e mensagens de status durante a análise.
 - Sistema de notificações (toast).
 - Design responsivo e tema customizado.
@@ -130,7 +136,9 @@ Armazena informações sobre as lojas onde os produtos são vendidos.
     - `city`: "Cidade Exemplo"
     - `countryCode`: "BR"
     - `postalCode`: "12345-678"
-    - `coordinates` (opcional): { `lat`: -23.5505, `lng`: -46.6333 }
+    - `coordinates` (objeto, opcional): Coordenadas GPS.
+        - `lat` (number): Latitude.
+        - `lng` (number): Longitude.
 - `defaultCurrency` (string): Código da moeda padrão da loja (ex: "BRL", "USD").
 - `createdAt` (timestamp): Data de criação do registro.
 - `updatedAt` (timestamp): Data da última atualização.
@@ -143,7 +151,11 @@ Armazena informações sobre as lojas onde os produtos são vendidos.
     "address": "Av. Brasil, 1000",
     "city": "Rio de Janeiro",
     "countryCode": "BR",
-    "postalCode": "20000-000"
+    "postalCode": "20000-000",
+    "coordinates": {
+        "lat": -22.9068,
+        "lng": -43.1729
+    }
   },
   "defaultCurrency": "BRL",
   "createdAt": 1678886400000,
@@ -156,7 +168,7 @@ Rastreia o preço, disponibilidade e histórico de preços de um produto especí
 - `currentPrice` (number): Preço atual do produto na loja.
 - `currency` (string): Código da moeda do preço (ex: "BRL"). Pode ser o mesmo da loja ou específico.
 - `inStock` (boolean, opcional): Se o produto está em estoque.
-- `productUrl` (string, opcional): URL do produto na loja online.
+- `productUrl` (string, opcional): URL do produto no site de venda da loja online.
 - `lastSeen` (timestamp): Última vez que esta informação foi verificada/atualizada.
 - `priceHistory` (objeto): Histórico de preços. A chave é um timestamp.
     - `"{timestamp}"`: (number) O preço naquele momento.
@@ -190,34 +202,40 @@ Esta estrutura visa balancear a normalização (evitando duplicação excessiva 
 - **Performance:** O processamento de IA pode levar alguns segundos.
 - **Gerenciamento de Erros:** Continuar refinando para cobrir mais casos de borda.
 - **Custo:** O uso de modelos de IA generativa e Firebase Realtime Database pode incorrer em custos. **É crucial que este projeto não gere custos significativos ou inesperados.**
-- **Configuração de Ambiente na Vercel:** As variáveis de ambiente (`GEMINI_API_KEY`, `NEXT_PUBLIC_FIREBASE_*`) precisam ser configuradas no painel da Vercel.
+- **Configuração de Ambiente na Vercel:** As variáveis de ambiente (`GEMINI_API_KEY`, `NEXT_PUBLIC_FIREBASE_*`) precisam ser configuradas no painel da Vercel. (Confirmado pelo usuário que estão configuradas).
 - **Segurança do Firebase:** As regras de segurança do Firebase Realtime Database precisarão ser configuradas.
-- **Autenticação de Usuários:** Essencial para funcionalidades de escrita no banco de dados.
+- **Autenticação de Usuários:** Essencial para funcionalidades de escrita no banco de dados (cadastro de lojas, produtos, preços).
+- **Novo:** **Privacidade do Usuário:** A solicitação e o uso da localização GPS do usuário devem ser feitos com consentimento claro e transparente, informando como os dados serão utilizados.
+- **Novo:** **Precisão da Geolocalização:** A precisão da localização GPS obtida do navegador pode variar dependendo do dispositivo e do ambiente. A localização de lojas dependerá da precisão dos dados inseridos.
 
 ## 6. Próximos Passos
 
 - **Desenvolvimento do Catálogo de Produtos (Firebase):**
-    - Implementar as funções CRUD para `/products`, `/stores`, e `/productAvailability`.
-    - Desenvolver UI para visualização e gerenciamento desses dados.
+    - Implementar as funções CRUD para `/products`, `/stores`, e `/productAvailability` (incluindo `productUrl` e `coordinates` para lojas).
+    - Desenvolver UI para visualização e gerenciamento desses dados (requer autenticação para escrita).
+    - **Novo:** Implementar interface para cadastro/edição de coordenadas de lojas.
     - Integrar a busca de produtos na UI para consultar o Firebase.
 - **Integração dos Fluxos de IA com o Banco de Dados:**
     - Modificar `searchRelatedProducts` para tentar encontrar correspondências no catálogo de produtos do Firebase.
     - Permitir que `extractProductProperties` salve as propriedades extraídas para os produtos no Firebase.
-    - **Novo:** Conectar a ferramenta `findStoresTool` ao catálogo de `/stores` e `/productAvailability` do Firebase em vez de usar dados simulados.
+    - Conectar a ferramenta `findStoresTool` ao catálogo de `/stores` e `/productAvailability` do Firebase em vez de usar dados simulados. **Novo:** Incluir a capacidade de usar a localização GPS do usuário (se fornecida e consentida) para filtrar ou priorizar os resultados da busca por lojas.
     - Adicionar funcionalidade para sugerir a criação de novos produtos/lojas no banco se não existirem.
 - **Melhorias na UI/UX:**
-    - **Novo:** Integrar o fluxo `findProductStoresFlow` na UI. Por exemplo, ao exibir um produto, adicionar um botão "Encontrar Lojas" que chama este fluxo e exibe os resultados.
-    - Permitir que o usuário clique em um produto para ver mais detalhes (combinando dados da IA e do Firebase).
-    - Adicionar opções de filtragem ou ordenação.
-    - Internacionalização completa da interface do usuário.
+    - Integrar o fluxo `findProductStoresFlow` na UI. Por exemplo, ao exibir um produto, adicionar um botão "Encontrar Lojas" que chama este fluxo e exibe os resultados.
+    - **Novo:** Implementar funcionalidade no frontend para solicitar e obter a localização GPS do usuário (com consentimento claro) para ser usada na busca por lojas.
+    - **Novo:** Permitir que o usuário clique em um produto para ver mais detalhes (combinando dados da IA e do Firebase, incluindo URLs de venda e histórico de preços).
+    - **Novo:** Desenvolver interfaces (protegidas por autenticação) para gerenciamento de lojas e disponibilidade de produtos (CRUD), incluindo URLs de produtos em lojas específicas e preços.
+    - Adicionar opções de filtragem ou ordenação nos resultados.
+    - Internacionalização completa da interface do usuário (além dos dados já traduzidos).
 - **Autenticação e Autorização:**
-    - Implementar autenticação de usuários Firebase.
+    - Implementar autenticação de usuários Firebase para permitir o gerenciamento de dados (lojas, produtos, preços).
 - **Refinamento das Regras de Segurança do Firebase.**
 - **Infraestrutura e Operações:**
     - Logging mais robusto.
 - **Testes:**
-    - **Aumentar a cobertura de testes unitários, incluindo para o novo fluxo `findProductStoresFlow` e a ferramenta `findStoresTool`.**
+    - Aumentar a cobertura de testes unitários para os fluxos de IA, incluindo o novo fluxo `findProductStoresFlow` e a ferramenta `findStoresTool`.
     - Adicionar testes para os serviços Firebase quando implementados.
+    - **Novo:** Testar a lógica de geolocalização e busca de lojas próximas.
 
 ## 7. Histórico de Configurações de Layout da UI (Tema Atual)
 
