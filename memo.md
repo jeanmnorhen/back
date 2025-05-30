@@ -60,7 +60,7 @@ Principais funcionalidades implementadas:
 - Upload de imagens (com validação de tipo e tamanho).
 - Pré-visualização da imagem selecionada.
 - Processamento de imagem em três etapas assíncronas com IA (identificação, busca de produtos, extração de propriedades).
-- Exibição dos resultados da IA em seções distintas, incluindo traduções de objetos.
+- Exibição dos resultados da IA em seções distintas, incluindo traduções de objetos para Espanhol, Francês, Alemão, Chinês (Simplificado), Japonês, Português (Brasil) e Português (Portugal).
 - Barra de progresso e mensagens de status durante a análise.
 - Sistema de notificações (toast).
 - Design responsivo e tema customizado.
@@ -269,3 +269,6 @@ O layout geral da página principal (`src/app/page.tsx`) é centralizado, com um
 ## 8. Processo de Atualização e Manutenção
 
 - **Nota Importante:** Sempre que for identificado um ponto final "." (marcando a conclusão de uma tarefa ou alteração significativa no projeto), o arquivo `memo.md` deve ser analisado e atualizado para refletir a realidade atual do projeto. Isso garante que o documento permaneça uma fonte de verdade relevante e atualizada.
+- **Novo:** Dois pontos finais seguidos ".." significam que o sistema deve continuar o último passo (se estiver em andamento) ou iniciar o próximo passo na lista de tarefas.
+
+```
