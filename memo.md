@@ -51,17 +51,19 @@ O aplicativo "Image Insight Explorer" está em um estágio funcional, implementa
     - `identifyObjects`: Identifica objetos na imagem e traduz seus nomes para Espanhol, Francês, Alemão, Chinês (Simplificado), Japonês, Português (Brasil) e Português (Portugal).
     - `searchRelatedProducts`: Busca produtos relacionados aos objetos (usando nomes em inglês).
     - `extractProductProperties`: Extrai propriedades dos produtos encontrados.
-    - `findProductStoresFlow` (com `findStoresTool`): Busca lojas que vendem um produto específico (atualmente com dados simulados pela ferramenta, com planejamento para conectar ao Firebase). **Parcialmente integrado na UI.**
+    - `findProductStoresFlow` (com `findStoresTool`): Busca lojas que vendem um produto específico (atualmente com dados simulados pela ferramenta, com planejamento para conectar ao Firebase). **Integrado na UI.**
 - **Testes:** Configuração de Jest para testes unitários, com testes iniciais para `identifyObjects` e `findProductStoresFlow`.
 - **Banco de Dados:** Configuração inicial do Firebase Realtime Database (inicialização e definição da estrutura de dados).
 - **Deployment:** Configurado para Vercel.
+- **Geolocalização:** Frontend implementado para solicitar e obter a localização GPS do usuário.
 
 Principais funcionalidades implementadas:
 - Upload de imagens (com validação de tipo e tamanho).
 - Pré-visualização da imagem selecionada.
 - Processamento de imagem em três etapas assíncronas com IA (identificação, busca de produtos, extração de propriedades).
 - Exibição dos resultados da IA em seções distintas, incluindo traduções de objetos para Espanhol, Francês, Alemão, Chinês (Simplificado), Japonês, Português (Brasil) e Português (Portugal).
-- **Novo:** Interface para acionar a busca de lojas para produtos relacionados e exibir os resultados (usando o fluxo `findProductStoresFlow` com dados simulados).
+- Interface para acionar a busca de lojas para produtos relacionados e exibir os resultados (usando o fluxo `findProductStoresFlow` com dados simulados).
+- **Novo:** Interface para solicitar e exibir a localização GPS do usuário (via navegador).
 - Barra de progresso e mensagens de status durante a análise.
 - Sistema de notificações (toast).
 - Design responsivo e tema customizado.
@@ -200,7 +202,7 @@ Esta estrutura visa balancear a normalização (evitando duplicação excessiva 
 - **Dados Simulados para Ferramentas:** A ferramenta `findStoresTool` atualmente usa dados simulados. Para funcionalidade real, precisará ser conectada a um banco de dados de lojas ou API externa.
 - **Limites da API:** O uso das APIs de IA (Google AI) pode estar sujeito a cotas e limitações.
 - **Tamanho da Imagem:** Atualmente, há um limite de 5MB para upload, o que é uma boa prática, mas deve ser comunicado claramente.
-- **Performance:** O processamento de IA pode levar alguns segundos.
+- **Performance:** O processamento de IA pode levar alguns segundos. A obtenção da localização GPS depende da resposta do usuário e do hardware/software.
 - **Gerenciamento de Erros:** Continuar refinando para cobrir mais casos de borda.
 - **Custo:** O uso de modelos de IA generativa e Firebase Realtime Database pode incorrer em custos. **É crucial que este projeto não gere custos significativos ou inesperados.**
 - **Configuração de Ambiente na Vercel:** As variáveis de ambiente (`GEMINI_API_KEY`, `NEXT_PUBLIC_FIREBASE_*`) precisam ser configuradas no painel da Vercel. (Confirmado pelo usuário que estão configuradas).
@@ -222,8 +224,7 @@ Esta estrutura visa balancear a normalização (evitando duplicação excessiva 
     - Conectar a ferramenta `findStoresTool` ao catálogo de `/stores` e `/productAvailability` do Firebase em vez de usar dados simulados. **Novo:** Incluir a capacidade de usar a localização GPS do usuário (se fornecida e consentida) para filtrar ou priorizar os resultados da busca por lojas.
     - Adicionar funcionalidade para sugerir a criação de novos produtos/lojas no banco se não existirem.
 - **Melhorias na UI/UX:**
-    - **(Em Andamento)** Integrar o fluxo `findProductStoresFlow` na UI. Por exemplo, ao exibir um produto, adicionar um botão "Encontrar Lojas" que chama este fluxo e exibe os resultados.
-    - **Novo:** Implementar funcionalidade no frontend para solicitar e obter a localização GPS do usuário (com consentimento claro) para ser usada na busca por lojas.
+    - **(Frontend Implementado)** Implementar funcionalidade no frontend para solicitar e obter a localização GPS do usuário (com consentimento claro) para ser usada na busca por lojas. *Próximo passo: integrar com backend/fluxos.*
     - **Novo:** Permitir que o usuário clique em um produto para ver mais detalhes (combinando dados da IA e do Firebase, incluindo URLs de venda e histórico de preços).
     - **Novo:** Desenvolver interfaces (protegidas por autenticação) para gerenciamento de lojas e disponibilidade de produtos (CRUD), incluindo URLs de produtos em lojas específicas e preços.
     - Adicionar opções de filtragem ou ordenação nos resultados.
@@ -265,10 +266,9 @@ A configuração de layout e tema da UI é gerenciada principalmente através do
 - **Primary (`--primary`):** `260 58% 74%` (#9B7EDE - Violeta Suave)
 - **Accent (`--accent`):** `160 49% 67%` (#7ED6BA - Ciano Suave)
 
-O layout geral da página principal (`src/app/page.tsx`) é centralizado, com um cabeçalho, uma área principal para upload e exibição de resultados, e um rodapé. Componentes ShadCN como Card, Accordion, Button, Progress, Badge, Input, Label, e Toast são utilizados para construir a interface. A fonte principal é Geist Sans. O rodapé agora informa que as traduções são fornecidas para: Espanhol, Francês, Alemão, Chinês (Simplificado), Japonês, Português (Brasil), Português (Portugal).
+O layout geral da página principal (`src/app/page.tsx`) é centralizado, com um cabeçalho, uma área principal para upload e exibição de resultados, e um rodapé. Componentes ShadCN como Card, Accordion, Button, Progress, Badge, Input, Label, e Toast são utilizados para construir a interface. A fonte principal é Geist Sans. O rodapé agora informa que as traduções são fornecidas para: Espanhol, Francês, Alemão, Chinês (Simplificado), Japonês, Português (Brasil), Português (Portugal). A interface também inclui uma seção para o usuário permitir o acesso à sua localização GPS.
 
 ## 8. Processo de Atualização e Manutenção
 
 - **Nota Importante:** Sempre que for identificado um ponto final "." (marcando a conclusão de uma tarefa ou alteração significativa no projeto), o arquivo `memo.md` deve ser analisado e atualizado para refletir a realidade atual do projeto. Isso garante que o documento permaneça uma fonte de verdade relevante e atualizada.
 - **Novo:** Dois pontos finais seguidos ".." significam que o sistema deve continuar o último passo (se estiver em andamento) ou iniciar o próximo passo na lista de tarefas.
-

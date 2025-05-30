@@ -1,31 +1,31 @@
-'use server';
+
 /**
  * @fileOverview Ferramenta Genkit para encontrar lojas que vendem um determinado produto.
  *
  * - findStoresTool - A definição da ferramenta Genkit.
- * - FindStoresToolInputSchema - O esquema de entrada para a ferramenta.
- * - FindStoresToolOutputSchema - O esquema de saída para a ferramenta.
+ * - FindStoresToolInput - O tipo de entrada para a ferramenta (schema é interno).
+ * - FindStoresToolOutput - O tipo de saída para a ferramenta (schema é interno).
  */
 
 import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
 
-export const FindStoresToolInputSchema = z.object({
+const _FindStoresToolInputSchema = z.object({
   productName: z.string().describe('O nome do produto para o qual encontrar lojas.'),
 });
-export type FindStoresToolInput = z.infer<typeof FindStoresToolInputSchema>;
+export type FindStoresToolInput = z.infer<typeof _FindStoresToolInputSchema>;
 
-export const FindStoresToolOutputSchema = z.object({
+const _FindStoresToolOutputSchema = z.object({
   stores: z.array(z.string()).describe('Uma lista de nomes de lojas que vendem o produto.'),
 });
-export type FindStoresToolOutput = z.infer<typeof FindStoresToolOutputSchema>;
+export type FindStoresToolOutput = z.infer<typeof _FindStoresToolOutputSchema>;
 
 export const findStoresTool = ai.defineTool(
   {
     name: 'findStoresTool',
     description: 'Busca e retorna uma lista de lojas que vendem um produto específico. Use esta ferramenta quando o usuário perguntar onde comprar um produto.',
-    inputSchema: FindStoresToolInputSchema,
-    outputSchema: FindStoresToolOutputSchema,
+    inputSchema: _FindStoresToolInputSchema,
+    outputSchema: _FindStoresToolOutputSchema,
   },
   async ({ productName }) => {
     // Implementação simulada (mock)

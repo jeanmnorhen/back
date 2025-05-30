@@ -4,7 +4,7 @@
 import type { ChangeEvent, FormEvent } from 'react';
 import { useState, useEffect } from 'react';
 import NextImage from 'next/image';
-import { UploadCloud, Image as ImageIcon, Loader2, AlertTriangle, Wand2, ScanSearch, ShoppingBag, Tags, PackageSearch, Languages, Store } from 'lucide-react';
+import { UploadCloud, Image as ImageIcon, Loader2, AlertTriangle, Wand2, ScanSearch, ShoppingBag, Tags, PackageSearch, Languages, Store, MapPin } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -35,6 +35,11 @@ type StoreSearchResults = {
     error?: string | null;
   }
 }
+
+type UserLocation = {
+  latitude: number;
+  longitude: number;
+};
 
 type AnalysisResults = {
   objects: TranslatedObjectType[] | null;
@@ -71,6 +76,11 @@ export default function ImageInsightExplorerPage() {
   const [error, setError] = useState<string | null>(null);
   const [results, setResults] = useState<AnalysisResults>(initialResultsState);
 
+  const [userLocation, setUserLocation] = useState<UserLocation | null>(null);
+  const [locationError, setLocationError] = useState<string | null>(null);
+  const [isRequestingLocation, setIsRequestingLocation] = useState(false);
+
+
   const { toast } = useToast();
 
   useEffect(() => {
@@ -93,15 +103,15 @@ export default function ImageInsightExplorerPage() {
     const file = event.target.files?.[0];
     if (file) {
       if (file.size > 5 * 1024 * 1024) { // 5MB limit
-        setError('File is too large. Maximum size is 5MB.');
-        toast({ title: 'Error', description: 'File is too large. Maximum size is 5MB.', variant: 'destructive' });
+        setError('Arquivo muito grande. O tamanho máximo é 5MB.');
+        toast({ title: 'Erro', description: 'Arquivo muito grande. O tamanho máximo é 5MB.', variant: 'destructive' });
         setSelectedFile(null);
         setPreviewUrl(null);
         return;
       }
       if (!file.type.startsWith('image/')) {
-        setError('Invalid file type. Please upload an image.');
-        toast({ title: 'Error', description: 'Invalid file type. Please upload an image.', variant: 'destructive' });
+        setError('Tipo de arquivo inválido. Por favor, envie uma imagem.');
+        toast({ title: 'Erro', description: 'Tipo de arquivo inválido. Por favor, envie uma imagem.', variant: 'destructive' });
         setSelectedFile(null);
         setPreviewUrl(null);
         return;
@@ -121,12 +131,12 @@ export default function ImageInsightExplorerPage() {
     setProgressValue(0);
 
     try {
-      setCurrentStep('Identifying & translating objects...');
+      setCurrentStep('Identificando & traduzindo objetos...');
       setProgressValue(25);
       const objectsAndTranslationsResult: IdentifyObjectsOutput = await identifyObjects({ photoDataUri: imageDataUri });
       
       if (!objectsAndTranslationsResult || !objectsAndTranslationsResult.identifiedItems || objectsAndTranslationsResult.identifiedItems.length === 0) {
-        toast({ title: 'Analysis Complete', description: 'No objects identified in the image.', variant: 'default' });
+        toast({ title: 'Análise Concluída', description: 'Nenhum objeto identificado na imagem.', variant: 'default' });
         setResults(prev => ({ ...prev, objects: [] }));
         setProgressValue(100);
         setIsLoading(false);
@@ -134,19 +144,19 @@ export default function ImageInsightExplorerPage() {
         return;
       }
       setResults(prev => ({ ...prev, objects: objectsAndTranslationsResult.identifiedItems }));
-      toast({ title: 'Step Complete', description: 'Objects identified and translated successfully!', variant: 'default' });
+      toast({ title: 'Etapa Concluída', description: 'Objetos identificados e traduzidos com sucesso!', variant: 'default' });
       setProgressValue(50);
 
       const englishObjectNames = objectsAndTranslationsResult.identifiedItems.map(item => item.original);
 
-      setCurrentStep('Searching for related products...');
+      setCurrentStep('Buscando produtos relacionados...');
       const relatedProductsResult = await searchRelatedProducts({ objects: englishObjectNames });
        if (!relatedProductsResult || !relatedProductsResult.searchResults || relatedProductsResult.searchResults.length === 0) {
-          toast({ title: 'Step Complete', description: 'No related products found for any object.', variant: 'default' });
+          toast({ title: 'Etapa Concluída', description: 'Nenhum produto relacionado encontrado para os objetos.', variant: 'default' });
           setResults(prev => ({...prev, relatedProducts: []}))
       } else {
         setResults(prev => ({ ...prev, relatedProducts: relatedProductsResult.searchResults }));
-        toast({ title: 'Step Complete', description: 'Related products found!', variant: 'default' });
+        toast({ title: 'Etapa Concluída', description: 'Produtos relacionados encontrados!', variant: 'default' });
       }
       setProgressValue(75);
       
@@ -162,20 +172,20 @@ export default function ImageInsightExplorerPage() {
       }
       
       if (allProducts.length > 0) {
-        setCurrentStep('Extracting product properties...');
+        setCurrentStep('Extraindo propriedades dos produtos...');
         const propertiesResult = await extractProductProperties(allProducts);
         setResults(prev => ({ ...prev, productProperties: propertiesResult }));
-        toast({ title: 'Analysis Complete', description: 'Product properties extracted!', variant: 'default' });
+        toast({ title: 'Análise Concluída', description: 'Propriedades dos produtos extraídas!', variant: 'default' });
       } else {
-         toast({ title: 'Analysis Update', description: 'No products to extract properties from. Skipping property extraction.', variant: 'default' });
+         toast({ title: 'Atualização da Análise', description: 'Nenhum produto para extrair propriedades. Etapa de extração de propriedades ignorada.', variant: 'default' });
       }
       setProgressValue(100);
 
     } catch (err) {
-      console.error('Error during AI processing:', err);
-      const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred during AI processing.';
+      console.error('Erro durante o processamento da IA:', err);
+      const errorMessage = err instanceof Error ? err.message : 'Ocorreu um erro desconhecido durante o processamento da IA.';
       setError(errorMessage);
-      toast({ title: 'Error', description: errorMessage, variant: 'destructive' });
+      toast({ title: 'Erro', description: errorMessage, variant: 'destructive' });
     } finally {
       setIsLoading(false);
       setCurrentStep(null);
@@ -185,8 +195,8 @@ export default function ImageInsightExplorerPage() {
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (!selectedFile) {
-      setError('Please select an image file.');
-      toast({ title: 'Error', description: 'Please select an image file.', variant: 'destructive' });
+      setError('Por favor, selecione um arquivo de imagem.');
+      toast({ title: 'Erro', description: 'Por favor, selecione um arquivo de imagem.', variant: 'destructive' });
       return;
     }
 
@@ -196,8 +206,8 @@ export default function ImageInsightExplorerPage() {
       processImage(imageDataUri);
     };
     reader.onerror = () => {
-      setError('Failed to read the image file.');
-      toast({ title: 'Error', description: 'Failed to read the image file.', variant: 'destructive' });
+      setError('Falha ao ler o arquivo de imagem.');
+      toast({ title: 'Erro', description: 'Falha ao ler o arquivo de imagem.', variant: 'destructive' });
     }
     reader.readAsDataURL(selectedFile);
   };
@@ -221,13 +231,13 @@ export default function ImageInsightExplorerPage() {
         }
       }));
       if (storeResults.foundStores.length > 0) {
-        toast({ title: 'Stores Found', description: `Found stores for ${productName}.`, variant: 'default' });
+        toast({ title: 'Lojas Encontradas', description: `Lojas encontradas para ${productName}.`, variant: 'default' });
       } else {
-        toast({ title: 'No Stores Found', description: `No stores found for ${productName}.`, variant: 'default' });
+        toast({ title: 'Nenhuma Loja Encontrada', description: `Nenhuma loja encontrada para ${productName}.`, variant: 'default' });
       }
     } catch (err) {
-      console.error(`Error finding stores for ${productName}:`, err);
-      const errorMessage = err instanceof Error ? err.message : 'Unknown error finding stores.';
+      console.error(`Erro ao encontrar lojas para ${productName}:`, err);
+      const errorMessage = err instanceof Error ? err.message : 'Erro desconhecido ao encontrar lojas.';
       setResults(prev => ({
         ...prev,
         storeSearch: {
@@ -235,9 +245,46 @@ export default function ImageInsightExplorerPage() {
           [productName]: { isLoading: false, stores: null, error: errorMessage }
         }
       }));
-      toast({ title: 'Error Finding Stores', description: errorMessage, variant: 'destructive' });
+      toast({ title: 'Erro ao Encontrar Lojas', description: errorMessage, variant: 'destructive' });
     }
   };
+
+  const handleRequestLocation = () => {
+    if (!navigator.geolocation) {
+      setLocationError('Geolocalização não é suportada pelo seu navegador.');
+      toast({ title: 'Erro de Geolocalização', description: 'Geolocalização não é suportada pelo seu navegador.', variant: 'destructive' });
+      return;
+    }
+    
+    setIsRequestingLocation(true);
+    setLocationError(null);
+    setUserLocation(null);
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        setUserLocation({
+          latitude: position.coords.latitude,
+          longitude: position.coords.longitude,
+        });
+        toast({ title: 'Localização Obtida', description: 'Sua localização foi obtida com sucesso!', variant: 'default' });
+        setIsRequestingLocation(false);
+      },
+      (error) => {
+        let message = 'Não foi possível obter sua localização.';
+        if (error.code === error.PERMISSION_DENIED) {
+          message = 'Permissão para acessar a localização foi negada.';
+        } else if (error.code === error.POSITION_UNAVAILABLE) {
+          message = 'Informação de localização não está disponível.';
+        } else if (error.code === error.TIMEOUT) {
+          message = 'A solicitação para obter a localização expirou.';
+        }
+        setLocationError(message);
+        toast({ title: 'Erro de Geolocalização', description: message, variant: 'destructive' });
+        setIsRequestingLocation(false);
+      }
+    );
+  };
+
 
   const hasResults = (results.objects && results.objects.length > 0) || 
                      (results.relatedProducts && results.relatedProducts.length > 0) || 
@@ -253,7 +300,7 @@ export default function ImageInsightExplorerPage() {
           </h1>
         </div>
         <p className="text-lg text-muted-foreground">
-          Upload an image to identify objects, see translations, and discover related products and stores.
+          Envie uma imagem para identificar objetos, ver traduções e descobrir produtos e lojas relacionadas.
         </p>
       </header>
 
@@ -262,28 +309,28 @@ export default function ImageInsightExplorerPage() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-2xl">
               <UploadCloud className="w-7 h-7 text-primary" />
-              Upload Your Image
+              Envie Sua Imagem
             </CardTitle>
-            <CardDescription>Select an image file (PNG, JPG, GIF, etc.) up to 5MB.</CardDescription>
+            <CardDescription>Selecione um arquivo de imagem (PNG, JPG, GIF, etc.) de até 5MB.</CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-6">
               <div>
-                <Label htmlFor="image-upload" className="sr-only">Choose image</Label>
+                <Label htmlFor="image-upload" className="sr-only">Escolher imagem</Label>
                 <Input
                   id="image-upload"
                   type="file"
                   accept="image/*"
                   onChange={handleFileChange}
                   className="file:text-primary file:font-semibold hover:file:bg-primary/10"
-                  disabled={isLoading}
+                  disabled={isLoading || isRequestingLocation}
                 />
               </div>
               {previewUrl && (
                 <div className="mt-4 border rounded-lg p-2 bg-muted/50 overflow-hidden aspect-video relative w-full max-w-md mx-auto">
                   <NextImage
                     src={previewUrl}
-                    alt="Selected image preview"
+                    alt="Pré-visualização da imagem selecionada"
                     layout="fill"
                     objectFit="contain"
                     className="rounded"
@@ -294,16 +341,16 @@ export default function ImageInsightExplorerPage() {
               {error && !isLoading && (
                  <p className="text-sm text-destructive flex items-center gap-2"><AlertTriangle className="w-4 h-4"/> {error}</p>
               )}
-              <Button type="submit" className="w-full sm:w-auto bg-accent hover:bg-accent/90 text-accent-foreground" disabled={isLoading || !selectedFile}>
+              <Button type="submit" className="w-full sm:w-auto bg-accent hover:bg-accent/90 text-accent-foreground" disabled={isLoading || !selectedFile || isRequestingLocation}>
                 {isLoading ? (
                   <>
                     <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    Processing...
+                    Processando...
                   </>
                 ) : (
                   <>
                     <Wand2 className="w-4 h-4 mr-2" />
-                    Analyze Image
+                    Analisar Imagem
                   </>
                 )}
               </Button>
@@ -317,19 +364,59 @@ export default function ImageInsightExplorerPage() {
           )}
         </Card>
 
+        <Card className="shadow-md">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-xl">
+              <MapPin className="w-6 h-6 text-primary" />
+              Sua Localização
+            </CardTitle>
+            <CardDescription>Permita o acesso à sua localização para otimizar buscas futuras (opcional).</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <Button 
+              onClick={handleRequestLocation} 
+              disabled={isRequestingLocation || isLoading}
+              variant="outline"
+            >
+              {isRequestingLocation ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Obtendo Localização...
+                </>
+              ) : (
+                <>
+                  <MapPin className="w-4 h-4 mr-2" />
+                  Obter Minha Localização Atual
+                </>
+              )}
+            </Button>
+            {userLocation && (
+              <div className="text-sm p-3 bg-muted/50 rounded-md">
+                <p className="font-medium">Localização Obtida:</p>
+                <p>Latitude: <span className="font-semibold">{userLocation.latitude.toFixed(5)}</span></p>
+                <p>Longitude: <span className="font-semibold">{userLocation.longitude.toFixed(5)}</span></p>
+              </div>
+            )}
+            {locationError && (
+              <p className="text-sm text-destructive flex items-center gap-2"><AlertTriangle className="w-4 h-4"/> {locationError}</p>
+            )}
+          </CardContent>
+        </Card>
+
+
         {hasResults && !isLoading && (
           <div className="space-y-8">
             <Separator />
-            <h2 className="text-3xl font-semibold text-center text-primary">Analysis Results</h2>
+            <h2 className="text-3xl font-semibold text-center text-primary">Resultados da Análise</h2>
             
             {results.objects && results.objects.length > 0 && (
               <Card className="shadow-md">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2 text-xl">
                     <ScanSearch className="w-6 h-6 text-primary" />
-                    Identified Objects & Translations
+                    Objetos Identificados & Traduções
                   </CardTitle>
-                  <CardDescription>Objects found in the image with their translations.</CardDescription>
+                  <CardDescription>Objetos encontrados na imagem com suas traduções.</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <Accordion type="single" collapsible className="w-full">
@@ -353,7 +440,7 @@ export default function ImageInsightExplorerPage() {
                               )}
                             </ul>
                           ) : (
-                            <p className="text-sm text-muted-foreground italic">No translations available for {item.original}.</p>
+                            <p className="text-sm text-muted-foreground italic">Nenhuma tradução disponível para {item.original}.</p>
                           )}
                         </AccordionContent>
                       </AccordionItem>
@@ -367,11 +454,11 @@ export default function ImageInsightExplorerPage() {
                     <CardHeader>
                         <CardTitle className="flex items-center gap-2 text-xl">
                             <ScanSearch className="w-6 h-6 text-primary" />
-                            Identified Objects
+                            Objetos Identificados
                         </CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <p className="text-muted-foreground">No objects were clearly identified in the image.</p>
+                        <p className="text-muted-foreground">Nenhum objeto foi claramente identificado na imagem.</p>
                     </CardContent>
                  </Card>
             )}
@@ -382,9 +469,9 @@ export default function ImageInsightExplorerPage() {
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2 text-xl">
                     <ShoppingBag className="w-6 h-6 text-primary" />
-                    Related Products
+                    Produtos Relacionados
                   </CardTitle>
-                  <CardDescription>Products found related to the identified objects (based on original names).</CardDescription>
+                  <CardDescription>Produtos encontrados relacionados aos objetos identificados (baseado nos nomes originais).</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <Accordion type="multiple" className="w-full">
@@ -394,7 +481,7 @@ export default function ImageInsightExplorerPage() {
                             <AccordionTrigger className="text-base font-medium hover:text-primary">
                                 <div className="flex items-center gap-2">
                                     <PackageSearch className="w-5 h-5 text-muted-foreground"/>
-                                    Products for: <span className="font-semibold text-foreground">{item.objectName}</span>
+                                    Produtos para: <span className="font-semibold text-foreground">{item.objectName}</span>
                                 </div>
                             </AccordionTrigger>
                             <AccordionContent>
@@ -408,19 +495,19 @@ export default function ImageInsightExplorerPage() {
                                                 size="sm" 
                                                 variant="outline" 
                                                 onClick={() => handleFindStores(product)}
-                                                disabled={results.storeSearch[product]?.isLoading}
+                                                disabled={results.storeSearch[product]?.isLoading || isLoading || isRequestingLocation}
                                             >
                                                 {results.storeSearch[product]?.isLoading ? (
                                                     <Loader2 className="w-4 h-4 animate-spin" />
                                                 ) : (
                                                     <Store className="w-4 h-4 mr-2" />
                                                 )}
-                                                Find Stores
+                                                Encontrar Lojas
                                             </Button>
                                         </div>
                                         {results.storeSearch[product]?.isLoading && (
                                             <p className="text-sm text-muted-foreground flex items-center gap-1">
-                                                <Loader2 className="w-3 h-3 animate-spin" /> Searching for stores...
+                                                <Loader2 className="w-3 h-3 animate-spin" /> Buscando lojas...
                                             </p>
                                         )}
                                         {results.storeSearch[product]?.error && (
@@ -429,11 +516,11 @@ export default function ImageInsightExplorerPage() {
                                             </p>
                                         )}
                                         {results.storeSearch[product]?.stores && results.storeSearch[product]?.stores!.length === 0 && !results.storeSearch[product]?.isLoading && (
-                                            <p className="text-sm text-muted-foreground italic">No stores found for {product}.</p>
+                                            <p className="text-sm text-muted-foreground italic">Nenhuma loja encontrada para {product}.</p>
                                         )}
                                         {results.storeSearch[product]?.stores && results.storeSearch[product]?.stores!.length > 0 && (
                                             <div className="mt-2">
-                                                <h4 className="text-xs font-semibold text-muted-foreground mb-1">Available in:</h4>
+                                                <h4 className="text-xs font-semibold text-muted-foreground mb-1">Disponível em:</h4>
                                                 <div className="flex flex-wrap gap-2">
                                                     {results.storeSearch[product]?.stores!.map((storeName, storeIdx) => (
                                                         <Badge key={storeIdx} variant="secondary" className="flex items-center gap-1">
@@ -447,7 +534,7 @@ export default function ImageInsightExplorerPage() {
                                 ))}
                                 </ul>
                             ) : (
-                                <p className="text-sm text-muted-foreground italic">No specific products found for {item.objectName}.</p>
+                                <p className="text-sm text-muted-foreground italic">Nenhum produto específico encontrado para {item.objectName}.</p>
                             )}
                             </AccordionContent>
                         </AccordionItem>
@@ -463,9 +550,9 @@ export default function ImageInsightExplorerPage() {
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2 text-xl">
                     <Tags className="w-6 h-6 text-primary" />
-                    Product Properties
+                    Propriedades dos Produtos
                   </CardTitle>
-                  <CardDescription>Key properties extracted for the identified products.</CardDescription>
+                  <CardDescription>Principais propriedades extraídas para os produtos identificados.</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <Accordion type="multiple" className="w-full">
@@ -475,7 +562,7 @@ export default function ImageInsightExplorerPage() {
                             <AccordionTrigger className="text-base font-medium hover:text-primary">
                                 <div className="flex items-center gap-2">
                                     <Wand2 className="w-5 h-5 text-muted-foreground"/>
-                                    Properties for: <span className="font-semibold text-foreground">{productItem.product}</span>
+                                    Propriedades para: <span className="font-semibold text-foreground">{productItem.product}</span>
                                 </div>
                             </AccordionTrigger>
                             <AccordionContent>
@@ -486,7 +573,7 @@ export default function ImageInsightExplorerPage() {
                                 ))}
                                 </div>
                             ) : (
-                                <p className="text-sm text-muted-foreground italic">No specific properties found for {productItem.product}.</p>
+                                <p className="text-sm text-muted-foreground italic">Nenhuma propriedade específica encontrada para {productItem.product}.</p>
                             )}
                             </AccordionContent>
                         </AccordionItem>
@@ -502,18 +589,18 @@ export default function ImageInsightExplorerPage() {
         {!isLoading && !hasResults && selectedFile && !error && !(results.objects && results.objects.length === 0) && (
             <Card className="shadow-md">
                 <CardHeader>
-                    <CardTitle className="flex items-center gap-2 text-xl">Analysis Complete</CardTitle>
+                    <CardTitle className="flex items-center gap-2 text-xl">Análise Completa</CardTitle>
                 </CardHeader>
                 <CardContent>
-                    <p className="text-muted-foreground">The image was processed, but no further details could be extracted. You can try with a different image.</p>
+                    <p className="text-muted-foreground">A imagem foi processada, mas nenhum detalhe adicional pôde ser extraído. Você pode tentar com uma imagem diferente.</p>
                 </CardContent>
             </Card>
         )}
 
       </main>
       <footer className="mt-12 py-6 text-center text-sm text-muted-foreground border-t w-full max-w-4xl">
-        <p>&copy; {new Date().getFullYear()} Image Insight Explorer. Powered by Genkit AI.</p>
-        <p>Translations provided for: Spanish, French, German, Chinese (Simplified), Japanese, Portuguese (Brazil), Portuguese (Portugal).</p>
+        <p>&copy; {new Date().getFullYear()} Image Insight Explorer. Desenvolvido com Genkit AI.</p>
+        <p>Traduções fornecidas para: Espanhol, Francês, Alemão, Chinês (Simplificado), Japonês, Português (Brasil), Português (Portugal).</p>
       </footer>
     </div>
   );
