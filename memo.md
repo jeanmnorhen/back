@@ -30,6 +30,7 @@ O aplicativo "Image Insight Explorer" está em um estágio funcional, implementa
 - **Estilização:** Tailwind CSS.
 - **Funcionalidades AI:** Genkit, utilizando o modelo Gemini do Google AI.
 - **Tradução:** Objetos identificados são traduzidos para Espanhol, Francês, Alemão, Chinês (Simplificado) e Japonês.
+- **Testes:** Configuração inicial de Jest para testes unitários dos fluxos de AI.
 
 Principais funcionalidades implementadas:
 - Upload de imagens (com validação de tipo e tamanho).
@@ -66,12 +67,12 @@ Principais funcionalidades implementadas:
     - Explorar a geração de descrições criativas para os cenários da imagem.
     - Implementar edição de imagem básica ou sugestões de melhoria baseadas em IA.
 - **Infraestrutura e Operações:**
-    - **Deployment na Vercel:** Finalizar configuração e testar o deploy na Vercel.
+    - **Deployment na Vercel:** Finalizar configuração e testar o deploy na Vercel (arquivo `vercel.json` adicionado).
     - Implementar logging mais robusto para monitoramento e depuração.
     - Considerar otimizações de custo para as chamadas de IA (reiterando a importância de não gerar custo).
     - Autenticação de usuários para salvar históricos de análise (se aplicável).
 - **Testes:**
-    - Aumentar a cobertura de testes unitários e de integração.
+    - **Aumentar a cobertura de testes unitários e de integração (Jest configurado e primeiro teste de fluxo de IA adicionado).**
     - Realizar testes de usabilidade com usuários finais.
 
 ## 6. Histórico de Configurações de Layout da UI (Tema Atual)
@@ -101,7 +102,7 @@ A configuração de layout e tema da UI é gerenciada principalmente através do
 - **Primary (`--primary`):** `260 58% 74%` (#9B7EDE - Violeta Suave)
 - **Accent (`--accent`):** `160 49% 67%` (#7ED6BA - Ciano Suave)
 
-O layout geral da página principal (`src/app/page.tsx`) é centralizado, com um cabeçalho, uma área principal para upload e exibição de resultados, e um rodapé. Componentes ShadCN como Card, Accordion, Button, Progress, Badge, Input, Label, e Toast são utilizados para construir a interface. A fonte principal é Geist Sans (com fallback para Inter, após correção da instalação de Geist Mono).
+O layout geral da página principal (`src/app/page.tsx`) é centralizado, com um cabeçalho, uma área principal para upload e exibição de resultados, e um rodapé. Componentes ShadCN como Card, Accordion, Button, Progress, Badge, Input, Label, e Toast são utilizados para construir a interface. A fonte principal é Geist Sans.
 
 ## 7. Processo de Atualização e Manutenção
 
