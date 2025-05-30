@@ -49,7 +49,8 @@ Principais funcionalidades implementadas:
 - **Tamanho da Imagem:** Atualmente, há um limite de 5MB para upload, o que é uma boa prática, mas deve ser comunicado claramente.
 - **Performance:** O processamento de IA pode levar alguns segundos. A experiência do usuário durante o carregamento é crucial e foi parcialmente endereçada com a barra de progresso e etapas.
 - **Gerenciamento de Erros:** Embora haja tratamento de erros, é importante continuar refinando para cobrir mais casos de borda.
-- **Custo:** O uso de modelos de IA generativa pode incorrer em custos, dependendo do volume de uso.
+- **Custo:** O uso de modelos de IA generativa pode incorrer em custos, dependendo do volume de uso. **É crucial que este projeto não gere custos significativos ou inesperados.**
+- **Não gerar custo:** Este projeto tem como premissa fundamental não gerar custos operacionais. Todas as escolhas de tecnologia e arquitetura devem levar essa restrição em consideração.
 
 ## 5. Próximos Passos
 
@@ -63,7 +64,7 @@ Principais funcionalidades implementadas:
     - Implementar edição de imagem básica ou sugestões de melhoria baseadas em IA.
 - **Infraestrutura e Operações:**
     - Implementar logging mais robusto para monitoramento e depuração.
-    - Considerar otimizações de custo para as chamadas de IA.
+    - Considerar otimizações de custo para as chamadas de IA (reiterando a importância de não gerar custo).
     - Autenticação de usuários para salvar históricos de análise (se aplicável).
 - **Testes:**
     - Aumentar a cobertura de testes unitários e de integração.
