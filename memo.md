@@ -7,6 +7,7 @@
 - Traduzir os nomes dos objetos identificados para múltiplos idiomas.
 - Fornecer uma lista de produtos relacionados aos objetos identificados.
 - Extrair e exibir propriedades chave dos produtos relacionados.
+- **Novo:** Permitir a busca por lojas que vendem um produto específico (usando IA e ferramentas).
 - Integrar com Firebase Realtime Database para:
     - Manter um catálogo de produtos com informações multilíngues.
     - Registrar lojas.
@@ -31,6 +32,9 @@
     - O sistema exibe informações do produto, incluindo dados multilíngues e histórico de preços por loja.
 - **UC6: Gerenciamento de Dados de Produtos (Futuro, com Autenticação):**
     - Usuários autenticados (administradores) poderão adicionar/editar produtos, lojas e registrar preços.
+- **UC7 (Novo): Busca de Lojas para um Produto (IA com Ferramenta):**
+    - O usuário (ou sistema, após identificar um produto) pode solicitar a busca de lojas que vendem um produto específico.
+    - O sistema (via IA e uma ferramenta `findStoresTool`) retorna uma lista de lojas que vendem o produto (inicialmente com dados simulados).
 
 ## 3. Estado Atual
 
@@ -39,21 +43,21 @@ O aplicativo "Image Insight Explorer" está em um estágio funcional, implementa
 - **UI Components:** ShadCN UI.
 - **Estilização:** Tailwind CSS.
 - **Funcionalidades AI:** Genkit, utilizando o modelo Gemini do Google AI.
-- **Tradução:** Objetos identificados são traduzidos para Espanhol, Francês, Alemão, Chinês (Simplificado) e Japonês.
+    - `identifyObjects`: Identifica objetos na imagem e traduz seus nomes para Espanhol, Francês, Alemão, Chinês (Simplificado) e Japonês.
+    - `searchRelatedProducts`: Busca produtos relacionados aos objetos (usando nomes em inglês).
+    - `extractProductProperties`: Extrai propriedades dos produtos encontrados.
+    - **Novo:** `findProductStoresFlow` (com `findStoresTool`): Busca lojas que vendem um produto específico (atualmente com dados simulados pela ferramenta).
 - **Testes:** Configuração inicial de Jest para testes unitários dos fluxos de AI.
 - **Banco de Dados:** Configuração inicial do Firebase Realtime Database (inicialização e definição da estrutura de dados).
 
 Principais funcionalidades implementadas:
 - Upload de imagens (com validação de tipo e tamanho).
 - Pré-visualização da imagem selecionada.
-- Processamento de imagem em três etapas assíncronas com IA:
-    1. `identifyObjects`: Identifica objetos na imagem e traduz seus nomes.
-    2. `searchRelatedProducts`: Busca produtos relacionados aos objetos (usando nomes em inglês).
-    3. `extractProductProperties`: Extrai propriedades dos produtos encontrados.
-- Exibição dos resultados da IA em seções distintas (Objetos Identificados e Traduções, Produtos Relacionados, Propriedades dos Produtos) usando componentes Accordion.
+- Processamento de imagem em três etapas assíncronas com IA (identificação, busca de produtos, extração de propriedades).
+- Exibição dos resultados da IA em seções distintas.
 - Barra de progresso e mensagens de status durante a análise.
-- Sistema de notificações (toast) para feedback ao usuário.
-- Design responsivo e tema customizado (claro e escuro).
+- Sistema de notificações (toast).
+- Design responsivo e tema customizado.
 - Configuração para deployment na Vercel (`vercel.json`).
 - Configuração do Firebase (inicialização e variáveis de ambiente).
 
@@ -179,51 +183,41 @@ Esta estrutura visa balancear a normalização (evitando duplicação excessiva 
 
 ## 5. Pontos de Atenção
 
-- **Precisão da IA:** A qualidade dos resultados (objetos, traduções, produtos, propriedades) depende da precisão dos modelos Genkit e Gemini. Casos de ambiguidade ou imagens de baixa qualidade podem levar a resultados subótimos.
+- **Precisão da IA:** A qualidade dos resultados (objetos, traduções, produtos, propriedades, lojas) depende da precisão dos modelos Genkit e Gemini. Casos de ambiguidade ou imagens de baixa qualidade podem levar a resultados subótimos.
+- **Dados Simulados para Ferramentas:** A ferramenta `findStoresTool` atualmente usa dados simulados. Para funcionalidade real, precisará ser conectada a um banco de dados de lojas ou API externa.
 - **Limites da API:** O uso das APIs de IA (Google AI) pode estar sujeito a cotas e limitações.
 - **Tamanho da Imagem:** Atualmente, há um limite de 5MB para upload, o que é uma boa prática, mas deve ser comunicado claramente.
-- **Performance:** O processamento de IA, especialmente com traduções, pode levar alguns segundos. A experiência do usuário durante o carregamento é crucial e foi parcialmente endereçada com a barra de progresso e etapas.
-- **Gerenciamento de Erros:** Embora haja tratamento de erros, é importante continuar refinando para cobrir mais casos de borda. Erros genéricos em produção na Vercel frequentemente se devem a variáveis de ambiente ausentes.
-- **Custo:** O uso de modelos de IA generativa pode incorrer em custos, dependendo do volume de uso. **É crucial que este projeto não gere custos significativos ou inesperados.** O Firebase Realtime Database também tem um plano gratuito (Spark) com limites, mas o uso intensivo pode levar a custos.
-- **Não gerar custo:** Este projeto tem como premissa fundamental não gerar custos operacionais significativos. Todas as escolhas de tecnologia e arquitetura devem levar essa restrição em consideração.
-- **Configuração de Ambiente na Vercel:** As variáveis de ambiente (especialmente `GEMINI_API_KEY` para as funcionalidades de IA, e as variáveis `NEXT_PUBLIC_FIREBASE_*` para o Firebase) precisam ser configuradas no painel da Vercel para o deploy funcionar corretamente. A ausência delas é uma causa comum de erros de renderização de Server Components ou falhas de conexão com serviços em produção.
-    - `GEMINI_API_KEY`
-    - `NEXT_PUBLIC_FIREBASE_API_KEY`
-    - `NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN`
-    - `NEXT_PUBLIC_FIREBASE_PROJECT_ID`
-    - `NEXT_PUBLIC_FIREBASE_DATABASE_URL`
-    - `NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET`
-    - `NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID`
-    - `NEXT_PUBLIC_FIREBASE_APP_ID`
-- **Segurança do Firebase:** As regras de segurança do Firebase Realtime Database precisarão ser configuradas para proteger os dados, especialmente quando funcionalidades de escrita forem implementadas. Inicialmente, podem ser mais permissivas para desenvolvimento, mas devem ser restritas antes de um uso mais amplo.
-- **Autenticação de Usuários:** Para funcionalidades de escrita no banco de dados (adicionar lojas, produtos, preços), a autenticação de usuários será essencial para segurança e rastreabilidade.
+- **Performance:** O processamento de IA pode levar alguns segundos.
+- **Gerenciamento de Erros:** Continuar refinando para cobrir mais casos de borda.
+- **Custo:** O uso de modelos de IA generativa e Firebase Realtime Database pode incorrer em custos. **É crucial que este projeto não gere custos significativos ou inesperados.**
+- **Configuração de Ambiente na Vercel:** As variáveis de ambiente (`GEMINI_API_KEY`, `NEXT_PUBLIC_FIREBASE_*`) precisam ser configuradas no painel da Vercel.
+- **Segurança do Firebase:** As regras de segurança do Firebase Realtime Database precisarão ser configuradas.
+- **Autenticação de Usuários:** Essencial para funcionalidades de escrita no banco de dados.
 
 ## 6. Próximos Passos
 
 - **Desenvolvimento do Catálogo de Produtos (Firebase):**
-    - Implementar as funções CRUD (Criar, Ler, Atualizar, Deletar) para `/products`, `/stores`, e `/productAvailability` em um serviço Firebase (`src/lib/firebaseService.ts` ou similar).
-    - Desenvolver UI para visualização e (inicialmente, talvez apenas para admin) gerenciamento desses dados.
+    - Implementar as funções CRUD para `/products`, `/stores`, e `/productAvailability`.
+    - Desenvolver UI para visualização e gerenciamento desses dados.
     - Integrar a busca de produtos na UI para consultar o Firebase.
 - **Integração dos Fluxos de IA com o Banco de Dados:**
-    - Modificar `searchRelatedProducts` para, além de sugerir nomes, tentar encontrar correspondências no catálogo de produtos do Firebase.
-    - Permitir que `extractProductProperties` salve as propriedades extraídas para os produtos correspondentes no Firebase.
-    - Adicionar funcionalidade para sugerir a criação de novos produtos no banco se um produto identificado pela IA não existir.
+    - Modificar `searchRelatedProducts` para tentar encontrar correspondências no catálogo de produtos do Firebase.
+    - Permitir que `extractProductProperties` salve as propriedades extraídas para os produtos no Firebase.
+    - **Novo:** Conectar a ferramenta `findStoresTool` ao catálogo de `/stores` e `/productAvailability` do Firebase em vez de usar dados simulados.
+    - Adicionar funcionalidade para sugerir a criação de novos produtos/lojas no banco se não existirem.
 - **Melhorias na UI/UX:**
+    - **Novo:** Integrar o fluxo `findProductStoresFlow` na UI. Por exemplo, ao exibir um produto, adicionar um botão "Encontrar Lojas" que chama este fluxo e exibe os resultados.
     - Permitir que o usuário clique em um produto para ver mais detalhes (combinando dados da IA e do Firebase).
-    - Adicionar opções de filtragem ou ordenação para os resultados, incluindo os do Firebase.
-    - Internacionalização completa da interface do usuário (além das traduções dos objetos).
+    - Adicionar opções de filtragem ou ordenação.
+    - Internacionalização completa da interface do usuário.
 - **Autenticação e Autorização:**
-    - Implementar autenticação de usuários Firebase para proteger as operações de escrita no banco de dados.
-    - Definir papéis de usuário (ex: administrador, usuário comum).
+    - Implementar autenticação de usuários Firebase.
 - **Refinamento das Regras de Segurança do Firebase.**
 - **Infraestrutura e Operações:**
-    - **Deployment na Vercel:** Garantir que todas as variáveis de ambiente (IA e Firebase) estejam configuradas.
-    - Implementar logging mais robusto para monitoramento e depuração.
-    - Continuar considerando otimizações de custo para as chamadas de IA e uso do Firebase.
+    - Logging mais robusto.
 - **Testes:**
-    - **Aumentar a cobertura de testes unitários e de integração (Jest configurado e primeiro teste de fluxo de IA adicionado).**
-    - Adicionar testes para os serviços Firebase.
-    - Realizar testes de usabilidade com usuários finais.
+    - **Aumentar a cobertura de testes unitários, incluindo para o novo fluxo `findProductStoresFlow` e a ferramenta `findStoresTool`.**
+    - Adicionar testes para os serviços Firebase quando implementados.
 
 ## 7. Histórico de Configurações de Layout da UI (Tema Atual)
 
