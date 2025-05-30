@@ -51,10 +51,10 @@ Principais funcionalidades implementadas:
 - **Limites da API:** O uso das APIs de IA (Google AI) pode estar sujeito a cotas e limitações.
 - **Tamanho da Imagem:** Atualmente, há um limite de 5MB para upload, o que é uma boa prática, mas deve ser comunicado claramente.
 - **Performance:** O processamento de IA, especialmente com traduções, pode levar alguns segundos. A experiência do usuário durante o carregamento é crucial e foi parcialmente endereçada com a barra de progresso e etapas.
-- **Gerenciamento de Erros:** Embora haja tratamento de erros, é importante continuar refinando para cobrir mais casos de borda.
+- **Gerenciamento de Erros:** Embora haja tratamento de erros, é importante continuar refinando para cobrir mais casos de borda. Erros genéricos em produção na Vercel frequentemente se devem a variáveis de ambiente ausentes (ex: `GEMINI_API_KEY`).
 - **Custo:** O uso de modelos de IA generativa pode incorrer em custos, dependendo do volume de uso. **É crucial que este projeto não gere custos significativos ou inesperados.**
 - **Não gerar custo:** Este projeto tem como premissa fundamental não gerar custos operacionais. Todas as escolhas de tecnologia e arquitetura devem levar essa restrição em consideração.
-- **Configuração de Ambiente na Vercel:** As variáveis de ambiente (API keys, etc.) precisam ser configuradas no painel da Vercel para o deploy funcionar corretamente.
+- **Configuração de Ambiente na Vercel:** As variáveis de ambiente (especialmente `GEMINI_API_KEY` para as funcionalidades de IA, e `NEXT_PUBLIC_FIREBASE_*` para Firebase) precisam ser configuradas no painel da Vercel para o deploy funcionar corretamente. A ausência do `GEMINI_API_KEY` é uma causa comum de erros de renderização de Server Components em produção.
 
 ## 5. Próximos Passos
 
@@ -67,7 +67,7 @@ Principais funcionalidades implementadas:
     - Explorar a geração de descrições criativas para os cenários da imagem.
     - Implementar edição de imagem básica ou sugestões de melhoria baseadas em IA.
 - **Infraestrutura e Operações:**
-    - **Deployment na Vercel:** Finalizar configuração e testar o deploy na Vercel (arquivo `vercel.json` adicionado).
+    - **Deployment na Vercel:** Configuração de variáveis de ambiente na Vercel é crucial.
     - Implementar logging mais robusto para monitoramento e depuração.
     - Considerar otimizações de custo para as chamadas de IA (reiterando a importância de não gerar custo).
     - Autenticação de usuários para salvar históricos de análise (se aplicável).
