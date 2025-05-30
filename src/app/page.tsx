@@ -21,9 +21,15 @@ import { identifyObjects, type IdentifyObjectsOutput } from '@/ai/flows/identify
 import { searchRelatedProducts, type SearchRelatedProductsOutput } from '@/ai/flows/search-related-products';
 import { extractProductProperties, type ExtractProductPropertiesOutput } from '@/ai/flows/extract-product-properties';
 
+// Define the type for a single item in the search results
+type ProductSearchResultItem = {
+  objectName: string;
+  relatedProducts: string[];
+};
+
 type AnalysisResults = {
   objects: IdentifyObjectsOutput['objects'] | null;
-  relatedProducts: SearchRelatedProductsOutput['products'] | null;
+  relatedProducts: ProductSearchResultItem[] | null; // Updated type
   productProperties: ExtractProductPropertiesOutput | null;
 };
 
@@ -112,19 +118,19 @@ export default function ImageInsightExplorerPage() {
 
       setCurrentStep('Searching for related products...');
       const relatedProductsResult = await searchRelatedProducts({ objects: objectsResult.objects });
-       if (!relatedProductsResult || !relatedProductsResult.products || Object.keys(relatedProductsResult.products).length === 0) {
-          toast({ title: 'Step Complete', description: 'No related products found.', variant: 'default' });
-          setResults(prev => ({...prev, relatedProducts: {}}))
+       if (!relatedProductsResult || !relatedProductsResult.searchResults || relatedProductsResult.searchResults.length === 0) { // Updated condition
+          toast({ title: 'Step Complete', description: 'No related products found for any object.', variant: 'default' });
+          setResults(prev => ({...prev, relatedProducts: []})) // Updated to empty array
       } else {
-        setResults(prev => ({ ...prev, relatedProducts: relatedProductsResult.products }));
+        setResults(prev => ({ ...prev, relatedProducts: relatedProductsResult.searchResults })); // Updated to use searchResults
         toast({ title: 'Step Complete', description: 'Related products found!', variant: 'default' });
       }
       setProgressValue(75);
       
       const allProducts: string[] = [];
-      if (relatedProductsResult && relatedProductsResult.products) {
-        Object.values(relatedProductsResult.products).forEach(productList => {
-          productList.forEach(product => {
+      if (relatedProductsResult && relatedProductsResult.searchResults) { // Updated condition
+        relatedProductsResult.searchResults.forEach(item => { // Iterate over searchResults
+          item.relatedProducts.forEach(product => {
             if (!allProducts.includes(product)) {
               allProducts.push(product);
             }
@@ -173,7 +179,7 @@ export default function ImageInsightExplorerPage() {
     reader.readAsDataURL(selectedFile);
   };
 
-  const hasResults = results.objects || results.relatedProducts || results.productProperties;
+  const hasResults = results.objects || (results.relatedProducts && results.relatedProducts.length > 0) || results.productProperties;
 
   return (
     <div className="flex flex-col items-center min-h-screen p-4 sm:p-8 selection:bg-primary/20">
@@ -275,7 +281,7 @@ export default function ImageInsightExplorerPage() {
               </Card>
             )}
 
-            {results.relatedProducts && Object.keys(results.relatedProducts).length > 0 && (
+            {results.relatedProducts && results.relatedProducts.length > 0 && ( // Updated condition
               <Card className="shadow-md">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2 text-xl">
@@ -286,24 +292,24 @@ export default function ImageInsightExplorerPage() {
                 </CardHeader>
                 <CardContent>
                   <Accordion type="single" collapsible className="w-full">
-                    {Object.entries(results.relatedProducts).map(([object, products]) => (
-                      products.length > 0 && (
-                        <AccordionItem key={object} value={object}>
+                    {results.relatedProducts.map((item) => ( // Iterate over array
+                      item.relatedProducts.length > 0 && (
+                        <AccordionItem key={item.objectName} value={item.objectName}>
                             <AccordionTrigger className="text-base font-medium hover:text-primary">
                                 <div className="flex items-center gap-2">
                                     <PackageSearch className="w-5 h-5 text-muted-foreground"/>
-                                    Products for: <span className="font-semibold text-foreground">{object}</span>
+                                    Products for: <span className="font-semibold text-foreground">{item.objectName}</span>
                                 </div>
                             </AccordionTrigger>
                             <AccordionContent>
-                            {products.length > 0 ? (
+                            {item.relatedProducts.length > 0 ? ( // Use item.relatedProducts
                                 <ul className="list-disc pl-5 space-y-1 text-muted-foreground">
-                                {products.map((product, index) => (
+                                {item.relatedProducts.map((product, index) => (
                                     <li key={index}>{product}</li>
                                 ))}
                                 </ul>
-                            ) : (
-                                <p className="text-sm text-muted-foreground italic">No specific products found for {object}.</p>
+                            ) : ( // This case might not be hit if empty relatedProducts arrays are filtered by AI or earlier logic
+                                <p className="text-sm text-muted-foreground italic">No specific products found for {item.objectName}.</p>
                             )}
                             </AccordionContent>
                         </AccordionItem>
@@ -373,3 +379,4 @@ export default function ImageInsightExplorerPage() {
     </div>
   );
 }
+
