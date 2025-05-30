@@ -8,9 +8,23 @@ if (!process.env.GEMINI_API_KEY) {
   );
 }
 
+// Log errors for critical Firebase environment variables if not set for Vercel deployment.
+if (!process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID) {
+  console.error(
+    'CRITICAL_ERROR: NEXT_PUBLIC_FIREBASE_PROJECT_ID environment variable is not set. Firebase features may not work. Please set this in your Vercel project environment variables.'
+  );
+}
+if (!process.env.NEXT_PUBLIC_FIREBASE_DATABASE_URL) {
+  console.error(
+    'CRITICAL_ERROR: NEXT_PUBLIC_FIREBASE_DATABASE_URL environment variable is not set. Firebase Realtime Database will not work. Please set this in your Vercel project environment variables.'
+  );
+}
+
+
 export const ai = genkit({
   plugins: [
     googleAI(),
   ],
   model: 'googleai/gemini-2.0-flash',
 });
+

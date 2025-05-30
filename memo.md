@@ -4,8 +4,13 @@
 
 - Permitir que os usuários façam upload de imagens para análise.
 - Identificar automaticamente objetos presentes nas imagens enviadas usando IA (Genkit).
+- Traduzir os nomes dos objetos identificados para múltiplos idiomas.
 - Fornecer uma lista de produtos relacionados aos objetos identificados.
 - Extrair e exibir propriedades chave dos produtos relacionados.
+- Integrar com Firebase Realtime Database para:
+    - Manter um catálogo de produtos com informações multilíngues.
+    - Registrar lojas.
+    - Rastrear o histórico de preços dos produtos em diferentes lojas.
 - Oferecer uma interface de usuário intuitiva e responsiva para facilitar a interação.
 
 ## 2. Casos de Uso
@@ -14,13 +19,18 @@
     - O usuário seleciona uma imagem do seu dispositivo.
     - O usuário faz o upload da imagem.
     - O sistema exibe os objetos identificados na imagem e suas traduções.
-- **UC2: Descoberta de Produtos Relacionados:**
-    - Após a identificação de objetos (UC1), o sistema busca e exibe produtos comercialmente disponíveis que são relevantes para os objetos identificados.
-- **UC3: Extração de Propriedades de Produtos:**
-    - Para os produtos encontrados (UC2), o sistema extrai e apresenta características importantes (ex: cor, material, marca).
+- **UC2: Descoberta de Produtos Relacionados (IA):**
+    - Após a identificação de objetos (UC1), o sistema (via IA) busca e exibe produtos comercialmente disponíveis que são relevantes para os objetos identificados (usando nomes em inglês).
+- **UC3: Extração de Propriediedades de Produtos (IA):**
+    - Para os produtos encontrados (UC2), o sistema (via IA) extrai e apresenta características importantes (ex: cor, material, marca).
 - **UC4: Feedback Visual do Processamento:**
     - O usuário visualiza o progresso da análise da imagem em etapas (identificação, busca de produtos, extração de propriedades).
     - O usuário recebe notificações (toasts) sobre o status de cada etapa e erros, se houver.
+- **UC5: Consulta de Produtos no Banco de Dados:**
+    - O usuário (ou o sistema) pode pesquisar produtos existentes no Firebase Realtime Database.
+    - O sistema exibe informações do produto, incluindo dados multilíngues e histórico de preços por loja.
+- **UC6: Gerenciamento de Dados de Produtos (Futuro, com Autenticação):**
+    - Usuários autenticados (administradores) poderão adicionar/editar produtos, lojas e registrar preços.
 
 ## 3. Estado Atual
 
@@ -31,51 +41,191 @@ O aplicativo "Image Insight Explorer" está em um estágio funcional, implementa
 - **Funcionalidades AI:** Genkit, utilizando o modelo Gemini do Google AI.
 - **Tradução:** Objetos identificados são traduzidos para Espanhol, Francês, Alemão, Chinês (Simplificado) e Japonês.
 - **Testes:** Configuração inicial de Jest para testes unitários dos fluxos de AI.
+- **Banco de Dados:** Configuração inicial do Firebase Realtime Database (inicialização e definição da estrutura de dados).
 
 Principais funcionalidades implementadas:
 - Upload de imagens (com validação de tipo e tamanho).
 - Pré-visualização da imagem selecionada.
-- Processamento de imagem em três etapas assíncronas:
+- Processamento de imagem em três etapas assíncronas com IA:
     1. `identifyObjects`: Identifica objetos na imagem e traduz seus nomes.
     2. `searchRelatedProducts`: Busca produtos relacionados aos objetos (usando nomes em inglês).
     3. `extractProductProperties`: Extrai propriedades dos produtos encontrados.
-- Exibição dos resultados em seções distintas (Objetos Identificados e Traduções, Produtos Relacionados, Propriedades dos Produtos) usando componentes Accordion.
+- Exibição dos resultados da IA em seções distintas (Objetos Identificados e Traduções, Produtos Relacionados, Propriedades dos Produtos) usando componentes Accordion.
 - Barra de progresso e mensagens de status durante a análise.
 - Sistema de notificações (toast) para feedback ao usuário.
 - Design responsivo e tema customizado (claro e escuro).
 - Configuração para deployment na Vercel (`vercel.json`).
+- Configuração do Firebase (inicialização e variáveis de ambiente).
 
-## 4. Pontos de Atenção
+## 4. Arquitetura do Banco de Dados (Firebase Realtime Database)
+
+A seguir, a estrutura planejada para o Firebase Realtime Database:
+
+### `/products/{productId}`
+Armazena informações detalhadas sobre cada produto.
+- `canonicalName` (string): Nome principal/referência do produto (ex: "Coca-Cola 2 Liter Bottle"). Usado para buscas internas.
+- `brand` (string, opcional): Marca do produto (ex: "Coca-Cola").
+- `attributes` (objeto, opcional): Atributos chave-valor estruturados.
+    - `size`: "2L"
+    - `container`: "bottle"
+    - `category`: "soft drink"
+    - `...(outros atributos relevantes)`
+- `identifiers` (objeto, opcional): Identificadores únicos do produto.
+    - `ean`: "1234567890123"
+    - `upc`: "012345678905"
+    - `...(outros como SKU por loja, se globalmente relevante)`
+- `images` (array de strings, opcional): URLs para imagens do produto.
+- `localizedData` (objeto): Dados traduzidos do produto. A chave é o código de idioma (ex: "en", "es", "pt-BR").
+    - `"{languageCode}"`:
+        - `name` (string): Nome do produto no idioma especificado.
+        - `description` (string, opcional): Descrição do produto no idioma.
+        - `...(outras propriedades localizáveis)`
+- `propertiesAiExtracted` (array de strings, opcional): Lista de propriedades extraídas pela IA (ex: ["carbonated", "sweetened"]).
+- `createdAt` (timestamp): Data de criação do registro.
+- `updatedAt` (timestamp): Data da última atualização.
+
+**Exemplo `/products/coke2l`:**
+```json
+{
+  "canonicalName": "Coca-Cola 2 Liter Bottle",
+  "brand": "Coca-Cola",
+  "attributes": {
+    "size": "2L",
+    "container": "PET Bottle",
+    "category": "Beverages"
+  },
+  "identifiers": {
+    "upc": "049000028904"
+  },
+  "images": ["https://placehold.co/300x300.png?text=Coke+2L"],
+  "localizedData": {
+    "en": {
+      "name": "Coca-Cola 2 Liter Bottle",
+      "description": "The classic refreshing taste of Coca-Cola in a 2 liter bottle."
+    },
+    "es": {
+      "name": "Coca-Cola Botella de 2 Litros",
+      "description": "El sabor clásico y refrescante de Coca-Cola en una botella de 2 litros."
+    },
+    "pt-BR": {
+      "name": "Coca-Cola Garrafa 2 Litros",
+      "description": "O sabor clássico e refrescante da Coca-Cola em uma garrafa de 2 litros."
+    }
+  },
+  "propertiesAiExtracted": ["carbonated", "original taste"],
+  "createdAt": 1678886400000,
+  "updatedAt": 1678886400000
+}
+```
+
+### `/stores/{storeId}`
+Armazena informações sobre as lojas onde os produtos são vendidos.
+- `name` (string): Nome da loja (ex: "Supermercado Central").
+- `location` (objeto, opcional): Detalhes da localização.
+    - `address`: "Rua Principal, 123"
+    - `city`: "Cidade Exemplo"
+    - `countryCode`: "BR"
+    - `postalCode`: "12345-678"
+    - `coordinates` (opcional): { `lat`: -23.5505, `lng`: -46.6333 }
+- `defaultCurrency` (string): Código da moeda padrão da loja (ex: "BRL", "USD").
+- `createdAt` (timestamp): Data de criação do registro.
+- `updatedAt` (timestamp): Data da última atualização.
+
+**Exemplo `/stores/storeABC`:**
+```json
+{
+  "name": "Supermercado Preço Bom",
+  "location": {
+    "address": "Av. Brasil, 1000",
+    "city": "Rio de Janeiro",
+    "countryCode": "BR",
+    "postalCode": "20000-000"
+  },
+  "defaultCurrency": "BRL",
+  "createdAt": 1678886400000,
+  "updatedAt": 1678886400000
+}
+```
+
+### `/productAvailability/{productId}/{storeId}`
+Rastreia o preço, disponibilidade e histórico de preços de um produto específico em uma loja específica.
+- `currentPrice` (number): Preço atual do produto na loja.
+- `currency` (string): Código da moeda do preço (ex: "BRL"). Pode ser o mesmo da loja ou específico.
+- `inStock` (boolean, opcional): Se o produto está em estoque.
+- `productUrl` (string, opcional): URL do produto na loja online.
+- `lastSeen` (timestamp): Última vez que esta informação foi verificada/atualizada.
+- `priceHistory` (objeto): Histórico de preços. A chave é um timestamp.
+    - `"{timestamp}"`: (number) O preço naquele momento.
+- `updatedAt` (timestamp): Data da última atualização deste registro de disponibilidade/preço.
+
+**Exemplo `/productAvailability/coke2l/storeABC`:**
+```json
+{
+  "currentPrice": 7.99,
+  "currency": "BRL",
+  "inStock": true,
+  "productUrl": "http://supermercadoprecobom.com.br/produtos/coca-cola-2l",
+  "lastSeen": 1679886400000,
+  "priceHistory": {
+    "1678886400000": 7.50,
+    "1679059200000": 7.75,
+    "1679886400000": 7.99
+  },
+  "updatedAt": 1679886400000
+}
+```
+
+Esta estrutura visa balancear a normalização (evitando duplicação excessiva de dados) com a facilidade de consulta comum no Realtime Database (dados aninhados onde faz sentido para leitura).
+
+## 5. Pontos de Atenção
 
 - **Precisão da IA:** A qualidade dos resultados (objetos, traduções, produtos, propriedades) depende da precisão dos modelos Genkit e Gemini. Casos de ambiguidade ou imagens de baixa qualidade podem levar a resultados subótimos.
 - **Limites da API:** O uso das APIs de IA (Google AI) pode estar sujeito a cotas e limitações.
 - **Tamanho da Imagem:** Atualmente, há um limite de 5MB para upload, o que é uma boa prática, mas deve ser comunicado claramente.
 - **Performance:** O processamento de IA, especialmente com traduções, pode levar alguns segundos. A experiência do usuário durante o carregamento é crucial e foi parcialmente endereçada com a barra de progresso e etapas.
-- **Gerenciamento de Erros:** Embora haja tratamento de erros, é importante continuar refinando para cobrir mais casos de borda. Erros genéricos em produção na Vercel frequentemente se devem a variáveis de ambiente ausentes (ex: `GEMINI_API_KEY`).
-- **Custo:** O uso de modelos de IA generativa pode incorrer em custos, dependendo do volume de uso. **É crucial que este projeto não gere custos significativos ou inesperados.**
-- **Não gerar custo:** Este projeto tem como premissa fundamental não gerar custos operacionais. Todas as escolhas de tecnologia e arquitetura devem levar essa restrição em consideração.
-- **Configuração de Ambiente na Vercel:** As variáveis de ambiente (especialmente `GEMINI_API_KEY` para as funcionalidades de IA, e `NEXT_PUBLIC_FIREBASE_*` para Firebase) precisam ser configuradas no painel da Vercel para o deploy funcionar corretamente. A ausência do `GEMINI_API_KEY` é uma causa comum de erros de renderização de Server Components em produção.
+- **Gerenciamento de Erros:** Embora haja tratamento de erros, é importante continuar refinando para cobrir mais casos de borda. Erros genéricos em produção na Vercel frequentemente se devem a variáveis de ambiente ausentes.
+- **Custo:** O uso de modelos de IA generativa pode incorrer em custos, dependendo do volume de uso. **É crucial que este projeto não gere custos significativos ou inesperados.** O Firebase Realtime Database também tem um plano gratuito (Spark) com limites, mas o uso intensivo pode levar a custos.
+- **Não gerar custo:** Este projeto tem como premissa fundamental não gerar custos operacionais significativos. Todas as escolhas de tecnologia e arquitetura devem levar essa restrição em consideração.
+- **Configuração de Ambiente na Vercel:** As variáveis de ambiente (especialmente `GEMINI_API_KEY` para as funcionalidades de IA, e as variáveis `NEXT_PUBLIC_FIREBASE_*` para o Firebase) precisam ser configuradas no painel da Vercel para o deploy funcionar corretamente. A ausência delas é uma causa comum de erros de renderização de Server Components ou falhas de conexão com serviços em produção.
+    - `GEMINI_API_KEY`
+    - `NEXT_PUBLIC_FIREBASE_API_KEY`
+    - `NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN`
+    - `NEXT_PUBLIC_FIREBASE_PROJECT_ID`
+    - `NEXT_PUBLIC_FIREBASE_DATABASE_URL`
+    - `NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET`
+    - `NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID`
+    - `NEXT_PUBLIC_FIREBASE_APP_ID`
+- **Segurança do Firebase:** As regras de segurança do Firebase Realtime Database precisarão ser configuradas para proteger os dados, especialmente quando funcionalidades de escrita forem implementadas. Inicialmente, podem ser mais permissivas para desenvolvimento, mas devem ser restritas antes de um uso mais amplo.
+- **Autenticação de Usuários:** Para funcionalidades de escrita no banco de dados (adicionar lojas, produtos, preços), a autenticação de usuários será essencial para segurança e rastreabilidade.
 
-## 5. Próximos Passos
+## 6. Próximos Passos
 
+- **Desenvolvimento do Catálogo de Produtos (Firebase):**
+    - Implementar as funções CRUD (Criar, Ler, Atualizar, Deletar) para `/products`, `/stores`, e `/productAvailability` em um serviço Firebase (`src/lib/firebaseService.ts` ou similar).
+    - Desenvolver UI para visualização e (inicialmente, talvez apenas para admin) gerenciamento desses dados.
+    - Integrar a busca de produtos na UI para consultar o Firebase.
+- **Integração dos Fluxos de IA com o Banco de Dados:**
+    - Modificar `searchRelatedProducts` para, além de sugerir nomes, tentar encontrar correspondências no catálogo de produtos do Firebase.
+    - Permitir que `extractProductProperties` salve as propriedades extraídas para os produtos correspondentes no Firebase.
+    - Adicionar funcionalidade para sugerir a criação de novos produtos no banco se um produto identificado pela IA não existir.
 - **Melhorias na UI/UX:**
-    - Permitir que o usuário clique em um produto para ver mais detalhes (simulando uma página de produto ou link externo).
-    - Adicionar opções de filtragem ou ordenação para os resultados.
-    - Internacionalização da interface do usuário (além das traduções dos objetos).
-- **Funcionalidades Adicionais de IA:**
-    - Permitir que o usuário refine a busca de produtos com texto adicional.
-    - Explorar a geração de descrições criativas para os cenários da imagem.
-    - Implementar edição de imagem básica ou sugestões de melhoria baseadas em IA.
+    - Permitir que o usuário clique em um produto para ver mais detalhes (combinando dados da IA e do Firebase).
+    - Adicionar opções de filtragem ou ordenação para os resultados, incluindo os do Firebase.
+    - Internacionalização completa da interface do usuário (além das traduções dos objetos).
+- **Autenticação e Autorização:**
+    - Implementar autenticação de usuários Firebase para proteger as operações de escrita no banco de dados.
+    - Definir papéis de usuário (ex: administrador, usuário comum).
+- **Refinamento das Regras de Segurança do Firebase.**
 - **Infraestrutura e Operações:**
-    - **Deployment na Vercel:** Configuração de variáveis de ambiente na Vercel é crucial.
+    - **Deployment na Vercel:** Garantir que todas as variáveis de ambiente (IA e Firebase) estejam configuradas.
     - Implementar logging mais robusto para monitoramento e depuração.
-    - Considerar otimizações de custo para as chamadas de IA (reiterando a importância de não gerar custo).
-    - Autenticação de usuários para salvar históricos de análise (se aplicável).
+    - Continuar considerando otimizações de custo para as chamadas de IA e uso do Firebase.
 - **Testes:**
     - **Aumentar a cobertura de testes unitários e de integração (Jest configurado e primeiro teste de fluxo de IA adicionado).**
+    - Adicionar testes para os serviços Firebase.
     - Realizar testes de usabilidade com usuários finais.
 
-## 6. Histórico de Configurações de Layout da UI (Tema Atual)
+## 7. Histórico de Configurações de Layout da UI (Tema Atual)
 
 A configuração de layout e tema da UI é gerenciada principalmente através do arquivo `src/app/globals.css` e utiliza variáveis CSS HSL para o tema ShadCN/Tailwind.
 
@@ -104,6 +254,7 @@ A configuração de layout e tema da UI é gerenciada principalmente através do
 
 O layout geral da página principal (`src/app/page.tsx`) é centralizado, com um cabeçalho, uma área principal para upload e exibição de resultados, e um rodapé. Componentes ShadCN como Card, Accordion, Button, Progress, Badge, Input, Label, e Toast são utilizados para construir a interface. A fonte principal é Geist Sans.
 
-## 7. Processo de Atualização e Manutenção
+## 8. Processo de Atualização e Manutenção
 
 - **Nota Importante:** Sempre que for identificado um ponto final "." (marcando a conclusão de uma tarefa ou alteração significativa no projeto), o arquivo `memo.md` deve ser analisado e atualizado para refletir a realidade atual do projeto. Isso garante que o documento permaneça uma fonte de verdade relevante e atualizada.
+```
