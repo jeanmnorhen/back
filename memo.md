@@ -97,3 +97,7 @@ A configuração de layout e tema da UI é gerenciada principalmente através do
 - **Accent (`--accent`):** `160 49% 67%` (#7ED6BA - Ciano Suave)
 
 O layout geral da página principal (`src/app/page.tsx`) é centralizado, com um cabeçalho, uma área principal para upload e exibição de resultados, e um rodapé. Componentes ShadCN como Card, Accordion, Button, Progress, Badge, Input, Label, e Toast são utilizados para construir a interface. A fonte principal é Geist Sans, com Geist Mono como fallback (após correção da instalação).
+
+## 7. Processo de Atualização e Manutenção
+
+- **Nota Importante:** Sempre que for identificado um ponto final "." (marcando a conclusão de uma tarefa ou alteração significativa no projeto), o arquivo `memo.md` deve ser analisado e atualizado para refletir a realidade atual do projeto. Isso garante que o documento permaneça uma fonte de verdade relevante e atualizada.
