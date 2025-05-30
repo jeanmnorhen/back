@@ -24,7 +24,13 @@ export type IdentifyObjectsInput = z.infer<typeof IdentifyObjectsInputSchema>;
 
 const _TranslatedObjectSchema = z.object({
   original: z.string().describe('The object name in the original language (likely English).'),
-  translations: z.record(z.string()).describe('An object where keys are language codes (e.g., "es", "fr", "de", "zh", "ja") and values are the translated object names.'),
+  translations: z.object({
+    es: z.string().optional().describe('Translation to Spanish.'),
+    fr: z.string().optional().describe('Translation to French.'),
+    de: z.string().optional().describe('Translation to German.'),
+    zh: z.string().optional().describe('Translation to Chinese (Simplified).'),
+    ja: z.string().optional().describe('Translation to Japanese.'),
+  }).describe('An object where keys are language codes (e.g., "es", "fr") and values are the translated object names. Properties are optional if a translation is not available.'),
 });
 export type TranslatedObjectType = z.infer<typeof _TranslatedObjectSchema>;
 
@@ -127,10 +133,17 @@ const identifyObjectsFlow = ai.defineFlow(
 
     if (!translationOutput) {
         // Fallback: if translation fails, return original objects without translations
+        const emptyTranslations: TranslatedObjectType['translations'] = {};
+        if (targetLanguageCodes.includes('es')) emptyTranslations.es = undefined;
+        if (targetLanguageCodes.includes('fr')) emptyTranslations.fr = undefined;
+        if (targetLanguageCodes.includes('de')) emptyTranslations.de = undefined;
+        if (targetLanguageCodes.includes('zh')) emptyTranslations.zh = undefined;
+        if (targetLanguageCodes.includes('ja')) emptyTranslations.ja = undefined;
+
         return { 
             identifiedItems: englishObjectNames.map(name => ({
                 original: name,
-                translations: {} 
+                translations: emptyTranslations 
             }))
         };
     }
@@ -140,10 +153,17 @@ const identifyObjectsFlow = ai.defineFlow(
         if (translatedItem) {
             return translatedItem;
         }
-        return { original: originalName, translations: {} }; 
+        const emptyTranslationsForSingle: TranslatedObjectType['translations'] = {};
+        if (targetLanguageCodes.includes('es')) emptyTranslationsForSingle.es = undefined;
+        if (targetLanguageCodes.includes('fr')) emptyTranslationsForSingle.fr = undefined;
+        if (targetLanguageCodes.includes('de')) emptyTranslationsForSingle.de = undefined;
+        if (targetLanguageCodes.includes('zh')) emptyTranslationsForSingle.zh = undefined;
+        if (targetLanguageCodes.includes('ja')) emptyTranslationsForSingle.ja = undefined;
+        return { original: originalName, translations: emptyTranslationsForSingle }; 
     });
 
 
     return { identifiedItems: finalItems };
   }
 );
+
