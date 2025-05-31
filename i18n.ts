@@ -1,51 +1,32 @@
-// i18n.ts (AT PROJECT ROOT - HARCODED MESSAGES - ABSOLUTE MINIMAL TEST)
+// i18n.ts (AT PROJECT ROOT - DYNAMIC JSON LOADING TEST)
 import {getRequestConfig} from 'next-intl/server';
 import {notFound} from 'next/navigation';
 
 const locales = ['en', 'pt'];
 
-console.log(`[i18n.ts - ROOT - HARCODED_MESSAGES_TEST] TOP LEVEL: File imported/evaluated. Timestamp:`, new Date().toISOString());
-
-// Hardcoded messages
-const enMessages = {
-  MinimalPage: {
-    greeting: "Hello from Minimal English Page!",
-    title: "Minimal English Title"
-  },
-  Layout: {
-    title: "Layout (EN - Hardcoded)"
-  }
-};
-
-const ptMessages = {
-  MinimalPage: {
-    greeting: "Olá da Página Mínima em Português!",
-    title: "Título Mínimo em Português"
-  },
-  Layout: {
-    title: "Layout (PT - Hardcoded)"
-  }
-};
+console.log(`[i18n.ts - ROOT - DYNAMIC_JSON_TEST] TOP LEVEL: File imported/evaluated. Timestamp:`, new Date().toISOString());
 
 export default getRequestConfig(async ({locale}) => {
-  console.log(`[i18n.ts - ROOT - HARCODED_MESSAGES_TEST] getRequestConfig CALLED for locale: "${locale}". Timestamp:`, new Date().toISOString());
+  console.log(`[i18n.ts - ROOT - DYNAMIC_JSON_TEST] getRequestConfig CALLED for locale: "${locale}". Timestamp:`, new Date().toISOString());
 
   if (!locales.includes(locale as any)) {
-    console.error(`[i18n.ts - ROOT - HARCODED_MESSAGES_TEST] Invalid locale: "${locale}". Calling notFound().`);
+    console.error(`[i18n.ts - ROOT - DYNAMIC_JSON_TEST] Invalid locale: "${locale}". Calling notFound().`);
     notFound();
   }
 
   let messages;
-  if (locale === 'en') {
-    messages = enMessages;
-  } else if (locale === 'pt') {
-    messages = ptMessages;
-  } else {
-    console.error(`[i18n.ts - ROOT - HARCODED_MESSAGES_TEST] Unknown locale for message loading: "${locale}" - defaulting to PT`);
-    messages = ptMessages; // Default to PT messages
+  try {
+    console.log(`[i18n.ts - ROOT - DYNAMIC_JSON_TEST] Attempting to import messages for locale "${locale}" from "./src/messages/${locale}.json"`);
+    messages = (await import(`./src/messages/${locale}.json`)).default;
+    console.log(`[i18n.ts - ROOT - DYNAMIC_JSON_TEST] SUCCESSFULLY imported messages for locale "${locale}". Message keys: ${Object.keys(messages || {}).join(', ')}`);
+  } catch (error) {
+    console.error(`[i18n.ts - ROOT - DYNAMIC_JSON_TEST] FAILED to load messages for locale "${locale}" from "./src/messages/${locale}.json". Error:`, error);
+    // For this test, we'll call notFound() if messages can't be loaded.
+    // In a real app, you might want to fallback to a default locale or show a specific error.
+    notFound();
   }
   
-  console.log(`[i18n.ts - ROOT - HARCODED_MESSAGES_TEST] Returning messages for locale "${locale}".`);
+  console.log(`[i18n.ts - ROOT - DYNAMIC_JSON_TEST] Returning messages for locale "${locale}".`);
   return {
     messages
   };
