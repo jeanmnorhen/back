@@ -22,9 +22,16 @@ const firebaseEnvVars = {
 };
 
 let allCriticalVarsPresent = true;
+const criticalVarsToCheck = [
+  'NEXT_PUBLIC_FIREBASE_API_KEY',
+  'NEXT_PUBLIC_FIREBASE_PROJECT_ID',
+  'NEXT_PUBLIC_FIREBASE_DATABASE_URL',
+  'NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN' // Adicionado AUTH_DOMAIN às verificações críticas
+];
+
 for (const [key, value] of Object.entries(firebaseEnvVars)) {
   console.log(`[Firebase Setup V2] Variável de Ambiente Lida: ${key} = "${value === undefined ? 'UNDEFINED' : (value === '' ? 'EMPTY_STRING' : value)}"`);
-  if (key === 'NEXT_PUBLIC_FIREBASE_API_KEY' || key === 'NEXT_PUBLIC_FIREBASE_PROJECT_ID' || key === 'NEXT_PUBLIC_FIREBASE_DATABASE_URL') {
+  if (criticalVarsToCheck.includes(key)) {
     if (value === undefined || value === '') {
       console.error(`[Firebase Setup V2] ERRO CRÍTICO IMEDIATO: Variável de ambiente OBRIGATÓRIA "${key}" está ausente ou vazia.`);
       allCriticalVarsPresent = false;
@@ -33,25 +40,26 @@ for (const [key, value] of Object.entries(firebaseEnvVars)) {
 }
 
 if (!allCriticalVarsPresent) {
+  const missingVars = criticalVarsToCheck.filter(key => !firebaseEnvVars[key as keyof typeof firebaseEnvVars] || firebaseEnvVars[key as keyof typeof firebaseEnvVars] === '').join(', ');
   const criticalErrorMessage = `
     --------------------------------------------------------------------------------------
     [Firebase Setup V2] ERRO CRÍTICO DE CONFIGURAÇÃO DO FIREBASE (Server Log Pré-Inicialização)
     --------------------------------------------------------------------------------------
-    UMA OU MAIS variáveis de ambiente CRÍTICAS do Firebase (API_KEY, PROJECT_ID, DATABASE_URL) estão AUSENTES ou VAZIAS.
+    UMA OU MAIS variáveis de ambiente CRÍTICAS do Firebase (${missingVars}) estão AUSENTES ou VAZIAS.
     Isso impede a inicialização do Firebase.
     Consulte os logs acima para ver qual(is) variável(is) específica(s) está(ão) faltando.
 
     >>> VERIFIQUE IMEDIATAMENTE AS VARIÁVEIS DE AMBIENTE NO SEU PROJETO VERCEL: <<<
     1. Acesse: Vercel Dashboard -> Seu Projeto -> Settings -> Environment Variables.
-    2. Confirme que TODAS as variáveis NEXT_PUBLIC_FIREBASE_* necessárias (especialmente API_KEY, PROJECT_ID, DATABASE_URL) existem, estão escritas corretamente e possuem valores válidos.
+    2. Confirme que TODAS as variáveis NEXT_PUBLIC_FIREBASE_* necessárias (${criticalVarsToCheck.join(', ')}) existem, estão escritas corretamente e possuem valores válidos.
     3. Garanta que as variáveis estão disponíveis para o ambiente correto (Production, Preview, Development).
     4. FAÇA UM NOVO DEPLOY após qualquer correção.
     --------------------------------------------------------------------------------------
   `;
   console.error(criticalErrorMessage);
   throw new Error(
-    `Firebase setup halted due to missing critical environment variables. Check Vercel server logs for details. ` +
-    `ACTION REQUIRED: Verify NEXT_PUBLIC_FIREBASE_API_KEY, NEXT_PUBLIC_FIREBASE_PROJECT_ID, and NEXT_PUBLIC_FIREBASE_DATABASE_URL in your Vercel project settings.`
+    `Firebase setup halted due to missing critical environment variables: ${missingVars}. Check Vercel server logs for details. ` +
+    `ACTION REQUIRED: Verify these in your Vercel project settings.`
   );
 }
 
@@ -106,13 +114,18 @@ const firebaseConfig = {
 let app: FirebaseApp;
 if (!getApps().length) {
   try {
-    console.log("[Firebase Setup V2] Tentando inicializar o app Firebase com a configuração (apiKey e databaseURL mostrados para depuração em Vercel logs, serão omitidos em outros contextos):", { ...firebaseConfig, apiKey: firebaseConfig.apiKey ? firebaseConfig.apiKey : "API_KEY_AUSENTE_NA_CONFIG", databaseURL: firebaseConfig.databaseURL });
+    console.log("[Firebase Setup V2] Tentando inicializar o app Firebase com a configuração (apiKey, authDomain e databaseURL mostrados para depuração em Vercel logs, serão omitidos em outros contextos):", { 
+        ...firebaseConfig, 
+        apiKey: firebaseConfig.apiKey ? firebaseConfig.apiKey : "API_KEY_AUSENTE_NA_CONFIG", 
+        authDomain: firebaseConfig.authDomain ? firebaseConfig.authDomain : "AUTH_DOMAIN_AUSENTE_NA_CONFIG",
+        databaseURL: firebaseConfig.databaseURL 
+    });
     app = initializeApp(firebaseConfig);
     console.log("[Firebase Setup V2] App Firebase inicializado com sucesso.");
   } catch (error: any) {
-    console.error(`[Firebase Setup V2] FIREBASE_INIT_APP_ERROR: Erro durante initializeApp. Configuração usada:`, { ...firebaseConfig, apiKey: "[OMITIDO_NO_LOG_DE_ERRO]" }, `Erro original:`, error.message, error.stack);
+    console.error(`[Firebase Setup V2] FIREBASE_INIT_APP_ERROR: Erro durante initializeApp. Configuração usada (parcial):`, { projectId: firebaseConfig.projectId, authDomain: firebaseConfig.authDomain, databaseURL: firebaseConfig.databaseURL }, `Erro original:`, error.message, error.stack);
     throw new Error(
-      `A inicialização do app Firebase falhou (initializeApp). Isso geralmente ocorre devido a valores ausentes ou incorretos em NEXT_PUBLIC_FIREBASE_PROJECT_ID ou NEXT_PUBLIC_FIREBASE_API_KEY. Verifique os logs do servidor Vercel. Erro original: ${error.message}.`
+      `A inicialização do app Firebase falhou (initializeApp). Isso geralmente ocorre devido a valores ausentes ou incorretos em NEXT_PUBLIC_FIREBASE_PROJECT_ID, NEXT_PUBLIC_FIREBASE_API_KEY ou NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN. Verifique os logs do servidor Vercel. Erro original: ${error.message}.`
       );
   }
 } else {
