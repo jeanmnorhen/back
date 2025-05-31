@@ -1,0 +1,17 @@
+{
+  "Layout": {
+    "title": "Preço Real (PT) - react-i18next",
+    "description": "Encontre ofertas locais e produtos anunciados por lojas próximas com react-i18next."
+  },
+  "HomePage": {
+    "welcome": "Bem-vindo ao Preço Real (Versão em Português)!",
+    "tagline": "Seu buscador de ofertas locais, agora com react-i18next."
+  },
+  "AppLayout": {
+    "dealsTabTitle": "Ofertas",
+    "identifyTabTitle": "Identificar",
+    "mapTabTitle": "Mapa",
+    "accountTabTitle": "Conta",
+    "mapFeatureComingSoon": "Funcionalidade de mapa em breve!"
+  }
+}

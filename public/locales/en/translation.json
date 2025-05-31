@@ -1,0 +1,17 @@
+{
+  "Layout": {
+    "title": "Real Price (EN) - react-i18next",
+    "description": "Find local deals and products advertised by nearby stores with react-i18next."
+  },
+  "HomePage": {
+    "welcome": "Welcome to Real Price (English Version)!",
+    "tagline": "Your local deal finder, now powered by react-i18next."
+  },
+  "AppLayout": {
+    "dealsTabTitle": "Deals",
+    "identifyTabTitle": "Identify",
+    "mapTabTitle": "Map",
+    "accountTabTitle": "Account",
+    "mapFeatureComingSoon": "Map feature coming soon!"
+  }
+}

@@ -1,4 +1,3 @@
-
 # Relatório do Projeto: Preço Real
 
 ## 1. Objetivos do Projeto
@@ -19,7 +18,7 @@
     - Registrar lojas/estabelecimentos, incluindo sua localização geográfica e perfis.
     - Registrar anúncios/ofertas de produtos feitos por lojistas, incluindo preço, validade e localização.
     - Rastrear o histórico de preços dos produtos, alimentado pelos anúncios expirados.
-    - Manter perfis de usuário (consumidores) com preferências e dados como localização.
+    - Manter perfis de usuário (consumidores) com preferences e dados como localização.
 - Implementar internacionalização (i18n) da interface do usuário (Português "Preço Real", Inglês "Real Price").
 - Fornecer uma página de monitoramento para visualizar dados agregados (ex: valor médio de um produto por região/país, tendências de preço).
 - **Visão Futura:**
@@ -72,8 +71,8 @@
     - Administradores do Preço Real (se houver) poderão gerenciar o catálogo de produtos canônicos, categorias, etc. (PENDENTE)
 - **UC12: Definição de Idioma da Interface:**
     - O sistema pode tentar detectar o idioma preferido do usuário.
-    - O usuário terá a opção de selecionar manually o idioma da interface (Português/Inglês). (FUNCIONALIDADE REMOVIDA TEMPORARIAMENTE COM A REMOÇÃO DO NEXT-INTL).
-    - A interface suporta i18n. (FUNCIONALIDADE I18N REMOVIDA TEMPORARIAMENTE).
+    - O usuário terá a opção de selecionar manually o idioma da interface (Português/Inglês). (A SER REIMPLEMENTADO COM REACT-I18NEXT)
+    - A interface suporta i18n. (A SER REIMPLEMENTADO COM REACT-I18NEXT)
 - **UC13: Monitoramento de Dados Agregados:**
     - O usuário (administrador ou analista do Preço Real) acessa uma página de monitoramento. (PÁGINA EXISTENTE, TEXTOS FIXOS EM PT APÓS REMOÇÃO DO I18N).
     - O usuário seleciona um produto ou categoria.
@@ -107,8 +106,8 @@ O aplicativo "Preço Real" está em um estágio funcional, com as seguintes tecn
 - **Deployment:** Configurado para Vercel.
 - **Geolocalização:** Frontend obtém localização do usuário.
 - **Página de Monitoramento:** Exibe valor médio de produtos por país (baseado na estrutura de dados `productAvailability`). Textos atualmente fixos após remoção do i18n.
-- **Internacionalização (i18n):** A biblioteca `next-intl` foi **removida** do projeto devido a erros persistentes de configuração ("Couldn't find next-intl config file") que não puderam ser resolvidos mesmo após downgrade do Next.js e múltiplas tentativas de reconfiguração. A funcionalidade de i18n está atualmente **inoperante**. Uma nova biblioteca (provavelmente `react-i18next`) será investigada e integrada.
-- **Layout da Página Principal:** Reformulado para usar abas (Ofertas, Identificar, Mapa - desabilitado, Conta), inspirado no layout do WhatsApp. O feed de ofertas na aba "Ofertas" agora busca dados reais do nó `/advertisements` do Firebase, filtrando por status "active" e calculando tempo de expiração. Busca textual e filtros de categoria (client-side) funcionam sobre os dados carregados. (Textos da UI possivelmente fixos após remoção do i18n).
+- **Internacionalização (i18n):** A biblioteca `next-intl` foi **removida** do projeto devido a erros persistentes de configuração. Iniciada a integração da biblioteca `react-i18next` com `i18next`. A funcionalidade de i18n está sendo reimplementada.
+- **Layout da Página Principal:** Reformulado para usar abas (Ofertas, Identificar, Mapa - desabilitado, Conta), inspirado no layout do WhatsApp. O feed de ofertas na aba "Ofertas" agora busca dados reais do nó `/advertisements` do Firebase, filtrando por status "active" e calculando tempo de expiração. Busca textual e filtros de categoria (client-side) funcionam sobre os dados carregados. (Textos da UI possivelmente fixos após remoção do i18n, aguardando migração para `react-i18next`).
 - **Funcionalidade de Captura de Foto via Câmera:** Adicionada e integrada na aba "Identificar" (UC15).
 - **Página de Chat com Superagente:** Criada em `/admin/super-agent-chat` e permite interação básica (envio de mensagens e recebimento de respostas placeholder do fluxo Genkit). (Textos da UI possivelmente fixos).
 - **Autenticação:** Implementado sistema de autenticação com Firebase (Email/Senha). Usuários podem se cadastrar, fazer login e logout.
@@ -139,7 +138,7 @@ A transição para "Preço Real" com foco em anúncios de lojistas e feed geoloc
 - Adaptação/criação dos fluxos de IA e ferramentas para o novo modelo de anúncios e busca no feed (ex: `findProductStoresFlow` precisa ser atualizado).
 - Desenvolvimento dos Superagentes de IA (ver seção 8).
 - Lógica para o sistema mover anúncios expirados para o histórico de preços.
-- **Reimplementação da funcionalidade de internacionalização (i18n) usando uma nova biblioteca.**
+- **Reimplementação da funcionalidade de internacionalização (i18n) usando `react-i18next`.**
 
 ## 4. Arquitetura do Banco de Dados (Firebase Realtime Database) - Proposta para "Preço Real"
 
@@ -236,7 +235,7 @@ Mantém estrutura similar à anterior (preferências, localização).
 - **Limites da API e Custo:** O uso de IA e Firebase tem custos. O volume de anúncios e consultas geoespaciais pode impactar os custos do Firebase.
 - **Segurança do Firebase:** Regras de segurança precisarão ser cuidadosamente definidas para os novos nós de dados (lojistas só podem editar seus anúncios/perfis, consumidores só leem anúncios ativos, etc.).
 - **Privacidade do Usuário:** Uso transparente da localização.
-- **Internacionalização e Moedas:** (CONTÍNUO - Funcionalidade de i18n atualmente removida. Será reimplementada com nova biblioteca. Lidar com moedas no feed será necessário).
+- **Internacionalização e Moedas:** (CONTÍNUO - Funcionalidade de i18n sendo reimplementada com `react-i18next`. Lidar com moedas no feed será necessário).
 
 ## 6. Próximos Passos (Revisado para "Preço Real")
 
@@ -254,11 +253,11 @@ Mantém estrutura similar à anterior (preferências, localização).
         - Exibir feed ordenado por data de postagem ou, se possível com geohash, por proximidade estimada. (ORDENAÇÃO POR DATA DE EXPIRAÇÃO IMPLEMENTADA, PROXIMIDADE PENDENTE).
     - **Filtros para o Feed (com Dados Reais):** Implementar filtros por categoria de produto no feed, consultando o nó `/advertisements`. (CONCLUÍDO - FILTROS CLIENT-SIDE).
 - **Prioridade Contínua/Melhorias:**
-    - **Internacionalização (i18n) e Localização (L10n):** Reimplementar internacionalização usando uma nova biblioteca (e.g., `react-i18next`) após a remoção do `next-intl` devido a erros persistentes.
+    - **Internacionalização (i18n) e Localização (L10n):** Continuar a integração de `react-i18next` e migrar todos os textos da UI.
     - **Implementação da Funcionalidade de Câmera (UC6/UC15):** (CONCLUÍDO)
     - **Chat com Superagente de Análise (UC14):** (INTERFACE INTERATIVA COM RESPOSTAS PLACEHOLDER CONCLUÍDA).
     - **Histórico de Preços:** Implementar lógica (ex: Cloud Function) para mover dados de anúncios expirados para o histórico de preços. (PENDENTE)
-    - **Página de Monitoramento:** Adaptar para usar dados do novo sistema de anúncios/histórico. (PENDENTE)
+    - **Página de Monitoramento:** Adaptar para usar dados do novo sistema de anúncios/histórico e traduzir textos. (PENDENTE)
     - **Refinamento da Busca de Produtos (Análise de Imagem):** A função de análise de imagens (`identifyObjects`, `searchRelatedProducts`, `extractProductProperties`) pode ser mantida. O fluxo `findProductStoresFlow` (que usa `productAvailability`) precisará ser reavaliado ou adaptado/substituído pela lógica de busca no feed de anúncios `/advertisements` se o objetivo for encontrar ofertas atuais em vez de apenas lojas que *geralmente* têm o produto.
     - **Implementação de RAG Geospacial (Visão de Longo Prazo):** Para otimizar buscas por proximidade.
     - **Desenvolvimento dos Superagentes de IA (Visão de Longo Prazo - Seção 8).**
@@ -267,8 +266,8 @@ Mantém estrutura similar à anterior (preferências, localização).
 
 ## 7. Histórico de Configurações de Layout da UI (Tema Atual para "Preço Real")
 
-- O nome do aplicativo nos cabeçalhos, rodapés e títulos de página será "Preço Real" (em português) e "Real Price" (em inglês) - quando i18n for reimplementado.
-- A página principal (`src/app/[locale]/page.tsx`) foi **redesenhada para utilizar um layout de abas (Ofertas, Identificar, Mapa, Conta)**, inspirado no WhatsApp.
+- O nome do aplicativo nos cabeçalhos, rodapés e títulos de página será "Preço Real" (em português) e "Real Price" (em inglês) - quando i18n for reimplementado com `react-i18next`.
+- A página principal (`src/app/[locale]/page.tsx`) foi **redesenhada para utilizar um layout de abas (Ofertas, Identificar, Mapa, Conta)**, inspirado no WhatsApp, através do componente `AppLayout`.
     - **Aba "Ofertas":**
         - Obtenção de localização do usuário.
         - Barra de busca de ofertas (input de texto) no Header da aba.
@@ -331,16 +330,10 @@ Esses superagentes representam uma evolução significativa e exigirão desenvol
 
 ## 10. Internacionalização (i18n) - Status e Próximos Passos
 
-- **Status Atual:** A biblioteca `next-intl` foi **removida** do projeto. A decisão foi tomada após múltiplas tentativas de corrigir um erro persistente de "Couldn't find next-intl config file" que impedia a renderização correta das páginas, mesmo com configurações simplificadas e o downgrade do Next.js para a versão `14.2.3`.
-- **Consequência:** Atualmente, o aplicativo **não possui funcionalidade de internacionalização (i18n)**. Os textos na interface do usuário estão fixos (provavelmente em português ou inglês, dependendo do último estado dos componentes antes da remoção do i18n) ou foram simplificados para não depender de traduções.
-- **Próximos Passos:**
-    - **Investigar e Selecionar Nova Biblioteca:** A principal alternativa a ser considerada é `react-i18next` em conjunto com `i18next`. Outras opções também podem ser avaliadas.
-    - **Integração:** Implementar a nova biblioteca escolhida, o que envolverá:
-        - Configuração da biblioteca.
-        - Criação de arquivos de tradução (ex: JSON).
-        - Adaptação do `middleware.ts` para detecção de locale e roteamento.
-        - Atualização dos componentes da UI para usar os hooks e funcionalidades da nova biblioteca para carregar e exibir textos traduzidos.
-        - Reimplementação do `LanguageSwitcher`.
-    - **Tradução de Conteúdo:** Migrar ou recriar as traduções existentes para o formato da nova biblioteca.
-- **Objetivo:** Restaurar a funcionalidade de i18n para os idiomas Português (`pt` - padrão, nome "Preço Real") e Inglês (`en`, nome "Real Price"), incluindo metadados e todos os textos da interface do usuário.
+- **Status Atual:** A biblioteca `next-intl` foi **removida** do projeto devido a erros persistentes de configuração.
+- **Próximos Passos:** Iniciada a integração de `react-i18next` com `i18next`, `i18next-http-backend` e `i18next-browser-languagedetector`.
+    - Configuração básica e arquivos de tradução JSON em `/public/locales` foram criados.
+    - `src/app/[locale]/layout.tsx` e `src/app/[locale]/page.tsx` foram atualizados para usar o novo sistema para tradução client-side.
+    - O objetivo é restaurar a funcionalidade de i18n para Português (`pt` - padrão) e Inglês (`en`).
+    - Próximas etapas incluem migrar todos os textos da UI (em `AppLayout`, `MonitoringPage`, `StoreProfilePage`, `Auth` etc.) para `react-i18next` e atualizar o `LanguageSwitcher`.
 ```

@@ -16,7 +16,7 @@ This prompt outlines the complete plan and requirements for developing and maint
    - **UC7:** Discover related commercially available products (AI-driven, implemented in "Identify" tab).
    - **UC8:** Extract key product properties (AI-driven, implemented in "Identify" tab).
    - **UC11 (Consumidor):** Authenticated users can manage profiles (preferences, locations - pending).
-   - **UC12:** User can select UI language (PT/EN - completed).
+   - **UC12:** User can select UI language (PT/EN - To be reimplemented with react-i18next).
 
 ## 3. Core Features & User Stories (Store Owners - UC*)
    - **UC3:** Register and manage store profile, including name, description, category, and crucially, geographic location (authentication and basic profile CRUD implemented).
@@ -27,17 +27,17 @@ This prompt outlines the complete plan and requirements for developing and maint
    - **UC9:** Provide visual feedback and toast notifications during image analysis (implemented).
    - **UC10:** Search for products in a canonical catalog (currently via `findProductStoresFlow` using `canonicalName`).
    - **UC13:** Admins/analysts can access a monitoring page to view aggregated data, like average product value by region (page exists, needs adaptation for `/advertisements` and price history).
-   - **UC14:** Admins can interact with a "Superagent de Análise" via a chat interface for project insights (chat interface with placeholder Genkit flow responses completed).
+   - **UC14:** Admins can interact with a "Superagente de Análise" via a chat interface for project insights (chat interface with placeholder Genkit flow responses completed).
 
 ## 5. Technical Stack
-   - **Frontend:** Next.js (App Router, version 14.x), React, TypeScript
+   - **Frontend:** Next.js (App Router, version 14.2.3), React, TypeScript
    - **UI Components:** ShadCN UI
    - **Styling:** Tailwind CSS
-   - **Generative AI:** Genkit (with Google Gemini models, version 1.x API)
+   - **Generative AI:** Genkit (with Google Gemini models, version 1.6.0)
    - **Database:** Firebase Realtime Database
    - **Authentication:** Firebase Authentication (Email/Password)
    - **Deployment:** Vercel
-   - **Internationalization:** `next-intl` (Supporting Portuguese 'pt' and English 'en')
+   - **Internationalization:** `react-i18next` with `i18next` (Supporting Portuguese 'pt' and English 'en')
    - **Testing:** Jest
 
 ## 6. Database Architecture (Firebase Realtime Database - Proposed for "Preço Real")
@@ -68,7 +68,7 @@ This prompt outlines the complete plan and requirements for developing and maint
    - **`superAgentAnalyticsChatFlow`:** (In `src/ai/flows/super-agent-analytics-chat-flow.ts`) Backend for the admin chat interface (currently returns placeholder responses).
    - **Tool: `findStoresTool`:** (In `src/ai/tools/find-stores-tool.ts`) Searches Firebase for stores based on product canonical name and availability (consults `/products` and `/productAvailability`).
    - **Image Generation:** If required, use `googleai/gemini-2.0-flash-exp` model with `responseModalities: ['TEXT', 'IMAGE']`.
-   - **Genkit Guidelines:** Use global `ai` object, `ai.defineFlow`, `ai.definePrompt`, `ai.defineTool`. Adhere to Genkit 1.x syntax. Use Handlebars for prompt templating (no complex logic in templates). Pass images as data URIs.
+   - **Genkit Guidelines:** Use global `ai` object, `ai.defineFlow`, `ai.definePrompt`, `ai.defineTool`. Adhere to Genkit 1.x syntax (currently using Genkit 1.6.0). Use Handlebars for prompt templating (no complex logic in templates). Pass images as data URIs.
 
 ## 8. UI/UX Guidelines
    - **Layout:** WhatsApp-inspired tabbed interface for the main page (`src/app/[locale]/page.tsx` via `AppLayout.tsx`): Ofertas (Deals), Identificar (Identify), Mapa (Map - disabled), Conta (Account).
@@ -76,7 +76,7 @@ This prompt outlines the complete plan and requirements for developing and maint
    - **Responsiveness:** Essential for all components and pages.
    - **Accessibility:** Use ARIA attributes and semantic HTML.
    - **Image Handling:** `next/image` component for optimization. Placeholders: `https://placehold.co/<width>x<height>.png`. Add `data-ai-hint` for placeholder images.
-   - **Internationalization:** `next-intl`. `LanguageSwitcher` component. Translated metadata and UI text for PT and EN.
+   - **Internationalization:** `react-i18next`. `LanguageSwitcher` component to be updated. Translated metadata and UI text for PT and EN.
    - **Icons:** `lucide-react`. Double-check icon availability.
    - **Forms:** Use `react-hook-form` with Zod for validation.
    - **Toasts/Notifications:** Use `useToast` hook.
@@ -93,10 +93,11 @@ This prompt outlines the complete plan and requirements for developing and maint
    - **Camera Usage:** Request permission, handle denial gracefully, show preview.
 
 ## 10. Current Project State (Summary from memo.md)
-   - **Functional Core:** Next.js, React, TypeScript, ShadCN, Tailwind, Genkit, Firebase (DB & Auth), Vercel deployment.
-   - **Implemented UI:** Tabbed layout (Deals, Identify, Map-disabled, Account). Deals tab shows real ads from `/advertisements` with client-side filtering/search. Identify tab has image upload and camera capture for AI analysis. Account tab for login/logout and link to store profile.
-   - **Implemented Features:** User authentication (Email/Password). Basic Store Profile CRUD (create/view/edit name, description, category, location, currency). AI flows for image identification, related products, properties. Basic monitoring page (needs update for `/advertisements`). i18n (PT/EN) for UI & metadata. Admin chat page with placeholder responses.
-   - **Key Pending Work:** Store owner ad management (CRUD for `/advertisements`). Efficient geolocalized feed (Geohash). Price history mechanism. Updating `findProductStoresFlow` for `/advertisements`. Full Superagent functionality.
+   - **Functional Core:** Next.js 14.2.3, React, TypeScript, ShadCN, Tailwind, Genkit 1.6.0, Firebase (DB & Auth), Vercel deployment.
+   - **Implemented UI:** Tabbed layout (Deals, Identify, Map-disabled, Account) in `AppLayout.tsx`. Deals tab shows real ads from `/advertisements` with client-side filtering/search. Identify tab has image upload and camera capture for AI analysis. Account tab for login/logout and link to store profile.
+   - **Implemented Features:** User authentication (Email/Password). Basic Store Profile CRUD (create/view/edit name, description, category, location, currency). AI flows for image identification, related products, properties. Basic monitoring page (needs update for `/advertisements`). Admin chat page with placeholder responses.
+   - **Internationalization (i18n):** `next-intl` was REMOVED due to persistent configuration issues. Currently in the process of integrating `react-i18next`.
+   - **Key Pending Work:** Full `react-i18next` integration and text migration. Store owner ad management (CRUD for `/advertisements`). Efficient geolocalized feed (Geohash). Price history mechanism. Updating `findProductStoresFlow` for `/advertisements`. Full Superagent functionality.
 
 ## 11. Detailed Project Memorandum (Content of memo.md)
 ```
@@ -173,15 +174,15 @@ This prompt outlines the complete plan and requirements for developing and maint
     - Administradores do Preço Real (se houver) poderão gerenciar o catálogo de produtos canônicos, categorias, etc. (PENDENTE)
 - **UC12: Definição de Idioma da Interface:**
     - O sistema pode tentar detectar o idioma preferido do usuário.
-    - O usuário terá a opção de selecionar manually o idioma da interface (Português/Inglês). (CONCLUÍDO)
-    - A interface suporta i18n. (CONCLUÍDO)
+    - O usuário terá a opção de selecionar manually o idioma da interface (Português/Inglês). (A SER REIMPLEMENTADO COM REACT-I18NEXT)
+    - A interface suporta i18n. (A SER REIMPLEMENTADO COM REACT-I18NEXT)
 - **UC13: Monitoramento de Dados Agregados:**
-    - O usuário (administrador ou analista do Preço Real) acessa uma página de monitoramento. (PÁGINA EXISTENTE)
+    - O usuário (administrador ou analista do Preço Real) acessa uma página de monitoramento. (PÁGINA EXISTENTE, TEXTOS FIXOS EM PT APÓS REMOÇÃO DO I18N).
     - O usuário seleciona um produto ou categoria.
     - O sistema exibe o valor médio desse produto/categoria em diferentes regiões/países onde há anúncios registrados, com base nos dados de anúncios expirados e perfis de lojas. (PÁGINA DE MONITORAMENTO USA `productAvailability`, PRECISA ADAPTAR PARA `/advertisements` E HISTÓRICO)
 - **UC14 (Administrador): Interação com Superagente de Análise via Chat:**
     - O administrador acessa uma página de chat dedicada (ex: `/admin/super-agent-chat`).
-    - O administrador interage com o "Superagente de Análise e Relatórios" para obter insights sobre o projeto, uso do banco de dados, atividade de usuários, possíveis falhas ou pontos de atenção. (INTERFACE DE CHAT INTERATIVA COM RESPOSTAS PLACEHOLDER DO FLUXO GENKIT CONCLUÍDA).
+    - O administrador interage com o "Superagente de Análise e Relatórios" para obter insights sobre o projeto, uso do banco de dados, atividade de usuários, possíveis falhas ou pontos de atenção. (INTERFACE DE CHAT INTERATIVA COM RESPOSTAS PLACEHOLDER DO FLUXO GENKIT CONCLUÍDA. TEXTOS FIXOS EM PT/EN APÓS REMOÇÃO DO I18N).
 - **UC15 (Variação de UC6): Uso da Câmera para Identificação e Busca Rápida:**
     - Um usuário abre o Preço Real.
     - O aplicativo exibe o feed de ofertas locais.
@@ -194,10 +195,10 @@ This prompt outlines the complete plan and requirements for developing and maint
 ## 3. Estado Atual
 
 O aplicativo "Preço Real" está em um estágio funcional, com as seguintes tecnologias:
-- **Frontend:** Next.js (App Router), React, TypeScript.
+- **Frontend:** Next.js (App Router, versão `14.2.3`), React, TypeScript.
 - **UI Components:** ShadCN UI.
 - **Estilização:** Tailwind CSS.
-- **Funcionalidades AI (Genkit, Gemini):**
+- **Funcionalidades AI (Genkit, Gemini):** Todos os pacotes `genkit` (incluindo `@genkit-ai/googleai`, `@genkit-ai/next`, `genkit-cli`) estão na versão `1.6.0`.
     - `identifyObjects`: Identifica objetos em imagens e traduz nomes.
     - `searchRelatedProducts`: Busca produtos relacionados.
     - `extractProductProperties`: Extrai propriedades de produtos.
@@ -205,13 +206,13 @@ O aplicativo "Preço Real" está em um estágio funcional, com as seguintes tecn
     - `superAgentAnalyticsChatFlow`: Fluxo para o chat com o superagente de análise (retorna respostas placeholder).
 - **Testes:** Configuração de Jest.
 - **Banco de Dados:** Firebase Realtime Database (estrutura inicial para produtos e lojas; estrutura para anúncios (`/advertisements`) sendo utilizada para o feed).
-- **Deployment:** Configurado para Vercel (funciona bem em produção com as variáveis de ambiente corretas).
+- **Deployment:** Configurado para Vercel.
 - **Geolocalização:** Frontend obtém localização do usuário.
-- **Página de Monitoramento:** Exibe valor médio de produtos por país (baseado na estrutura de dados `productAvailability`).
-- **Internacionalização (i18n):** Suporte para Português ("Preço Real") e Inglês ("Real Price") com `next-intl`, incluindo metadados e seletor de idioma.
-- **Layout da Página Principal:** Reformulado para usar abas (Ofertas, Identificar, Mapa - desabilitado, Conta), inspirado no layout do WhatsApp. O feed de ofertas na aba "Ofertas" agora busca dados reais do nó `/advertisements` do Firebase, filtrando por status "active" e calculando tempo de expiração. Busca textual e filtros de categoria (client-side) funcionam sobre os dados carregados.
+- **Página de Monitoramento:** Exibe valor médio de produtos por país (baseado na estrutura de dados `productAvailability`). Textos atualmente fixos após remoção do i18n.
+- **Internacionalização (i18n):** A biblioteca `next-intl` foi **removida** do projeto devido a erros persistentes de configuração. Iniciada a integração da biblioteca `react-i18next` com `i18next`. A funcionalidade de i18n está sendo reimplementada.
+- **Layout da Página Principal:** Reformulado para usar abas (Ofertas, Identificar, Mapa - desabilitado, Conta), inspirado no layout do WhatsApp. O feed de ofertas na aba "Ofertas" agora busca dados reais do nó `/advertisements` do Firebase, filtrando por status "active" e calculando tempo de expiração. Busca textual e filtros de categoria (client-side) funcionam sobre os dados carregados. (Textos da UI possivelmente fixos após remoção do i18n, aguardando migração para `react-i18next`).
 - **Funcionalidade de Captura de Foto via Câmera:** Adicionada e integrada na aba "Identificar" (UC15).
-- **Página de Chat com Superagente:** Criada em `/admin/super-agent-chat` e agora permite interação básica (envio de mensagens e recebimento de respostas placeholder do fluxo Genkit).
+- **Página de Chat com Superagente:** Criada em `/admin/super-agent-chat` e permite interação básica (envio de mensagens e recebimento de respostas placeholder do fluxo Genkit). (Textos da UI possivelmente fixos).
 - **Autenticação:** Implementado sistema de autenticação com Firebase (Email/Senha). Usuários podem se cadastrar, fazer login e logout.
 - **Perfis de Lojistas:** Usuários autenticados podem criar e visualizar/editar um perfil básico de loja (nome, descrição, categoria, localização, moeda) que é salvo no Firebase em `/stores/{userId}`.
 
@@ -229,7 +230,6 @@ Principais funcionalidades implementadas:
 - Design responsivo e tema customizado.
 - Configuração Firebase e Vercel.
 - Página de monitoramento básica (precisa ser adaptada para `/advertisements`).
-- Suporte i18n (PT/EN) para textos e metadados, incluindo seletor de idioma.
 - Página de chat com Superagente de Análise com interação básica (mensagens e respostas placeholder).
 - Autenticação de usuários (cadastro, login, logout com Firebase).
 - Criação e visualização de Perfis de Loja para usuários autenticados.
@@ -241,6 +241,7 @@ A transição para "Preço Real" com foco em anúncios de lojistas e feed geoloc
 - Adaptação/criação dos fluxos de IA e ferramentas para o novo modelo de anúncios e busca no feed (ex: `findProductStoresFlow` precisa ser atualizado).
 - Desenvolvimento dos Superagentes de IA (ver seção 8).
 - Lógica para o sistema mover anúncios expirados para o histórico de preços.
+- **Reimplementação da funcionalidade de internacionalização (i18n) usando `react-i18next`.**
 
 ## 4. Arquitetura do Banco de Dados (Firebase Realtime Database) - Proposta para "Preço Real"
 
@@ -337,14 +338,12 @@ Mantém estrutura similar à anterior (preferências, localização).
 - **Limites da API e Custo:** O uso de IA e Firebase tem custos. O volume de anúncios e consultas geoespaciais pode impactar os custos do Firebase.
 - **Segurança do Firebase:** Regras de segurança precisarão ser cuidadosamente definidas para os novos nós de dados (lojistas só podem editar seus anúncios/perfis, consumidores só leem anúncios ativos, etc.).
 - **Privacidade do Usuário:** Uso transparente da localização.
-- **Internacionalização e Moedas:** Já iniciado, mas precisa ser mantido. O feed de ofertas precisará lidar com a moeda da loja local.
+- **Internacionalização e Moedas:** (CONTÍNUO - Funcionalidade de i18n sendo reimplementada com `react-i18next`. Lidar com moedas no feed será necessário).
 
 ## 6. Próximos Passos (Revisado para "Preço Real")
 
 - **Prioridade Imediata (Fundação para Lojistas e Anúncios):**
-    - **Autenticação de Usuários:** (CONCLUÍDO - Email/Senha).
     - **Perfis de Lojistas (CRUD):** (CRIAÇÃO/VISUALIZAÇÃO CONCLUÍDA. Edição básica também. Exclusão pendente).
-        - Desenvolver UI e lógica para lojistas se cadastrarem, criarem e gerenciarem seus perfis de loja (nome, localização/coordenadas, categoria, etc.).
         - Definir regras de segurança do Firebase para perfis de loja.
     - **Sistema de Anúncios/Ofertas (CRUD para Lojistas):** (PENDENTE)
         - Desenvolver UI e lógica para lojistas criarem, visualizarem, editarem (se aplicável antes de expirar) e excluírem seus anúncios (produto, preço, categoria, validade).
@@ -354,15 +353,14 @@ Mantém estrutura similar à anterior (preferências, localização).
         - Utilizar geolocalização do consumidor. (CONCLUÍDO)
         - Implementar busca de anúncios ativos no Firebase (do nó `/advertisements`). (CONCLUÍDO - BUSCA TODOS OS ATIVOS, SEM FILTRO GEO AVANÇADO).
         - Usar Geohashes para filtrar por proximidade (requer que lojas/anúncios tenham geohash). (PENDENTE)
-        - Substituir os dados mockados do feed por dados reais do Firebase. (CONCLUÍDO)
         - Exibir feed ordenado por data de postagem ou, se possível com geohash, por proximidade estimada. (ORDENAÇÃO POR DATA DE EXPIRAÇÃO IMPLEMENTADA, PROXIMIDADE PENDENTE).
     - **Filtros para o Feed (com Dados Reais):** Implementar filtros por categoria de produto no feed, consultando o nó `/advertisements`. (CONCLUÍDO - FILTROS CLIENT-SIDE).
 - **Prioridade Contínua/Melhorias:**
-    - **Internacionalização (i18n) e Localização (L10n):** (CONTÍNUO)
+    - **Internacionalização (i18n) e Localização (L10n):** Continuar a integração de `react-i18next` e migrar todos os textos da UI.
     - **Implementação da Funcionalidade de Câmera (UC6/UC15):** (CONCLUÍDO)
     - **Chat com Superagente de Análise (UC14):** (INTERFACE INTERATIVA COM RESPOSTAS PLACEHOLDER CONCLUÍDA).
     - **Histórico de Preços:** Implementar lógica (ex: Cloud Function) para mover dados de anúncios expirados para o histórico de preços. (PENDENTE)
-    - **Página de Monitoramento:** Adaptar para usar dados do novo sistema de anúncios/histórico. (PENDENTE)
+    - **Página de Monitoramento:** Adaptar para usar dados do novo sistema de anúncios/histórico e traduzir textos. (PENDENTE)
     - **Refinamento da Busca de Produtos (Análise de Imagem):** A função de análise de imagens (`identifyObjects`, `searchRelatedProducts`, `extractProductProperties`) pode ser mantida. O fluxo `findProductStoresFlow` (que usa `productAvailability`) precisará ser reavaliado ou adaptado/substituído pela lógica de busca no feed de anúncios `/advertisements` se o objetivo for encontrar ofertas atuais em vez de apenas lojas que *geralmente* têm o produto.
     - **Implementação de RAG Geospacial (Visão de Longo Prazo):** Para otimizar buscas por proximidade.
     - **Desenvolvimento dos Superagentes de IA (Visão de Longo Prazo - Seção 8).**
@@ -371,8 +369,8 @@ Mantém estrutura similar à anterior (preferências, localização).
 
 ## 7. Histórico de Configurações de Layout da UI (Tema Atual para "Preço Real")
 
-- O nome do aplicativo nos cabeçalhos, rodapés e títulos de página será "Preço Real" (em português) e "Real Price" (em inglês).
-- A página principal (`src/app/[locale]/page.tsx`) foi **redesenhada para utilizar um layout de abas (Ofertas, Identificar, Mapa, Conta)**, inspirado no WhatsApp.
+- O nome do aplicativo nos cabeçalhos, rodapés e títulos de página será "Preço Real" (em português) e "Real Price" (em inglês) - quando i18n for reimplementado com `react-i18next`.
+- A página principal (`src/app/[locale]/page.tsx`) foi **redesenhada para utilizar um layout de abas (Ofertas, Identificar, Mapa, Conta)**, inspirado no WhatsApp, através do componente `AppLayout`.
     - **Aba "Ofertas":**
         - Obtenção de localização do usuário.
         - Barra de busca de ofertas (input de texto) no Header da aba.
@@ -433,33 +431,35 @@ Esses superagentes representam uma evolução significativa e exigirão desenvol
 - Mantido: "Dois pontos finais seguidos ".." significam que o sistema deve continuar..."
 - Mantido: Criação de snapshots do `memo.md` na pasta `historico/` após conclusões de etapas. (Último snapshot: `13_memo_md_post_whatsapp_inspired_layout.md`)
 
-## 10. Internacionalização (i18n) com `next-intl`
+## 10. Internacionalização (i18n) - Status e Próximos Passos
 
-- A estrutura existente será mantida e expandida para os novos textos e seções do "Preço Real".
-- Idiomas Suportados: Português (`pt` - padrão, nome "Preço Real"), Inglês (`en`, nome "Real Price").
-- O `LanguageSwitcher` está implementado (CONCLUÍDO).
-- Metadados traduzidos (CONCLUÍDO).
-- Textos básicos da UI das páginas principal, de monitoramento e de chat do superagente estão traduzidos (CONTÍNUO).
-- Próximos passos: Traduzir novos textos da UI para o feed, perfis de lojistas, etc., à medida que são adicionados.
+- **Status Atual:** A biblioteca `next-intl` foi **removida** do projeto devido a erros persistentes de configuração.
+- **Próximos Passos:** Iniciada a integração de `react-i18next` com `i18next`, `i18next-http-backend` e `i18next-browser-languagedetector`.
+    - Configuração básica e arquivos de tradução JSON em `/public/locales` foram criados.
+    - `src/app/[locale]/layout.tsx` e `src/app/[locale]/page.tsx` foram atualizados para usar o novo sistema para tradução client-side.
+    - O objetivo é restaurar a funcionalidade de i18n para Português (`pt` - padrão) e Inglês (`en`).
+    - Próximas etapas incluem migrar todos os textos da UI (em `AppLayout`, `MonitoringPage`, `StoreProfilePage`, `Auth` etc.) para `react-i18next` e atualizar o `LanguageSwitcher`.
 ```
 
 ## 12. Instructions for AI Development Partner
-   - Adhere strictly to the specified technical stack: Next.js (App Router, version 14.x), React, TypeScript, ShadCN UI, Tailwind CSS, Genkit (for AI functionalities with Google Gemini), and Firebase (Realtime Database, Authentication). Do not introduce other frameworks (e.g., Angular, other CSS frameworks) or AI libraries unless explicitly discussed and approved.
+   - Adhere strictly to the specified technical stack: Next.js (App Router, version 14.2.3), React, TypeScript, ShadCN UI, Tailwind CSS, Genkit (version 1.6.0, for AI functionalities with Google Gemini), Firebase (Realtime Database, Authentication), and `react-i18next` for internationalization. Do not introduce other frameworks or AI libraries unless explicitly discussed and approved.
    - Follow Next.js App Router best practices, including the use of Server Components by default, TypeScript with `import type` for type imports, and Server Actions for data mutations where appropriate.
    - Leverage ShadCN UI components for building the user interface. Style customizations should primarily be done via Tailwind CSS and by updating the ShadCN theme file (`src/app/globals.css`) for color schemes. Ensure UI is aesthetically pleasing, functional, and production-ready, incorporating rounded corners and shadows.
-   - Implement Genkit flows as described in `memo.md` and this prompt. Ensure proper schema definitions (Zod), tool usage, and adherence to Genkit 1.x API syntax (e.g., `ai.generate().text`, `ai.generateStream()`). Prompts within Genkit flows should use Handlebars templating.
+   - Implement Genkit flows as described in `memo.md` and this prompt. Ensure proper schema definitions (Zod), tool usage, and adherence to Genkit 1.x API syntax (using Genkit 1.6.0). Prompts within Genkit flows should use Handlebars templating.
    - Maintain high code quality: ensure code is clean, readable, well-organized, performant, responsive, and accessible (using ARIA attributes).
    - When providing code changes, use the specified XML format for multi-file editing, providing the entire final content of each modified file. Do not add comments to `package.json`.
    - Prioritize the user stories and features outlined in this document and the embedded `memo.md`. Address any discrepancies or ambiguities by asking clarifying questions.
    - For new Genkit flows or tools, ensure they are registered in `src/ai/dev.ts` and follow established patterns for schema definition and wrapper functions.
    - Image Handling: Use `next/image` for optimization. Use `https://placehold.co/<width>x<height>.png` for placeholders, and always include a `data-ai-hint` attribute with one or two keywords for Unsplash search.
    - Error Handling: Implement proper error boundaries (`error.js` files in Next.js) and user-friendly error messages/toasts.
-   - Internationalization (`next-intl`): Ensure all user-facing text is internationalized. The configuration uses `i18n.ts` at the project root loading messages from `src/messages/[locale].json`.
+   - Internationalization (`react-i18next`): Ensure all user-facing text is internationalized. Translation files are in `public/locales/[lng]/translation.json`.
    - Avoid hydration errors by deferring browser-specific operations or random value generation to `useEffect` hooks.
    - Address any warnings or errors from the build process or runtime promptly.
 
 ## 13. Current Debugging Focus (If applicable, otherwise remove or replace)
-   - **Primary Issue:** The application is currently facing a persistent "Error: Couldn't find next-intl config file." when `getMessages()` is called in `src/app/[locale]/layout.tsx`. This occurs both locally and on Vercel with Next.js 14.x and next-intl 3.17.2, even with minimal configurations (hardcoded messages in `i18n.ts` at root, `unstable_setRequestLocale` used).
-   - **Next Steps:** Investigate deeper incompatibilities, check `next-intl` GitHub issues for similar problems with Next.js 14 App Router, or consider creating a minimal reproduction case.
+   - Focus on completing the `react-i18next` integration.
+   - Migrating existing components (AppLayout, MonitoringPage, etc.) to use `useTranslation` hook.
+   - Updating `LanguageSwitcher` component.
+   - Implementing server-side translation for metadata in layouts.
 
 This master prompt should serve as a comprehensive guide for the "Preço Real" project.
