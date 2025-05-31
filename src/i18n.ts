@@ -1,2 +1,5 @@
 // This file is intentionally left empty.
-// The i18n configuration has been moved to the project root (./i18n.ts).
+// The primary i18n configuration is at the project root (/i18n.ts).
+// This file should not be loaded or used by next-intl.
+
+    
