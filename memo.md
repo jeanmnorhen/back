@@ -21,6 +21,7 @@
 - Oferecer uma interface de usuário intuitiva e responsiva para facilitar a interação.
 - **Novo:** Focar inicialmente no mercado brasileiro, mas com a intenção futura de expandir o sistema para buscar e registrar os valores de produtos brasileiros em lojas de outros países.
 - **Novo:** Fornecer uma página de monitoramento para visualizar dados agregados do banco de dados, como o valor médio de um produto por país.
+- **Visão Futura:** Implementar um sistema de Retrieval Augmented Generation (RAG) geospacial para clusterizar/agrupar lojas e produtos por proximidade, otimizando o tráfego de dados e garantindo informações atualizadas das lojas mais próximas ao usuário.
 
 ## 2. Casos de Uso
 
@@ -44,7 +45,7 @@
 - **UC7: Busca de Lojas para um Produto (IA com Ferramenta e DB):**
     - O usuário (ou sistema, após identificar um produto) pode solicitar a busca de lojas que vendem um produto específico.
     - O sistema (via IA e uma ferramenta `findStoresTool` agora conectada ao Firebase) retorna uma lista de lojas que vendem o produto. (UI integrada para chamar o fluxo `findProductStoresFlow`)
-    - Opcionalmente, se o usuário fornecer sua localização, o sistema (fluxo e ferramenta) agora recebe essas coordenadas. A ferramenta `findStoresTool` (conectada ao Firebase) usa a localização para registrar no console; a busca atual da ferramenta não é afetada por essas coordenadas para filtrar ou ordenar por proximidade, sendo esta uma melhoria futura.
+    - Opcionalmente, se o usuário fornecer sua localização, o sistema (fluxo e ferramenta) agora recebe essas coordenadas. A ferramenta `findStoresTool` (conectada ao Firebase) usa a localização para registrar no console; a busca atual da ferramenta não é afetada por essas coordenadas para filtrar ou ordenar por proximidade, sendo esta uma melhoria futura (potencialmente utilizando RAG geospacial).
 - **UC8: Cadastro de Informações de Lojas e Produtos:**
     - Usuários administradores (ou o sistema via IA no futuro, para sugestões) poderão cadastrar novas lojas, incluindo sua localização (coordenadas GPS), e os produtos que vendem com seus respectivos URLs de site de venda e preços.
 - **UC9 (Novo): Definição de Idioma da Interface:**
@@ -244,7 +245,7 @@ Esta estrutura visa balancear a normalização (evitando duplicação excessiva 
 ## 5. Pontos de Atenção
 
 - **Precisão da IA:** A qualidade dos resultados (objetos, traduções, produtos, propriedades, lojas) depende da precisão dos modelos Genkit e Gemini. Casos de ambiguidade ou imagens de baixa qualidade podem levar a resultados subótimos.
-- **Conexão com Firebase na Ferramenta:** A ferramenta `findStoresTool` agora consulta o Firebase. A busca por `productName` é feita comparando com `canonicalName` nos produtos. A lógica real de busca por proximidade com base no GPS do usuário ainda precisa ser implementada (atualmente, a busca da ferramenta não utiliza as coordenadas do usuário para filtrar ou ordenar).
+- **Conexão com Firebase na Ferramenta:** A ferramenta `findStoresTool` agora consulta o Firebase. A busca por `productName` é feita comparando com `canonicalName` nos produtos. A lógica real de busca por proximidade com base no GPS do usuário ainda precisa ser implementada (atualmente, a ferramenta aceita coordenadas de localização do usuário para possível uso futuro e as registra, mas a busca não é filtrada/ordenada por proximidade).
 - **Limites da API:** O uso das APIs de IA (Google AI) pode estar sujeito a cotas e limitações.
 - **Tamanho da Imagem:** Atualmente, há um limite de 5MB para upload, o que é uma boa prática, mas deve ser comunicado claramente.
 - **Performance:** O processamento de IA pode levar alguns segundos. A obtenção da localização GPS depende da resposta do usuário e do hardware/software. Consultas ao Firebase também adicionam latência. A nova página de monitoramento realiza múltiplas leituras para agregar dados, o que pode ser lento com grandes volumes de dados.
@@ -257,6 +258,7 @@ Esta estrutura visa balancear a normalização (evitando duplicação excessiva 
 - **Precisão da Geolocalização:** A precisão da localização GPS obtida do navegador pode variar dependendo do dispositivo e do ambiente. A localização de lojas dependerá da precisão dos dados inseridos.
 - **Novo:** **Internacionalização da UI (i18n):** A tradução da interface do aplicativo para diferentes idiomas é uma tarefa complexa que vai além da tradução de dados de objetos já existentes.
 - **Novo:** **Monitoramento e Moedas:** A página de monitoramento atualmente exibe o preço médio e a moeda conforme encontrada. Não realiza conversão de moeda, o que pode ser necessário para uma comparação precisa se várias moedas estiverem presentes para o mesmo produto em diferentes países.
+- **Novo:** **Complexidade da Implementação de RAG Geospacial:** A introdução de um sistema RAG para proximidade geográfica adiciona complexidade significativa à arquitetura, envolvendo bancos de dados vetoriais, pipelines de embedding e sincronização de dados.
 
 ## 6. Próximos Passos
 
@@ -272,8 +274,19 @@ Esta estrutura visa balancear a normalização (evitando duplicação excessiva 
 - **Integração dos Fluxos de IA com o Banco de Dados:**
     - Modificar `searchRelatedProducts` para tentar encontrar correspondências no catálogo de produtos do Firebase.
     - Permitir que `extractProductProperties` salve as propriedades extraídas para os produtos no Firebase.
-    - **A ferramenta `findStoresTool` agora consulta o Firebase.** Melhorar a lógica de busca de produtos (ex: usando mais campos além de `canonicalName`, ou indexação). Implementar a lógica de busca por proximidade real usando as coordenadas do usuário e das lojas no Firebase.
+    - **A ferramenta `findStoresTool` agora consulta o Firebase.** Melhorar a lógica de busca de produtos (ex: usando mais campos além de `canonicalName`, ou indexação). Implementar a lógica de busca por proximidade real usando as coordenadas do usuário e das lojas no Firebase (considerar arquitetura RAG geospacial para esta evolução).
     - Adicionar funcionalidade para sugerir a criação de novos produtos/lojas no banco se não existirem.
+- **Implementação de RAG Geospacial para Otimização de Lojas (Visão de Longo Prazo):**
+    - **Objetivo:** Melhorar a relevância e performance na busca por lojas, agrupando-as por proximidade geográfica e, potencialmente, otimizando o tráfego de dados.
+    - **Componentes Potenciais:**
+        -   Utilização de um banco de dados vetorial (ex: Pinecone, Weaviate, Elasticsearch com KNN, ou extensões de PostGIS com vetores) para armazenar embeddings geográficos das lojas.
+        -   Processo para gerar embeddings a partir das coordenadas GPS das lojas.
+        -   Modificar a `findStoresTool` (ou criar uma nova ferramenta/fluxo) para consultar este sistema RAG, utilizando a localização do usuário para recuperar as lojas mais próximas que vendem o produto desejado.
+        -   Estratégias de atualização para manter os dados de proximidade e disponibilidade de produtos sincronizados entre o sistema RAG e o Firebase Realtime Database.
+    - **Benefícios:**
+        -   Respostas mais rápidas e relevantes para o usuário ao buscar lojas.
+        -   Potencial para otimizar o tráfego de dados, priorizando informações de lojas próximas.
+        -   Melhor experiência do usuário ao apresentar informações sempre atualizadas das lojas mais convenientes geograficamente.
 - **Melhorias na UI/UX:**
     - O card para obter a localização do usuário agora é ocultado após a localização ser obtida com sucesso.
     - Permitir que o usuário clique em um produto para ver mais detalhes (combinando dados da IA e do Firebase, incluindo URLs de venda e histórico de preços).
@@ -329,3 +342,4 @@ O layout geral da página principal (`src/app/page.tsx`) é centralizado, com um
 
 - **Nota Importante:** Sempre que for identificado um ponto final "." (marcando a conclusão de uma tarefa ou alteração significativa no projeto), o arquivo `memo.md` deve ser analisado e atualizado para refletir a realidade atual do projeto. Isso garante que o documento permaneça uma fonte de verdade relevante e atualizada.
 - Dois pontos finais seguidos ".." significam que o sistema deve continuar o último passo (se estiver em andamento) ou iniciar o próximo passo na lista de tarefas.
+
