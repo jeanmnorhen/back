@@ -9,12 +9,15 @@
 - Fornecer uma lista de produtos relacionados aos objetos identificados.
 - Extrair e exibir propriedades chave dos produtos relacionados.
 - Permitir a busca por lojas que vendem um produto específico (usando IA e ferramentas).
-- **Novo:** Permitir que o sistema utilize a localização GPS do usuário (com consentimento) para otimizar a busca por lojas. (Frontend implementado para obter localização; Backend e ferramenta agora aceitam coordenadas).
-- **Novo:** Permitir o cadastro de URLs de produtos em lojas específicas.
+- Permitir que o sistema utilize a localização GPS do usuário (com consentimento) para otimizar a busca por lojas. (Frontend implementado para obter localização; Backend e ferramenta agora aceitam coordenadas).
+- **Novo:** Registrar a localização GPS do usuário em seu perfil (requer autenticação e consentimento).
+- **Novo:** Definir o idioma da interface do aplicativo com base na localização GPS do usuário (requer sistema de i18n e mapeamento).
+- Permitir o cadastro de URLs de produtos em lojas específicas.
 - Integrar com Firebase Realtime Database para:
     - Manter um catálogo de produtos com informações multilíngues.
     - Registrar lojas, incluindo sua localização geográfica.
     - Rastrear o histórico de preços dos produtos em diferentes lojas.
+    - **Novo:** Manter perfis de usuário com preferências e dados como localização.
 - Oferecer uma interface de usuário intuitiva e responsiva para facilitar a interação.
 
 ## 2. Casos de Uso
@@ -33,14 +36,18 @@
 - **UC5: Consulta de Produtos no Banco de Dados:**
     - O usuário (ou o sistema) pode pesquisar produtos existentes no Firebase Realtime Database.
     - O sistema exibe informações do produto, incluindo dados multilíngues e histórico de preços por loja.
-- **UC6: Gerenciamento de Dados de Produtos (Futuro, com Autenticação):**
+- **UC6: Gerenciamento de Dados de Produtos e Perfis (Futuro, com Autenticação):**
     - Usuários autenticados (administradores) poderão adicionar/editar produtos, lojas e registrar preços.
+    - **Novo:** Usuários autenticados poderão ter sua localização GPS salva em seus perfis e, potencialmente, definir preferências de idioma.
 - **UC7: Busca de Lojas para um Produto (IA com Ferramenta e DB):**
     - O usuário (ou sistema, após identificar um produto) pode solicitar a busca de lojas que vendem um produto específico.
     - O sistema (via IA e uma ferramenta `findStoresTool` conectada ao Firebase) retorna uma lista de lojas que vendem o produto. (UI integrada para chamar o fluxo `findProductStoresFlow`)
-    - **Atualizado:** Opcionalmente, se o usuário fornecer sua localização, o sistema (fluxo e ferramenta) agora recebe essas coordenadas, e a ferramenta `findStoresTool` (atualmente simulada) pode usar essa informação para priorizar lojas próximas.
-- **UC8 (Novo): Cadastro de Informações de Lojas e Produtos:**
+    - Opcionalmente, se o usuário fornecer sua localização, o sistema (fluxo e ferramenta) agora recebe essas coordenadas, e a ferramenta `findStoresTool` (atualmente simulada) pode usar essa informação para priorizar lojas próximas.
+- **UC8: Cadastro de Informações de Lojas e Produtos:**
     - Usuários administradores (ou o sistema via IA no futuro, para sugestões) poderão cadastrar novas lojas, incluindo sua localização (coordenadas GPS), e os produtos que vendem com seus respectivos URLs de site de venda e preços.
+- **UC9 (Novo): Definição de Idioma da Interface:**
+    - O sistema pode tentar detectar o idioma preferido do usuário com base na sua localização GPS (após consentimento) ou configurações do navegador.
+    - O usuário terá a opção de selecionar manualmente o idioma da interface.
 
 ## 3. Estado Atual
 
@@ -52,9 +59,9 @@ O aplicativo "Image Insight Explorer" está em um estágio funcional, implementa
     - `identifyObjects`: Identifica objetos na imagem e traduz seus nomes para Espanhol, Francês, Alemão, Chinês (Simplificado), Japonês, Português (Brasil) e Português (Portugal).
     - `searchRelatedProducts`: Busca produtos relacionados aos objetos (usando nomes em inglês).
     - `extractProductProperties`: Extrai propriedades dos produtos encontrados.
-    - `findProductStoresFlow` (com `findStoresTool`): Busca lojas que vendem um produto específico. A ferramenta agora aceita coordenadas de localização do usuário (se fornecidas) e simula uma priorização. **Integrado na UI, incluindo passagem de localização.**
+    - `findProductStoresFlow` (com `findStoresTool`): Busca lojas que vendem um produto específico. A ferramenta agora aceita coordenadas de localização do usuário (se fornecidas) e simula uma priorização. (Integrado na UI, incluindo passagem de localização).
 - **Testes:** Configuração de Jest para testes unitários, com testes para `identifyObjects` e `findProductStoresFlow` (incluindo cenários com localização).
-- **Banco de Dados:** Configuração inicial do Firebase Realtime Database (inicialização e definição da estrutura de dados).
+- **Banco de Dados:** Configuração inicial do Firebase Realtime Database (inicialização e definição da estrutura de dados para produtos, lojas e disponibilidade).
 - **Deployment:** Configurado para Vercel.
 - **Geolocalização:** Frontend implementado para solicitar e obter a localização GPS do usuário. Essa localização agora é passada para o fluxo `findProductStoresFlow`.
 
@@ -195,6 +202,35 @@ Rastreia o preço, disponibilidade e histórico de preços de um produto especí
 }
 ```
 
+### `/userProfiles/{userId}` (Novo)
+Armazena informações e preferências do usuário.
+- `displayName` (string, opcional): Nome de exibição do usuário.
+- `email` (string, opcional): Email do usuário (se autenticado com email).
+- `photoURL` (string, opcional): URL da foto de perfil do usuário.
+- `preferredLanguage` (string, opcional): Código de idioma preferido pelo usuário (ex: "en", "pt-BR").
+- `lastKnownLocation` (objeto, opcional): Última localização GPS conhecida do usuário.
+    - `latitude` (number)
+    - `longitude` (number)
+    - `timestamp` (timestamp)
+- `createdAt` (timestamp): Data de criação do perfil.
+- `updatedAt` (timestamp): Data da última atualização.
+
+**Exemplo `/userProfiles/someUserId123`:**
+```json
+{
+  "displayName": "Alex Usuário",
+  "email": "alex@example.com",
+  "preferredLanguage": "pt-BR",
+  "lastKnownLocation": {
+    "latitude": -23.5505,
+    "longitude": -46.6333,
+    "timestamp": 1680000000000
+  },
+  "createdAt": 1678886400000,
+  "updatedAt": 1680000000000
+}
+```
+
 Esta estrutura visa balancear a normalização (evitando duplicação excessiva de dados) com a facilidade de consulta comum no Realtime Database (dados aninhados onde faz sentido para leitura).
 
 ## 5. Pontos de Atenção
@@ -208,37 +244,43 @@ Esta estrutura visa balancear a normalização (evitando duplicação excessiva 
 - **Custo:** O uso de modelos de IA generativa e Firebase Realtime Database pode incorrer em custos. **É crucial que este projeto não gere custos significativos ou inesperados.**
 - **Configuração de Ambiente na Vercel:** As variáveis de ambiente (`GEMINI_API_KEY`, `NEXT_PUBLIC_FIREBASE_*`) precisam ser configuradas no painel da Vercel. (Confirmado pelo usuário que estão configuradas).
 - **Segurança do Firebase:** As regras de segurança do Firebase Realtime Database precisarão ser configuradas.
-- **Autenticação de Usuários:** Essencial para funcionalidades de escrita no banco de dados (cadastro de lojas, produtos, preços).
-- **Novo:** **Privacidade do Usuário:** A solicitação e o uso da localização GPS do usuário devem ser feitos com consentimento claro e transparente, informando como os dados serão utilizados.
-- **Novo:** **Precisão da Geolocalização:** A precisão da localização GPS obtida do navegador pode variar dependendo do dispositivo e do ambiente. A localização de lojas dependerá da precisão dos dados inseridos.
+- **Autenticação de Usuários:** Essencial para funcionalidades de escrita no banco de dados (cadastro de lojas, produtos, preços, perfis de usuário).
+- **Privacidade do Usuário:** A solicitação e o uso da localização GPS do usuário devem ser feitos com consentimento claro e transparente, informando como os dados serão utilizados e armazenados.
+- **Precisão da Geolocalização:** A precisão da localização GPS obtida do navegador pode variar dependendo do dispositivo e do ambiente. A localização de lojas dependerá da precisão dos dados inseridos.
+- **Novo:** **Internacionalização da UI (i18n):** A tradução da interface do aplicativo para diferentes idiomas é uma tarefa complexa que vai além da tradução de dados.
 
 ## 6. Próximos Passos
 
+- **Autenticação e Gerenciamento de Perfis de Usuário:**
+    - Implementar autenticação de usuários (ex: Firebase Authentication).
+    - Desenvolver funcionalidades CRUD para `/userProfiles`, permitindo que usuários (após consentimento) salvem sua localização GPS e preferências de idioma.
 - **Desenvolvimento do Catálogo de Produtos (Firebase):**
     - Implementar as funções CRUD para `/products`, `/stores`, e `/productAvailability` (incluindo `productUrl` e `coordinates` para lojas).
     - Desenvolver UI para visualização e gerenciamento desses dados (requer autenticação para escrita).
-    - **Novo:** Implementar interface para cadastro/edição de coordenadas de lojas.
+    - Implementar interface para cadastro/edição de coordenadas de lojas.
     - Integrar a busca de produtos na UI para consultar o Firebase.
 - **Integração dos Fluxos de IA com o Banco de Dados:**
     - Modificar `searchRelatedProducts` para tentar encontrar correspondências no catálogo de produtos do Firebase.
     - Permitir que `extractProductProperties` salve as propriedades extraídas para os produtos no Firebase.
-    - **Atualizado:** Conectar a ferramenta `findStoresTool` ao catálogo de `/stores` e `/productAvailability` do Firebase em vez de usar dados simulados. **A ferramenta já recebe as coordenadas do usuário (se fornecidas); a lógica de busca por proximidade real precisa ser implementada na ferramenta quando conectada ao DB.**
+    - Conectar a ferramenta `findStoresTool` ao catálogo de `/stores` e `/productAvailability` do Firebase em vez de usar dados simulados. A ferramenta já recebe as coordenadas do usuário (se fornecidas); a lógica de busca por proximidade real precisa ser implementada na ferramenta quando conectada ao DB.
     - Adicionar funcionalidade para sugerir a criação de novos produtos/lojas no banco se não existirem.
 - **Melhorias na UI/UX:**
-    - **(Frontend Implementado; Backend parcialmente integrado)** Implementar funcionalidade no frontend para solicitar e obter a localização GPS do usuário (com consentimento claro) para ser usada na busca por lojas. *A localização é passada para o fluxo `findProductStoresFlow`.*
-    - **Novo:** Permitir que o usuário clique em um produto para ver mais detalhes (combinando dados da IA e do Firebase, incluindo URLs de venda e histórico de preços).
-    - **Novo:** Desenvolver interfaces (protegidas por autenticação) para gerenciamento de lojas e disponibilidade de produtos (CRUD), incluindo URLs de produtos em lojas específicas e preços.
+    - (Frontend Implementado; Backend parcialmente integrado) Implementar funcionalidade no frontend para solicitar e obter a localização GPS do usuário (com consentimento claro) para ser usada na busca por lojas. *A localização é passada para o fluxo `findProductStoresFlow`.*
+    - **Novo:** Após a implementação da autenticação, permitir que a localização GPS obtida seja salva no perfil do usuário.
+    - Permitir que o usuário clique em um produto para ver mais detalhes (combinando dados da IA e do Firebase, incluindo URLs de venda e histórico de preços).
+    - Desenvolver interfaces (protegidas por autenticação) para gerenciamento de lojas e disponibilidade de produtos (CRUD), incluindo URLs de produtos em lojas específicas e preços.
     - Adicionar opções de filtragem ou ordenação nos resultados.
-    - Internacionalização completa da interface do usuário (além dos dados já traduzidos para Espanhol, Francês, Alemão, Chinês Simplificado, Japonês, Português (Brasil) e Português (Portugal)).
-- **Autenticação e Autorização:**
-    - Implementar autenticação de usuários Firebase para permitir o gerenciamento de dados (lojas, produtos, preços).
+- **Internacionalização (i18n) e Localização (L10n):**
+    - **Novo:** Implementar um sistema de internacionalização (i18n) para toda a interface do usuário (ex: usando `next-intl` ou `react-i18next`). Isso vai além das traduções de dados de objetos já existentes.
+    - **Novo:** Após a i18n da UI, desenvolver lógica para detectar o idioma do usuário (via localização GPS, configurações do navegador, ou preferência do perfil) e ajustar a interface. Permitir seleção manual de idioma.
 - **Refinamento das Regras de Segurança do Firebase.**
 - **Infraestrutura e Operações:**
     - Logging mais robusto.
 - **Testes:**
     - Aumentar a cobertura de testes unitários para os fluxos de IA, incluindo o fluxo `findProductStoresFlow` (já atualizado com testes de localização) e a ferramenta `findStoresTool`.
     - Adicionar testes para os serviços Firebase quando implementados.
-    - **Novo:** Testar a lógica de geolocalização e busca de lojas próximas quando a ferramenta for conectada ao DB.
+    - Testar a lógica de geolocalização e busca de lojas próximas quando a ferramenta for conectada ao DB.
+    - **Novo:** Testar funcionalidades de perfil de usuário e i18n da UI.
 
 ## 7. Histórico de Configurações de Layout da UI (Tema Atual)
 
@@ -272,5 +314,6 @@ O layout geral da página principal (`src/app/page.tsx`) é centralizado, com um
 ## 8. Processo de Atualização e Manutenção
 
 - **Nota Importante:** Sempre que for identificado um ponto final "." (marcando a conclusão de uma tarefa ou alteração significativa no projeto), o arquivo `memo.md` deve ser analisado e atualizado para refletir a realidade atual do projeto. Isso garante que o documento permaneça uma fonte de verdade relevante e atualizada.
-- **Novo:** Dois pontos finais seguidos ".." significam que o sistema deve continuar o último passo (se estiver em andamento) ou iniciar o próximo passo na lista de tarefas.
+- Dois pontos finais seguidos ".." significam que o sistema deve continuar o último passo (se estiver em andamento) ou iniciar o próximo passo na lista de tarefas.
 
+```
