@@ -65,7 +65,7 @@ const languageMap: Record<string, string> = {
   pt_PT: 'Português (Portugal)',
 };
 
-export default function ImageInsightExplorerPage() {
+export default function RootFallbackPage() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   
@@ -304,20 +304,21 @@ export default function ImageInsightExplorerPage() {
         <div className="flex items-center justify-center gap-3 mb-2">
          <Wand2 className="w-10 h-10 text-primary" />
          <h1 className="text-4xl font-bold sm:text-5xl tracking-tight bg-gradient-to-r from-primary via-purple-500 to-accent bg-clip-text text-transparent">
-            Image Insight Explorer
+            Preço Real
           </h1>
         </div>
         <p className="text-lg text-muted-foreground">
-          Envie uma imagem para identificar objetos, ver traduções e descobrir produtos e lojas relacionadas.
+          Descubra ofertas locais ou analise uma imagem para identificar produtos e encontrar promoções relacionadas.
         </p>
       </header>
 
       <main className="w-full max-w-4xl space-y-8">
+        {/* Conteúdo principal da página pode ser simplificado ou focado na análise de imagem se esta for uma página de fallback */}
         <Card className="shadow-lg">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-2xl">
               <UploadCloud className="w-7 h-7 text-primary" />
-              Envie Sua Imagem
+              Identificar Produto por Imagem
             </CardTitle>
             <CardDescription>Selecione um arquivo de imagem (PNG, JPG, GIF, etc.) de até 5MB.</CardDescription>
           </CardHeader>
@@ -399,20 +400,13 @@ export default function ImageInsightExplorerPage() {
                   </>
                 )}
               </Button>
-              {/* {userLocation && ( // This part is now implicitly handled by the parent conditional rendering
-                <div className="text-sm p-3 bg-muted/50 rounded-md">
-                  <p className="font-medium">Localização Obtida:</p>
-                  <p>Latitude: <span className="font-semibold">{userLocation.latitude.toFixed(5)}</span></p>
-                  <p>Longitude: <span className="font-semibold">{userLocation.longitude.toFixed(5)}</span></p>
-                </div>
-              )} */}
               {locationError && (
                 <p className="text-sm text-destructive flex items-center gap-2"><AlertTriangle className="w-4 h-4"/> {locationError}</p>
               )}
             </CardContent>
           </Card>
         )}
-         {userLocation && ( // Display confirmation if location is already set and card is hidden
+         {userLocation && (
             <div className="p-4 bg-muted/50 rounded-md text-sm text-muted-foreground flex items-center gap-2">
                 <MapPin className="w-5 h-5 text-primary" />
                 <span>Sua localização foi obtida: Lat {userLocation.latitude.toFixed(4)}, Lng {userLocation.longitude.toFixed(4)}.</span>
@@ -616,7 +610,7 @@ export default function ImageInsightExplorerPage() {
 
       </main>
       <footer className="mt-12 py-6 text-center text-sm text-muted-foreground border-t w-full max-w-4xl">
-        <p>&copy; {new Date().getFullYear()} Image Insight Explorer. Desenvolvido com Genkit AI.</p>
+        <p>&copy; {new Date().getFullYear()} Preço Real. Desenvolvido com Genkit AI.</p>
         <p>Traduções fornecidas para: Espanhol, Francês, Alemão, Chinês (Simplificado), Japonês, Português (Brasil), Português (Portugal).</p>
       </footer>
     </div>

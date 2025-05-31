@@ -285,8 +285,9 @@ export default function MonitoringPage() {
         )}
       </main>
       <footer className="mt-12 py-6 text-center text-sm text-muted-foreground border-t w-full max-w-4xl">
-        <p>&copy; {new Date().getFullYear()} Image Insight Explorer. Painel de Monitoramento.</p>
+        <p>&copy; {new Date().getFullYear()} Preço Real. Painel de Monitoramento.</p>
       </footer>
     </div>
   );
 }
+
