@@ -1,25 +1,14 @@
-// src/app/[locale]/layout.tsx (ULTRA_HARDCODED_MINIMAL)
+
+// src/app/[locale]/layout.tsx (REMOVED next-intl)
 import type { ReactNode } from 'react';
-import { NextIntlClientProvider } from 'next-intl';
-import { getMessages, unstable_setRequestLocale } from 'next-intl/server';
-// import { GeistSans } from 'geist/font/sans'; // Removed for minimal test
-// import { GeistMono } from 'geist/font/mono'; // Removed for minimal test
+// import { GeistSans } from 'geist/font/sans'; // Temporarily removed
+// import { GeistMono } from 'geist/font/mono'; // Temporarily removed
 import '../globals.css';
-// import { Toaster } from '@/components/ui/toaster'; // Removed for minimal test
-// import { AuthProvider } from '@/contexts/AuthContext'; // Removed for minimal test
+// import { Toaster } from '@/components/ui/toaster'; // Temporarily removed
+// import { AuthProvider } from '@/contexts/AuthContext'; // Temporarily removed
 
-console.log(`[LocaleLayout - ULTRA_HARDCODED_MINIMAL] TOP LEVEL: File imported/evaluated. Timestamp:`, new Date().toISOString());
+console.log(`[LocaleLayout - NO_INTL_TEST] TOP LEVEL: File imported/evaluated. Timestamp:`, new Date().toISOString());
 
-// No generateStaticParams for this minimal test
-// export function generateStaticParams() {
-//   console.log(`[LocaleLayout - ULTRA_HARDCODED_MINIMAL] generateStaticParams called.`);
-//   return [{locale: 'en'}, {locale: 'pt'}];
-// }
-
-// No generateMetadata for this minimal test
-// export async function generateMetadata({params: {locale}}: {params: {locale: string}}) {
-//   // ... metadata generation logic ...
-// }
 
 export default async function LocaleLayout({
   children,
@@ -28,27 +17,32 @@ export default async function LocaleLayout({
   children: ReactNode;
   params: {locale: string};
 }>) {
-  unstable_setRequestLocale(locale);
-  console.log(`[LocaleLayout - ULTRA_HARDCODED_MINIMAL] Rendering for locale: "${locale}". unstable_setRequestLocale called. Timestamp:`, new Date().toISOString());
+  // unstable_setRequestLocale(locale); // Removed: next-intl specific
+  console.log(`[LocaleLayout - NO_INTL_TEST] Rendering for locale: "${locale}". Timestamp:`, new Date().toISOString());
 
-  let messages;
-  try {
-    console.log(`[LocaleLayout - ULTRA_HARDCODED_MINIMAL] Attempting to get messages for locale: ${locale}.`);
-    messages = await getMessages(); // No argument, rely on unstable_setRequestLocale
-    console.log(`[LocaleLayout - ULTRA_HARDCODED_MINIMAL] Successfully got messages for locale: ${locale}. Message keys: ${Object.keys(messages || {}).join(', ')}`);
-  } catch (error: any) {
-    const errorMessage = error instanceof Error ? `${error.name}: ${error.message}` : String(error);
-    console.error(`[LocaleLayout - ULTRA_HARDCODED_MINIMAL] CRITICAL ERROR calling getMessages() for locale ${locale}. Error: ${errorMessage}. Stack: ${error.stack ? error.stack.substring(0, 500) + '...' : 'No stack'}`);
-    messages = { MinimalPage: { title: `Error loading messages for ${locale} (fallback)` } };
-  }
+  // let messages; // Removed: next-intl specific
+  // try {
+  //   console.log(`[LocaleLayout - NO_INTL_TEST] Attempting to get messages for locale: ${locale}.`);
+  //   messages = await getMessages({locale});
+  //   console.log(`[LocaleLayout - NO_INTL_TEST] Successfully got messages for locale: ${locale}. Message keys: ${Object.keys(messages || {}).join(', ')}`);
+  // } catch (error: any) {
+  //   const errorMessage = error instanceof Error ? `${error.name}: ${error.message}` : String(error);
+  //   console.error(`[LocaleLayout - NO_INTL_TEST] CRITICAL ERROR calling getMessages() for locale ${locale}. Error: ${errorMessage}. Stack: ${error.stack ? error.stack.substring(0, 500) + '...' : 'No stack'}`);
+  //   // messages = { MinimalPage: { title: `Error loading messages for ${locale} (fallback)` } }; // Fallback not needed if provider is removed
+  // }
 
   return (
+    // <html lang={locale} className={`${GeistSans.variable} ${GeistMono.variable}`}>
     <html lang={locale}>
       <body>
-        <NextIntlClientProvider locale={locale} messages={messages}>
-          {children}
-        </NextIntlClientProvider>
+        {/* <AuthProvider> */}
+          {/* <NextIntlClientProvider locale={locale} messages={messages}> */}
+            {children}
+          {/* </NextIntlClientProvider> */}
+          {/* <Toaster /> */}
+        {/* </AuthProvider> */}
       </body>
     </html>
   );
 }
+

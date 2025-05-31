@@ -1,30 +1,21 @@
-// src/app/[locale]/page.tsx (ULTRA_HARDCODED_MINIMAL)
+
+// src/app/[locale]/page.tsx (REMOVED next-intl)
 'use client';
 
-import { useTranslations } from 'next-intl';
+// import { useTranslations } from 'next-intl'; // Removed
+// import AppLayout from '@/components/AppLayout'; // Temporarily removed to simplify
 
-console.log('[MinimalLocalePage - ULTRA_HARDCODED_MINIMAL] Rendering component...');
+console.log('[LocalePage - NO_INTL_TEST] Rendering component...');
 
-export default function MinimalLocalePage() {
-  const t = useTranslations('MinimalPage');
-  let title = "Default Title";
-  let greeting = "Default Greeting";
-
-  try {
-    title = t('title');
-    greeting = t('greeting');
-    console.log(`[MinimalLocalePage - ULTRA_HARDCODED_MINIMAL] Translations loaded: title='${title}', greeting='${greeting}'`);
-  } catch (e: any) {
-    console.error(`[MinimalLocalePage - ULTRA_HARDCODED_MINIMAL] Error using translations: ${e.message}`);
-    title = `Error: ${e.message}`;
-    greeting = "Could not load translations.";
-  }
+export default function LocalePage({ params }: { params: { locale: string } }) {
+  // const t = useTranslations('ImageInsightExplorerPage'); // Removed
 
   return (
     <div style={{ padding: '20px', fontFamily: 'sans-serif' }}>
-      <h1>{title}</h1>
-      <p>{greeting}</p>
-      <p>Current locale (rendered client-side): {typeof window !== 'undefined' ? window.location.pathname.split('/')[1] || 'unknown' : 'server'}</p>
+      <h1>Página Principal (Sem i18n)</h1>
+      <p>Locale atual: {params.locale}</p>
+      <p>Se você vê esta página, o roteamento básico e a renderização estão funcionando sem o next-intl.</p>
+      {/* <AppLayout /> */}
     </div>
   );
 }
