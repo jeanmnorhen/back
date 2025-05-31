@@ -9,6 +9,7 @@ export default getRequestConfig(async ({locale}) => {
   if (!locales.includes(locale as any)) notFound();
 
   return {
-    messages: (await import(`../messages/${locale}.json`)).default
+    // Updated path to be relative to src/i18n.ts, assuming messages are now in src/messages
+    messages: (await import(`./messages/${locale}.json`)).default
   };
 });
