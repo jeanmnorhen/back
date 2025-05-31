@@ -19,6 +19,7 @@
     - Rastrear o histórico de preços dos produtos em diferentes lojas.
     - **Novo:** Manter perfis de usuário com preferências e dados como localização.
 - Oferecer uma interface de usuário intuitiva e responsiva para facilitar a interação.
+- **Novo:** Focar inicialmente no mercado brasileiro, mas com a intenção futura de expandir o sistema para buscar e registrar os valores de produtos brasileiros em lojas de outros países.
 
 ## 2. Casos de Uso
 
@@ -145,7 +146,7 @@ Armazena informações sobre as lojas onde os produtos são vendidos.
 - `location` (objeto, opcional): Detalhes da localização.
     - `address`: "Rua Principal, 123"
     - `city`: "Cidade Exemplo"
-    - `countryCode`: "BR"
+    - `countryCode`: "BR" // Importante para o foco inicial e expansão
     - `postalCode`: "12345-678"
     - `coordinates` (objeto, opcional): Coordenadas GPS.
         - `lat` (number): Latitude.
@@ -259,6 +260,7 @@ Esta estrutura visa balancear a normalização (evitando duplicação excessiva 
     - Desenvolver UI para visualização e gerenciamento desses dados (requer autenticação para escrita).
     - Implementar interface para cadastro/edição de coordenadas de lojas.
     - Integrar a busca de produtos na UI para consultar o Firebase.
+    - **Novo:** Expandir o catálogo e a lógica de busca para suportar o rastreamento de preços de produtos brasileiros em lojas internacionais, incluindo a gestão de diferentes moedas e `countryCode` para lojas.
 - **Integração dos Fluxos de IA com o Banco de Dados:**
     - Modificar `searchRelatedProducts` para tentar encontrar correspondências no catálogo de produtos do Firebase.
     - Permitir que `extractProductProperties` salve as propriedades extraídas para os produtos no Firebase.
