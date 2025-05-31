@@ -1,9 +1,9 @@
 
-# Relatório do Projeto: Real Price
+# Relatório do Projeto: Preço Real
 
 ## 1. Objetivos do Projeto
 
-- **Nome do Projeto:** Real Price
+- **Nome do Projeto:** Preço Real (Originalmente "Image Insight Explorer", internacionalmente "Real Price")
 - **Objetivo Principal:** Permitir que usuários encontrem produtos e serviços sendo anunciados por estabelecimentos comerciais próximos à sua localização em tempo real, com foco inicial em ofertas de varejo e alimentação.
 - Facilitar a descoberta de ofertas locais através de um feed de produtos geolocalizado.
 - Permitir que usuários filtrem produtos por categoria.
@@ -20,14 +20,14 @@
     - **Novo:** Registrar anúncios/ofertas de produtos feitos por lojistas, incluindo preço, validade e localização.
     - Rastrear o histórico de preços dos produtos, alimentado pelos anúncios expirados.
     - Manter perfis de usuário (consumidores) com preferências e dados como localização.
-- Implementar internacionalização (i18n) da interface do usuário.
+- Implementar internacionalização (i18n) da interface do usuário (Português "Preço Real", Inglês "Real Price").
 - Fornecer uma página de monitoramento para visualizar dados agregados (ex: valor médio de um produto por região/país, tendências de preço).
 - **Visão Futura:** Implementar um sistema de Retrieval Augmented Generation (RAG) geospacial para clusterizar/agrupar lojas, anúncios e produtos por proximidade, otimizando o tráfego de dados e garantindo informações atualizadas das lojas mais próximas ao usuário.
 
 ## 2. Casos de Uso
 
 - **UC1 (Novo - Principal): Descoberta de Ofertas Próximas (Feed Geolocalizado):**
-    - O usuário (consumidor) abre o aplicativo Real Price.
+    - O usuário (consumidor) abre o aplicativo Preço Real.
     - O aplicativo solicita e utiliza a localização GPS do usuário (com consentimento).
     - O sistema exibe um feed de produtos/ofertas que estão sendo anunciados por lojas próximas ao usuário.
     - Os anúncios são apresentados com informações como nome do produto, preço, nome da loja e distância.
@@ -38,7 +38,7 @@
     - O sistema exibe uma lista de todas as lojas próximas que anunciaram "hot dogs" (ou o produto buscado), ordenadas pela proximidade em relação ao usuário.
     - Cada item da lista mostra o nome da loja, o produto, o preço anunciado e a distância.
 - **UC3 (Novo - Lojista): Cadastro e Gerenciamento de Perfil de Loja:**
-    - Um proprietário de loja se cadastra no Real Price como "lojista" (requer autenticação).
+    - Um proprietário de loja se cadastra no Preço Real como "lojista" (requer autenticação).
     - O lojista preenche o perfil da sua loja, incluindo nome, endereço, tipo de estabelecimento e, crucialmente, define sua localização geográfica (que pode ser validada ou inserida manualmente).
 - **UC4 (Novo - Lojista): Publicação de Anúncios/Ofertas:**
     - O lojista autenticado acessa a interface para criar um novo anúncio.
@@ -53,33 +53,33 @@
     - O usuário (consumidor) tem um item físico mas não sabe o nome exato para buscar ofertas.
     - O usuário seleciona uma imagem do item do seu dispositivo e faz o upload.
     - O sistema identifica objetos na imagem (ex: "lata de refrigerante").
-    - O usuário pode então usar o nome do objeto identificado para buscar ofertas (ver UC2).
+    - O usuário pode então usar o nome do objeto identificado para buscar ofertas no Preço Real (ver UC2).
     - O sistema pode, opcionalmente, exibir traduções dos nomes dos objetos.
 - **UC7: Descoberta de Produtos Relacionados (IA) - (Apoio à busca):**
     - Após a identificação de objetos (UC6), se o usuário desejar, o sistema (via IA) pode sugerir produtos comercialmente disponíveis que são relevantes (usando nomes em inglês/idioma base).
 - **UC8: Extração de Propriedades de Produtos (IA) - (Apoio à informação):**
-    - Para produtos identificados (UC6) ou encontrados (UC7), o sistema (via IA) pode extrair e apresentar características importantes (ex: cor, material, marca), se aplicável e útil para o contexto de "Real Price".
+    - Para produtos identificados (UC6) ou encontrados (UC7), o sistema (via IA) pode extrair e apresentar características importantes (ex: cor, material, marca), se aplicável e útil para o contexto de "Preço Real".
 - **UC9: Feedback Visual do Processamento (Para análise de imagem):**
     - O usuário visualiza o progresso da análise da imagem em etapas.
     - O usuário recebe notificações (toasts) sobre o status e erros.
 - **UC10: Consulta de Produtos no Banco de Dados (Catálogo):**
-    - O usuário (ou o sistema) pode pesquisar produtos existentes no catálogo de produtos canônicos do Real Price (se essa funcionalidade for mantida).
+    - O usuário (ou o sistema) pode pesquisar produtos existentes no catálogo de produtos canônicos do Preço Real (se essa funcionalidade for mantida).
     - O sistema exibe informações do produto, incluindo dados multilíngues e, potencialmente, um resumo do histórico de preços.
 - **UC11: Gerenciamento de Dados de Produtos e Perfis de Consumidor (com Autenticação):**
     - Usuários consumidores autenticados poderão salvar preferências, locais frequentes, etc.
-    - Administradores do Real Price (se houver) poderão gerenciar o catálogo de produtos canônicos, categorias, etc.
+    - Administradores do Preço Real (se houver) poderão gerenciar o catálogo de produtos canônicos, categorias, etc.
 - **UC12: Definição de Idioma da Interface:**
     - O sistema pode tentar detectar o idioma preferido do usuário.
-    - O usuário terá a opção de selecionar manualmente o idioma da interface.
-    - A interface suporta i18n (Português e Inglês).
+    - O usuário terá a opção de selecionar manualmente o idioma da interface (Português/Inglês).
+    - A interface suporta i18n.
 - **UC13: Monitoramento de Dados Agregados:**
-    - O usuário (administrador ou analista do Real Price) acessa uma página de monitoramento.
+    - O usuário (administrador ou analista do Preço Real) acessa uma página de monitoramento.
     - O usuário seleciona um produto ou categoria.
     - O sistema exibe o valor médio desse produto/categoria em diferentes regiões/países onde há anúncios registrados, com base nos dados de anúncios expirados e perfis de lojas.
 
 ## 3. Estado Atual
 
-O aplicativo "Real Price" (anteriormente Image Insight Explorer) está em um estágio funcional, com as seguintes tecnologias:
+O aplicativo "Preço Real" (anteriormente Image Insight Explorer) está em um estágio funcional, com as seguintes tecnologias:
 - **Frontend:** Next.js (App Router), React, TypeScript.
 - **UI Components:** ShadCN UI.
 - **Estilização:** Tailwind CSS.
@@ -90,10 +90,10 @@ O aplicativo "Real Price" (anteriormente Image Insight Explorer) está em um est
     - `findProductStoresFlow` (com `findStoresTool`): Busca lojas (atualmente consulta o Firebase para um modelo de produto/loja mais estático, precisará de adaptação para o modelo de anúncios dinâmicos).
 - **Testes:** Configuração de Jest.
 - **Banco de Dados:** Firebase Realtime Database (estrutura inicial para produtos e lojas; precisará ser expandida para anúncios e perfis de lojistas).
-- **Deployment:** Configurado para Vercel.
+- **Deployment:** Configurado para Vercel (funciona bem em produção com as variáveis de ambiente corretas).
 - **Geolocalização:** Frontend obtém localização do usuário.
 - **Página de Monitoramento:** Exibe valor médio de produtos por país (baseado na estrutura de dados atual).
-- **Internacionalização (i18n):** Suporte para Português e Inglês com `next-intl`, incluindo metadados e seletor de idioma.
+- **Internacionalização (i18n):** Suporte para Português ("Preço Real") e Inglês ("Real Price") com `next-intl`, incluindo metadados e seletor de idioma.
 
 Principais funcionalidades implementadas (do escopo anterior e base para o novo):
 - Upload de imagens e análise básica pela IA.
@@ -107,14 +107,14 @@ Principais funcionalidades implementadas (do escopo anterior e base para o novo)
 - Suporte i18n (PT/EN).
 
 **Desafios com a Mudança de Escopo:**
-A transição para "Real Price" com foco em anúncios de lojistas e feed geolocalizado requer:
+A transição para "Preço Real" com foco em anúncios de lojistas e feed geolocalizado requer:
 - Implementação de autenticação para lojistas.
 - Criação de uma interface para lojistas gerenciarem perfis e anúncios.
 - Desenvolvimento do sistema de feed geolocalizado (consultas espaciais no Firebase ou sistema RAG).
 - Nova modelagem de dados para anúncios/ofertas com prazo de validade.
 - Adaptação dos fluxos de IA e ferramentas para o novo modelo.
 
-## 4. Arquitetura do Banco de Dados (Firebase Realtime Database) - Proposta para "Real Price"
+## 4. Arquitetura do Banco de Dados (Firebase Realtime Database) - Proposta para "Preço Real"
 
 A estrutura precisará ser adaptada e expandida.
 
@@ -188,7 +188,7 @@ Mantém estrutura similar à anterior (preferências, localização).
 
 ## 5. Pontos de Atenção
 
-- **Escopo da Mudança:** O novo foco em "Real Price" é uma mudança substancial que exigirá desenvolvimento significativo de novas funcionalidades (autenticação de lojistas, interface de anúncios, feed geolocalizado).
+- **Escopo da Mudança:** O novo foco em "Preço Real" é uma mudança substancial que exigirá desenvolvimento significativo de novas funcionalidades (autenticação de lojistas, interface de anúncios, feed geolocalizado).
 - **Consultas Geoespaciais:** Implementar buscas por proximidade eficientes no Firebase Realtime Database é desafiador. Geohashes são uma aproximação. RAG é uma solução mais robusta, mas complexa.
 - **Validade dos Anúncios:** Um sistema para gerenciar o ciclo de vida dos anúncios (ativação, expiração, remoção do feed, movimentação para histórico) será necessário (provavelmente via Cloud Functions ou agendamento).
 - **Dois Tipos de Usuário:** Gerenciar perfis e interfaces distintas para consumidores e lojistas.
@@ -199,7 +199,7 @@ Mantém estrutura similar à anterior (preferências, localização).
 - **Privacidade do Usuário:** Uso transparente da localização.
 - **Internacionalização e Moedas:** Já iniciado, mas precisa ser mantido. O feed de ofertas precisará lidar com a moeda da loja local.
 
-## 6. Próximos Passos (Revisado para "Real Price")
+## 6. Próximos Passos (Revisado para "Preço Real")
 
 - **Prioridade Imediata (Fundação para Lojistas e Anúncios):**
     - **Autenticação de Usuários:** Implementar Firebase Authentication para consumidores e, crucialmente, para lojistas.
@@ -216,7 +216,10 @@ Mantém estrutura similar à anterior (preferências, localização).
         - Exibir feed básico ordenado por data de postagem ou, se possível com geohash, por proximidade estimada.
     - **Filtros para o Feed:** Implementar filtros por categoria de produto no feed.
 - **Prioridade Contínua/Melhorias:**
-    - **Internacionalização (i18n) e Localização (L10n):** Continuar traduzindo a UI.
+    - **Internacionalização (i18n) e Localização (L10n):**
+        - Expandir traduções para todos os textos da UI.
+        - Traduzir títulos de metadados (CONCLUÍDO).
+        - Adicionar seletor de idioma na UI (CONCLUÍDO).
     - **Histórico de Preços:** Implementar lógica (ex: Cloud Function) para mover dados de anúncios expirados para o histórico de preços.
     - **Página de Monitoramento:** Adaptar para usar dados do novo sistema de anúncios/histórico.
     - **Refinamento da Busca de Produtos:** Se a identificação de imagem for mantida, melhorar como ela se integra à busca de ofertas.
@@ -224,15 +227,15 @@ Mantém estrutura similar à anterior (preferências, localização).
     - **Melhorias na UI/UX para Consumidores e Lojistas.**
     - **Testes.**
 - **Outros:**
-    - A função de análise de imagens (`identifyObjects`, `searchRelatedProducts`, `extractProductProperties`) pode ser mantida como uma forma de o usuário identificar um produto que deseja procurar no "Real Price". O fluxo `findProductStoresFlow` precisará ser reavaliado ou substituído pela lógica de busca no feed de anúncios.
+    - A função de análise de imagens (`identifyObjects`, `searchRelatedProducts`, `extractProductProperties`) pode ser mantida como uma forma de o usuário identificar um produto que deseja procurar no "Preço Real". O fluxo `findProductStoresFlow` precisará ser reavaliado ou substituído pela lógica de busca no feed de anúncios.
 
-## 7. Histórico de Configurações de Layout da UI (Tema Atual para "Real Price")
+## 7. Histórico de Configurações de Layout da UI (Tema Atual para "Preço Real")
 
 O tema e layout geral podem ser mantidos, mas o conteúdo e foco das páginas mudarão.
-- O nome do aplicativo nos cabeçalhos, rodapés e títulos de página será "Real Price".
+- O nome do aplicativo nos cabeçalhos, rodapés e títulos de página será "Preço Real" (em português) e "Real Price" (em inglês).
 
 **Cores Principais do Tema Atual (Modo Claro e Escuro):**
-(Mantidas conforme definido anteriormente, podem ser ajustadas se necessário para a nova marca "Real Price")
+(Mantidas conforme definido anteriormente, podem ser ajustadas se necessário para a nova marca "Preço Real")
 
 O layout da página principal (`src/app/[locale]/page.tsx`) precisará ser redesenhado para se tornar o feed de ofertas. A página de monitoramento (`src/app/[locale]/monitoring/page.tsx`) será adaptada. Novas rotas/páginas serão necessárias para perfis de lojistas e gerenciamento de anúncios.
 
@@ -240,11 +243,12 @@ O layout da página principal (`src/app/[locale]/page.tsx`) precisará ser redes
 
 - Mantido: "Sempre que for identificado um ponto final "." ... o arquivo `memo.md` deve ser analisado e atualizado..."
 - Mantido: "Dois pontos finais seguidos ".." significam que o sistema deve continuar..."
-- Mantido: Criação de snapshots do `memo.md` na pasta `historico/` após conclusões de etapas.
+- Mantido: Criação de snapshots do `memo.md` na pasta `historico/` após conclusões de etapas. (Último snapshot: `04_memo_md_post_rename_real_price.md`)
 
 ## 9. Internacionalização (i18n) com `next-intl`
 
-- A estrutura existente será mantida e expandida para os novos textos e seções do "Real Price".
-- Idiomas Suportados: Português (`pt` - padrão), Inglês (`en`).
-- O `LanguageSwitcher` continua relevante.
+- A estrutura existente será mantida e expandida para os novos textos e seções do "Preço Real".
+- Idiomas Suportados: Português (`pt` - padrão, nome "Preço Real"), Inglês (`en`, nome "Real Price").
+- O `LanguageSwitcher` continua relevante (CONCLUÍDO).
+- Metadados traduzidos (CONCLUÍDO).
 - Próximos passos: Traduzir novos textos da UI para o feed, perfis de lojistas, etc.

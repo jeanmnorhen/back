@@ -1,11 +1,11 @@
 
 {
   "Layout": {
-    "title": "Real Price - Ofertas Locais e Buscador de Produtos",
+    "title": "Preço Real - Ofertas Locais e Buscador de Produtos",
     "description": "Encontre produtos anunciados por lojas locais, confira preços e descubra ofertas perto de você. Para consumidores e lojistas."
   },
   "ImageInsightExplorerPage": {
-    "title": "Real Price",
+    "title": "Preço Real",
     "description": "Descubra ofertas locais ou analise uma imagem para identificar produtos e encontrar promoções relacionadas.",
     "uploadCardTitle": "Identificar Produto por Imagem",
     "uploadCardDescription": "Tem um item? Envie a imagem dele para identificá-lo (PNG, JPG, GIF, etc.) até 5MB. Depois, encontre ofertas!",
@@ -44,7 +44,7 @@
     "propertiesForLabel": "Propriedades para: {productName}",
     "noPropertiesFound": "Nenhuma propriedade específica encontrada para {productName}.",
     "analysisCompleteNoDetails": "A imagem foi processada, mas nenhum detalhe específico pôde ser extraído. Você pode tentar com uma imagem diferente ou buscar diretamente.",
-    "footerText": "© {year} Real Price. Encontre ofertas locais.",
+    "footerText": "© {year} Preço Real. Encontre ofertas locais.",
     "translationsProvidedFor": "Traduções fornecidas para: Espanhol, Francês, Alemão, Chinês (Simplificado), Japonês, Português (Brasil), Português (Portugal).",
     "stepIdentifyingObjects": "Identificando & traduzindo objetos da imagem...",
     "stepSearchingProducts": "Buscando ideias de produtos relacionados (IA)...",
@@ -61,7 +61,7 @@
     "imageReadError": "Falha ao ler o arquivo de imagem."
   },
   "MonitoringPage": {
-    "title": "Monitoramento de Preços - Real Price",
+    "title": "Monitoramento de Preços - Preço Real",
     "description": "Visualize o valor médio de produtos por país com base no histórico de anúncios.",
     "selectProductCardTitle": "Selecionar Produto",
     "selectProductCardDescription": "Escolha um produto para ver seus dados de preço por país.",
@@ -78,7 +78,7 @@
     "recordsTableHeader": "Registros",
     "noAggregatedPriceData": "Nenhum dado de preço agregado por país para exibir para o produto selecionado. Verifique se os produtos têm histórico de anúncios e se as lojas associadas possuem `countryCode`.",
     "loadPriceDataError": "Falha ao carregar dados de preço.",
-    "footerText": "© {year} Real Price. Painel de Monitoramento.",
+    "footerText": "© {year} Preço Real. Painel de Monitoramento.",
     "noProductsFoundToastTitle": "Nenhum Produto Encontrado",
     "noProductsFoundToastDescription": "Não há produtos no banco de dados para monitorar.",
     "fetchProductsErrorToastTitle": "Erro ao Buscar Produtos",
