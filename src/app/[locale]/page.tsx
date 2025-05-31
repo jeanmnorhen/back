@@ -16,6 +16,7 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from "@/components/ui/progress";
 import { useToast } from '@/hooks/use-toast';
 import { Separator } from '@/components/ui/separator';
+import LanguageSwitcher from '@/components/LanguageSwitcher';
 
 // AI Flow imports
 import { identifyObjects, type IdentifyObjectsOutput, type TranslatedObjectType } from '@/ai/flows/identify-objects';
@@ -55,17 +56,6 @@ const initialResultsState: AnalysisResults = {
   productProperties: null,
   storeSearch: {},
 };
-
-// Language map for display will now use translations
-// const languageMap: Record<string, string> = {
-//   es: 'Espanhol',
-//   fr: 'Francês',
-//   de: 'Alemão',
-//   zh: 'Chinês (Simplificado)',
-//   ja: 'Japonês',
-//   pt_BR: 'Português (Brasil)',
-//   pt_PT: 'Português (Portugal)',
-// };
 
 export default function ImageInsightExplorerPage() {
   const t = useTranslations('ImageInsightExplorerPage');
@@ -268,7 +258,7 @@ export default function ImageInsightExplorerPage() {
 
   const handleRequestLocation = () => {
     if (!navigator.geolocation) {
-      const err = t('locationErrorToastTitle'); // Assuming a generic error string for this one.
+      const err = t('locationErrorToastTitle'); 
       setLocationError(err);
       toast({ title: t('locationErrorToastTitle'), description: 'Geolocalização não é suportada pelo seu navegador.', variant: 'destructive' });
       return;
@@ -287,7 +277,7 @@ export default function ImageInsightExplorerPage() {
         setIsRequestingLocation(false);
       },
       (error) => {
-        let message = 'Não foi possível obter sua localização.'; // Default message
+        let message = 'Não foi possível obter sua localização.'; 
         if (error.code === error.PERMISSION_DENIED) {
           message = 'Permissão para acessar a localização foi negada.';
         } else if (error.code === error.POSITION_UNAVAILABLE) {
@@ -309,7 +299,7 @@ export default function ImageInsightExplorerPage() {
 
   return (
     <div className="flex flex-col items-center min-h-screen p-4 sm:p-8 selection:bg-primary/20">
-      <header className="mb-10 text-center">
+      <header className="mb-10 text-center w-full max-w-4xl">
         <div className="flex items-center justify-center gap-3 mb-2">
          <Wand2 className="w-10 h-10 text-primary" />
          <h1 className="text-4xl font-bold sm:text-5xl tracking-tight bg-gradient-to-r from-primary via-purple-500 to-accent bg-clip-text text-transparent">
@@ -319,6 +309,9 @@ export default function ImageInsightExplorerPage() {
         <p className="text-lg text-muted-foreground">
           {t('description')}
         </p>
+        <div className="mt-6 flex justify-center">
+          <LanguageSwitcher />
+        </div>
       </header>
 
       <main className="w-full max-w-4xl space-y-8">
@@ -450,7 +443,7 @@ export default function ImageInsightExplorerPage() {
                           {Object.entries(item.translations).filter(([, translation]) => translation !== undefined).length > 0 ? (
                             <ul className="space-y-1 text-sm text-muted-foreground list-disc pl-5">
                               {Object.entries(item.translations).map(([langCode, translation]) => 
-                                translation && tLang.rich(langCode as any) && ( // Use tLang here
+                                translation && tLang.rich(langCode as any) && ( 
                                   <li key={langCode}>
                                     <span className="font-medium text-foreground">{tLang(langCode as any)}:</span> {translation}
                                   </li>
@@ -553,7 +546,7 @@ export default function ImageInsightExplorerPage() {
                                 ))}
                                 </ul>
                             ) : (
-                                <p className="text-sm text-muted-foreground italic">{t('noRelatedProductsToastDescription')}</p> // Re-evaluate this text or key
+                                <p className="text-sm text-muted-foreground italic">{t('noRelatedProductsToastDescription')}</p> 
                             )}
                             </AccordionContent>
                         </AccordionItem>

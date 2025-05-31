@@ -1,3 +1,4 @@
+
 {
   "Layout": {
     "title": "Image Insight Explorer - Análise de Objetos e Produtos com IA",
@@ -95,5 +96,10 @@
     "ja": "Japonês",
     "pt_BR": "Português (Brasil)",
     "pt_PT": "Português (Portugal)"
+  },
+  "LanguageSwitcher": {
+    "selectLanguage": "Selecionar Idioma",
+    "english": "Inglês",
+    "portuguese": "Português"
   }
 }

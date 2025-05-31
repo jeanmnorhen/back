@@ -13,6 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useToast } from '@/hooks/use-toast';
 import { Separator } from '@/components/ui/separator';
+import LanguageSwitcher from '@/components/LanguageSwitcher';
 
 interface Product {
   id: string;
@@ -180,7 +181,7 @@ export default function MonitoringPage() {
 
   return (
     <div className="flex flex-col items-center min-h-screen p-4 sm:p-8 selection:bg-primary/20">
-      <header className="mb-10 text-center">
+      <header className="mb-10 text-center w-full max-w-4xl">
         <div className="flex items-center justify-center gap-3 mb-2">
           <BarChart3 className="w-10 h-10 text-primary" />
           <h1 className="text-4xl font-bold sm:text-5xl tracking-tight bg-gradient-to-r from-primary via-purple-500 to-accent bg-clip-text text-transparent">
@@ -190,6 +191,9 @@ export default function MonitoringPage() {
         <p className="text-lg text-muted-foreground">
           {t('description')}
         </p>
+        <div className="mt-6 flex justify-center">
+          <LanguageSwitcher />
+        </div>
       </header>
 
       <main className="w-full max-w-4xl space-y-8">
