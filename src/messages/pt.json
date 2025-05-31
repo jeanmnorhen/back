@@ -1,3 +1,9 @@
-{}
-// This file is intentionally left empty for the minimal i18n test.
-// Messages are hardcoded in /i18n.ts.
+{
+  "MinimalPage": {
+    "greeting": "Olá da Página Mínima em Português!",
+    "title": "Título Mínimo em Português"
+  },
+  "Layout": {
+    "title": "Título Layout Mínimo PT (de pt.json)"
+  }
+}

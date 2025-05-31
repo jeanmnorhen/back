@@ -1,14 +1,9 @@
-// src/app/[locale]/layout.tsx (MINIMAL TEST - REMOVED TRY-CATCH)
-import type { Metadata } from 'next';
+// src/app/[locale]/layout.tsx (ULTRA MINIMAL TEST)
 import { NextIntlClientProvider } from 'next-intl';
 import { getMessages } from 'next-intl/server';
-import { GeistSans } from 'geist/font/sans';
-import { GeistMono } from 'geist/font/mono';
-import '../globals.css';
-import { Toaster } from "@/components/ui/toaster";
-// AuthProvider, generateMetadata, generateStaticParams are TEMPORARILY REMOVED for this minimal test
+import '../globals.css'; // Keep globals for basic styling if needed
 
-console.log(`[LocaleLayout - MINIMAL_TEST_NO_TRY_CATCH] TOP LEVEL: File imported/evaluated. Timestamp:`, new Date().toISOString());
+console.log(`[LocaleLayout - ULTRA_MINIMAL] TOP LEVEL: File imported/evaluated. Timestamp:`, new Date().toISOString());
 
 export default async function LocaleLayout({
   children,
@@ -17,22 +12,26 @@ export default async function LocaleLayout({
   children: React.ReactNode;
   params: {locale: string};
 }>) {
-  // Log before calling getMessages
-  console.log(`[LocaleLayout - MINIMAL_TEST_NO_TRY_CATCH] Attempting to get messages for locale: ${locale}. Timestamp:`, new Date().toISOString());
+  console.log(`[LocaleLayout - ULTRA_MINIMAL] Attempting to get messages for locale: ${locale}. Timestamp:`, new Date().toISOString());
   
-  // Directly call getMessages without a try-catch.
-  // If this function is the source of the "Couldn't find config file" error,
-  // its original stack trace should now be more prominent.
-  const messages = await getMessages();
-  
-  console.log(`[LocaleLayout - MINIMAL_TEST_NO_TRY_CATCH] Successfully got messages for locale: ${locale}. Message keys: ${Object.keys(messages || {}).join(', ')}. Timestamp:`, new Date().toISOString());
+  let messages;
+  try {
+    messages = await getMessages();
+    console.log(`[LocaleLayout - ULTRA_MINIMAL] Successfully got messages for locale: ${locale}. Keys: ${messages ? Object.keys(messages).join(', ') : 'null/undefined'}. Timestamp:`, new Date().toISOString());
+  } catch (error) {
+    console.error(`[LocaleLayout - ULTRA_MINIMAL] CRITICAL ERROR calling getMessages() for locale ${locale}:`, error);
+    // Re-throw or handle, but for debugging, logging is key.
+    // If we re-throw, Next.js will show its error page.
+    // If we don't, the page might render partially or with missing translations.
+    // For now, let it throw to see the Next.js error page if it's still the config error.
+    throw error; 
+  }
 
   return (
-    <html lang={locale} className={`${GeistSans.variable} ${GeistMono.variable}`}>
+    <html lang={locale}>
       <body className="antialiased">
         <NextIntlClientProvider locale={locale} messages={messages}>
           {children}
-          <Toaster />
         </NextIntlClientProvider>
       </body>
     </html>
