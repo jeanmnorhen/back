@@ -19,10 +19,10 @@ export default getRequestConfig(async ({locale}) => {
     console.log(`[i18n.ts - ROOT - DYNAMIC_JSON_TEST] Attempting to import messages for locale "${locale}" from "./src/messages/${locale}.json"`);
     messages = (await import(`./src/messages/${locale}.json`)).default;
     console.log(`[i18n.ts - ROOT - DYNAMIC_JSON_TEST] SUCCESSFULLY imported messages for locale "${locale}". Message keys: ${Object.keys(messages || {}).join(', ')}`);
-  } catch (error) {
-    console.error(`[i18n.ts - ROOT - DYNAMIC_JSON_TEST] FAILED to load messages for locale "${locale}" from "./src/messages/${locale}.json". Error:`, error);
-    // For this test, we'll call notFound() if messages can't be loaded.
-    // In a real app, you might want to fallback to a default locale or show a specific error.
+  } catch (error: any) {
+    // Simplified error logging
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    console.error(`[i18n.ts - ROOT - DYNAMIC_JSON_TEST] FAILED to load messages for locale "${locale}" from "./src/messages/${locale}.json". Error: ${errorMessage}`);
     notFound();
   }
   
