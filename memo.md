@@ -20,6 +20,7 @@
     - **Novo:** Manter perfis de usuário com preferências e dados como localização.
 - Oferecer uma interface de usuário intuitiva e responsiva para facilitar a interação.
 - **Novo:** Focar inicialmente no mercado brasileiro, mas com a intenção futura de expandir o sistema para buscar e registrar os valores de produtos brasileiros em lojas de outros países.
+- **Novo:** Fornecer uma página de monitoramento para visualizar dados agregados do banco de dados, como o valor médio de um produto por país.
 
 ## 2. Casos de Uso
 
@@ -43,12 +44,16 @@
 - **UC7: Busca de Lojas para um Produto (IA com Ferramenta e DB):**
     - O usuário (ou sistema, após identificar um produto) pode solicitar a busca de lojas que vendem um produto específico.
     - O sistema (via IA e uma ferramenta `findStoresTool` agora conectada ao Firebase) retorna uma lista de lojas que vendem o produto. (UI integrada para chamar o fluxo `findProductStoresFlow`)
-    - Opcionalmente, se o usuário fornecer sua localização, o sistema (fluxo e ferramenta) agora recebe essas coordenadas. A ferramenta `findStoresTool` (conectada ao Firebase) usa a localização para registrar no console, mas a lógica de busca por proximidade real no Firebase é um passo futuro.
+    - Opcionalmente, se o usuário fornecer sua localização, o sistema (fluxo e ferramenta) agora recebe essas coordenadas. A ferramenta `findStoresTool` (conectada ao Firebase) usa a localização para registrar no console; a busca atual da ferramenta não é afetada por essas coordenadas para filtrar ou ordenar por proximidade, sendo esta uma melhoria futura.
 - **UC8: Cadastro de Informações de Lojas e Produtos:**
     - Usuários administradores (ou o sistema via IA no futuro, para sugestões) poderão cadastrar novas lojas, incluindo sua localização (coordenadas GPS), e os produtos que vendem com seus respectivos URLs de site de venda e preços.
 - **UC9 (Novo): Definição de Idioma da Interface:**
     - O sistema pode tentar detectar o idioma preferido do usuário com base na sua localização GPS (após consentimento) ou configurações do navegador.
     - O usuário terá a opção de selecionar manually o idioma da interface.
+- **UC10 (Novo): Monitoramento de Dados Agregados:**
+    - O usuário (administrador) acessa uma página de monitoramento.
+    - O usuário seleciona um produto de uma lista.
+    - O sistema exibe o valor médio desse produto em cada país onde ele tem registros de preço, com base nos dados de `productAvailability` e `stores`.
 
 ## 3. Estado Atual
 
@@ -60,11 +65,12 @@ O aplicativo "Image Insight Explorer" está em um estágio funcional, implementa
     - `identifyObjects`: Identifica objetos na imagem e traduz seus nomes para Espanhol, Francês, Alemão, Chinês (Simplificado), Japonês, Português (Brasil) e Português (Portugal).
     - `searchRelatedProducts`: Busca produtos relacionados aos objetos (usando nomes em inglês).
     - `extractProductProperties`: Extrai propriedades dos produtos encontrados.
-    - `findProductStoresFlow` (com `findStoresTool`): Busca lojas que vendem um produto específico. A ferramenta `findStoresTool` agora **consulta o Firebase Realtime Database** para encontrar lojas. Ela aceita coordenadas de localização do usuário (se fornecidas) e as registra no console; a lógica de busca por proximidade usando essas coordenadas no Firebase é um desenvolvimento futuro. (Integrado na UI, incluindo passagem de localização).
+    - `findProductStoresFlow` (com `findStoresTool`): Busca lojas que vendem um produto específico. A ferramenta `findStoresTool` agora **consulta o Firebase Realtime Database** para encontrar lojas. Ela aceita coordenadas de localização do usuário (se fornecidas) e as registra no console; a busca atual da ferramenta não utiliza estas coordenadas para filtrar ou ordenar por proximidade, sendo esta uma melhoria futura. (Integrado na UI, incluindo passagem de localização).
 - **Testes:** Configuração de Jest para testes unitários, com testes para `identifyObjects` e `findProductStoresFlow` (incluindo cenários com localização).
 - **Banco de Dados:** Configuração inicial do Firebase Realtime Database (inicialização e definição da estrutura de dados para produtos, lojas e disponibilidade).
 - **Deployment:** Configurado para Vercel.
 - **Geolocalização:** Frontend implementado para solicitar e obter a localização GPS do usuário. Essa localização agora é passada para o fluxo `findProductStoresFlow`. O card para solicitar a localização é ocultado após a obtenção bem-sucedida.
+- **Novo:** **Página de Monitoramento:** Uma nova página (`/monitoring`) foi adicionada para exibir o valor médio de produtos por país. Ela busca produtos, permite a seleção de um produto e, em seguida, agrega e exibe os dados de preço médio por país com base nas informações de `productAvailability` e `stores` no Firebase.
 
 Principais funcionalidades implementadas:
 - Upload de imagens (com validação de tipo e tamanho).
@@ -78,6 +84,7 @@ Principais funcionalidades implementadas:
 - Design responsivo e tema customizado.
 - Configuração para deployment na Vercel (`vercel.json`).
 - Configuração do Firebase (inicialização e variáveis de ambiente).
+- **Novo:** Página de monitoramento em `/monitoring` para análise de preços médios de produtos por país.
 
 ## 4. Arquitetura do Banco de Dados (Firebase Realtime Database)
 
@@ -237,18 +244,19 @@ Esta estrutura visa balancear a normalização (evitando duplicação excessiva 
 ## 5. Pontos de Atenção
 
 - **Precisão da IA:** A qualidade dos resultados (objetos, traduções, produtos, propriedades, lojas) depende da precisão dos modelos Genkit e Gemini. Casos de ambiguidade ou imagens de baixa qualidade podem levar a resultados subótimos.
-- **Conexão com Firebase na Ferramenta:** A ferramenta `findStoresTool` agora consulta o Firebase. A busca por `productName` é feita comparando com `canonicalName` nos produtos. A lógica real de busca por proximidade com base no GPS do usuário ainda precisa ser implementada (atualmente, apenas registra as coordenadas se fornecidas).
+- **Conexão com Firebase na Ferramenta:** A ferramenta `findStoresTool` agora consulta o Firebase. A busca por `productName` é feita comparando com `canonicalName` nos produtos. A lógica real de busca por proximidade com base no GPS do usuário ainda precisa ser implementada (atualmente, a busca da ferramenta não utiliza as coordenadas do usuário para filtrar ou ordenar).
 - **Limites da API:** O uso das APIs de IA (Google AI) pode estar sujeito a cotas e limitações.
 - **Tamanho da Imagem:** Atualmente, há um limite de 5MB para upload, o que é uma boa prática, mas deve ser comunicado claramente.
-- **Performance:** O processamento de IA pode levar alguns segundos. A obtenção da localização GPS depende da resposta do usuário e do hardware/software. Consultas ao Firebase também adicionam latência.
+- **Performance:** O processamento de IA pode levar alguns segundos. A obtenção da localização GPS depende da resposta do usuário e do hardware/software. Consultas ao Firebase também adicionam latência. A nova página de monitoramento realiza múltiplas leituras para agregar dados, o que pode ser lento com grandes volumes de dados.
 - **Gerenciamento de Erros:** Continuar refinando para cobrir mais casos de borda, especialmente com as interações com o Firebase.
 - **Custo:** O uso de modelos de IA generativa e Firebase Realtime Database pode incorrer em custos. **É crucial que este projeto não gere custos significativos ou inesperados.**
 - **Configuração de Ambiente na Vercel:** As variáveis de ambiente (`GEMINI_API_KEY`, `NEXT_PUBLIC_FIREBASE_*`) precisam ser configuradas no painel da Vercel. (Confirmado pelo usuário que estão configuradas).
 - **Segurança do Firebase:** As regras de segurança do Firebase Realtime Database precisarão ser configuradas.
-- **Autenticação de Usuários:** Essencial para funcionalidades de escrita no banco de dados (cadastro de lojas, produtos, preços, perfis de usuário).
+- **Autenticação de Usuários:** Essencial para funcionalidades de escrita no banco de dados (cadastro de lojas, produtos, preços, perfis de usuário) e potencialmente para acesso à página de monitoramento.
 - **Privacidade do Usuário:** A solicitação e o uso da localização GPS do usuário devem ser feitos com consentimento claro e transparente, informando como os dados serão utilizados e armazenados.
 - **Precisão da Geolocalização:** A precisão da localização GPS obtida do navegador pode variar dependendo do dispositivo e do ambiente. A localização de lojas dependerá da precisão dos dados inseridos.
 - **Novo:** **Internacionalização da UI (i18n):** A tradução da interface do aplicativo para diferentes idiomas é uma tarefa complexa que vai além da tradução de dados de objetos já existentes.
+- **Novo:** **Monitoramento e Moedas:** A página de monitoramento atualmente exibe o preço médio e a moeda conforme encontrada. Não realiza conversão de moeda, o que pode ser necessário para uma comparação precisa se várias moedas estiverem presentes para o mesmo produto em diferentes países.
 
 ## 6. Próximos Passos
 
@@ -271,6 +279,10 @@ Esta estrutura visa balancear a normalização (evitando duplicação excessiva 
     - Permitir que o usuário clique em um produto para ver mais detalhes (combinando dados da IA e do Firebase, incluindo URLs de venda e histórico de preços).
     - Desenvolver interfaces (protegidas por autenticação) para gerenciamento de lojas e disponibilidade de produtos (CRUD), incluindo URLs de produtos em lojas específicas e preços.
     - Adicionar opções de filtragem ou ordenação nos resultados.
+    - **Novo:** Adicionar navegação para a página de Monitoramento (`/monitoring`).
+- **Página de Monitoramento:**
+    - **Novo:** Refinar a lógica de agregação de preços na página de monitoramento, especialmente em relação ao tratamento de múltiplas moedas para o mesmo produto em um país. Considerar a implementação de conversão de moeda para uma moeda base de visualização.
+    - **Novo:** Otimizar a busca de dados se o volume de produtos/lojas/disponibilidade crescer significativamente (e.g., paginação, filtros, ou agregação server-side).
 - **Internacionalização (i18n) e Localização (L10n):**
     - **Novo:** Implementar um sistema de internacionalização (i18n) para toda a interface do usuário (ex: usando `next-intl` ou `react-i18next`). Isso vai além das traduções de dados de objetos já existentes.
     - **Novo:** Após a i18n da UI, desenvolver lógica para detectar o idioma do usuário (via localização GPS, configurações do navegador, ou preferência do perfil) e ajustar a interface. Permitir seleção manual de idioma.
@@ -282,6 +294,7 @@ Esta estrutura visa balancear a normalização (evitando duplicação excessiva 
     - Adicionar testes para os serviços Firebase quando implementados.
     - Testar a lógica de geolocalização e busca de lojas próximas quando a ferramenta for completamente conectada ao DB com lógica de proximidade.
     - **Novo:** Testar funcionalidades de perfil de usuário e i18n da UI.
+    - **Novo:** Adicionar testes para a página de monitoramento e sua lógica de agregação de dados.
 
 ## 7. Histórico de Configurações de Layout da UI (Tema Atual)
 
@@ -310,10 +323,9 @@ A configuração de layout e tema da UI é gerenciada principalmente através do
 - **Primary (`--primary`):** `260 58% 74%` (#9B7EDE - Violeta Suave)
 - **Accent (`--accent`):** `160 49% 67%` (#7ED6BA - Ciano Suave)
 
-O layout geral da página principal (`src/app/page.tsx`) é centralizado, com um cabeçalho, uma área principal para upload e exibição de resultados, e um rodapé. Componentes ShadCN como Card, Accordion, Button, Progress, Badge, Input, Label, e Toast são utilizados para construir a interface. A fonte principal é Geist Sans. O rodapé agora informa que as traduções são fornecidas para: Espanhol, Francês, Alemão, Chinês (Simplificado), Japonês, Português (Brasil), Português (Portugal). A interface também inclui uma seção para o usuário permitir o acesso à sua localização GPS (que é ocultada após sucesso), e essa informação é agora utilizada na busca de lojas.
+O layout geral da página principal (`src/app/page.tsx`) é centralizado, com um cabeçalho, uma área principal para upload e exibição de resultados, e um rodapé. Componentes ShadCN como Card, Accordion, Button, Progress, Badge, Input, Label, e Toast são utilizados para construir a interface. A fonte principal é Geist Sans. O rodapé agora informa que as traduções são fornecidas para: Espanhol, Francês, Alemão, Chinês (Simplificado), Japonês, Português (Brasil), Português (Portugal). A interface também inclui uma seção para o usuário permitir o acesso à sua localização GPS (que é ocultada após sucesso), e essa informação é agora utilizada na busca de lojas. Uma nova página de monitoramento foi adicionada em `/monitoring`.
 
 ## 8. Processo de Atualização e Manutenção
 
 - **Nota Importante:** Sempre que for identificado um ponto final "." (marcando a conclusão de uma tarefa ou alteração significativa no projeto), o arquivo `memo.md` deve ser analisado e atualizado para refletir a realidade atual do projeto. Isso garante que o documento permaneça uma fonte de verdade relevante e atualizada.
 - Dois pontos finais seguidos ".." significam que o sistema deve continuar o último passo (se estiver em andamento) ou iniciar o próximo passo na lista de tarefas.
-```
