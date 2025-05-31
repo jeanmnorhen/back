@@ -1,26 +1,15 @@
-import type {Metadata} from 'next';
-import { Inter } from 'next/font/google'; // Using Inter as a fallback, Geist is primary
-import { GeistSans } from 'geist/font/sans';
-import { GeistMono } from 'geist/font/mono';
-import './globals.css';
-import { Toaster } from "@/components/ui/toaster"; // Added Toaster
+// This file can be removed if not needed,
+// as src/app/[locale]/layout.tsx will be the main layout.
+// For now, we keep it minimal.
+// It might be used for truly global things that are above locale context.
+// However, next-intl typically handles <html> and <body> in the [locale]/layout.tsx.
 
-export const metadata: Metadata = {
-  title: 'Image Insight Explorer',
-  description: 'Identify objects in images and explore related products and properties with AI.',
+type Props = {
+  children: React.ReactNode;
 };
 
-export default function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
-  return (
-    <html lang="en" className={`${GeistSans.variable} ${GeistMono.variable}`}>
-      <body className="antialiased">
-        {children}
-        <Toaster />
-      </body>
-    </html>
-  );
+// Since we are defining <html> and <body> in `src/app/[locale]/layout.tsx`,
+// this layout can be very simple.
+export default function RootLayout({children}: Props) {
+  return children;
 }

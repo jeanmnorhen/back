@@ -11,7 +11,7 @@
 - Permitir a busca por lojas que vendem um produto específico (usando IA e ferramentas, agora conectada ao Firebase).
 - Permitir que o sistema utilize a localização GPS do usuário (com consentimento) para otimizar a busca por lojas. (Frontend implementado para obter localização; Backend e ferramenta agora aceitam coordenadas, busca por proximidade no Firebase é futura).
 - **Novo:** Registrar a localização GPS do usuário em seu perfil (requer autenticação e consentimento).
-- **Novo:** Definir o idioma da interface do aplicativo com base na localização GPS do usuário (requer sistema de i18n e mapeamento).
+- **Novo:** Definir o idioma da interface do aplicativo com base na localização GPS do usuário com base na localização GPS do usuário (requer sistema de i18n e mapeamento).
 - Permitir o cadastro de URLs de produtos em lojas específicas.
 - Integrar com Firebase Realtime Database para:
     - Manter um catálogo de produtos com informações multilíngues.
@@ -22,6 +22,7 @@
 - **Novo:** Focar inicialmente no mercado brasileiro, mas com a intenção futura de expandir o sistema para buscar e registrar os valores de produtos brasileiros em lojas de outros países.
 - **Novo:** Fornecer uma página de monitoramento para visualizar dados agregados do banco de dados, como o valor médio de um produto por país.
 - **Visão Futura:** Implementar um sistema de Retrieval Augmented Generation (RAG) geospacial para clusterizar/agrupar lojas e produtos por proximidade, otimizando o tráfego de dados e garantindo informações atualizadas das lojas mais próximas ao usuário.
+- **Novo:** Implementar internacionalização (i18n) da interface do usuário para suportar múltiplos idiomas (começando com Português e Inglês).
 
 ## 2. Casos de Uso
 
@@ -31,7 +32,7 @@
     - O sistema exibe os objetos identificados na imagem e suas traduções.
 - **UC2: Descoberta de Produtos Relacionados (IA):**
     - Após a identificação de objetos (UC1), o sistema (via IA) busca e exibe produtos comercialmente disponíveis que são relevantes para os objetos identificados (usando nomes em inglês).
-- **UC3: Extração de Propriediedades de Produtos (IA):**
+- **UC3: Extração de Propriedades de Produtos (IA):**
     - Para os produtos encontrados (UC2), o sistema (via IA) extrai e apresenta características importantes (ex: cor, material, marca).
 - **UC4: Feedback Visual do Processamento:**
     - O usuário visualiza o progresso da análise da imagem em etapas (identificação, busca de produtos, extração de propriedades).
@@ -51,6 +52,7 @@
 - **UC9 (Novo): Definição de Idioma da Interface:**
     - O sistema pode tentar detectar o idioma preferido do usuário com base na sua localização GPS (após consentimento) ou configurações do navegador.
     - O usuário terá a opção de selecionar manually o idioma da interface.
+    - **Novo:** A interface agora está sendo preparada para i18n usando `next-intl`, com traduções iniciais para Português e Inglês.
 - **UC10 (Novo): Monitoramento de Dados Agregados:**
     - O usuário (administrador) acessa uma página de monitoramento.
     - O usuário seleciona um produto de uma lista.
@@ -71,7 +73,8 @@ O aplicativo "Image Insight Explorer" está em um estágio funcional, implementa
 - **Banco de Dados:** Configuração inicial do Firebase Realtime Database (inicialização e definição da estrutura de dados para produtos, lojas e disponibilidade).
 - **Deployment:** Configurado para Vercel.
 - **Geolocalização:** Frontend implementado para solicitar e obter a localização GPS do usuário. Essa localização agora é passada para o fluxo `findProductStoresFlow`. O card para solicitar a localização é ocultado após a obtenção bem-sucedida.
-- **Novo:** **Página de Monitoramento:** Uma nova página (`/monitoring`) foi adicionada para exibir o valor médio de produtos por país. Ela busca produtos, permite a seleção de um produto e, em seguida, agrega e exibe os dados de preço médio por país com base nas informações de `productAvailability` e `stores` no Firebase.
+- **Página de Monitoramento:** Uma nova página (`/monitoring`) foi adicionada para exibir o valor médio de produtos por país. Ela busca produtos, permite a seleção de um produto e, em seguida, agrega e exibe os dados de preço médio por país com base nas informações de `productAvailability` e `stores` no Firebase.
+- **Novo:** **Internacionalização (i18n):** A estrutura básica para internacionalização da interface foi implementada usando `next-intl`. Foram adicionados arquivos de tradução para Português (`pt.json` - padrão) e Inglês (`en.json`). As rotas agora são prefixadas com o locale (ex: `/en/monitoring`, `/pt/monitoring`, ou `/monitoring` que redireciona para `/pt/monitoring`). Textos chave nas páginas principal e de monitoramento foram traduzidos.
 
 Principais funcionalidades implementadas:
 - Upload de imagens (com validação de tipo e tamanho).
@@ -85,7 +88,8 @@ Principais funcionalidades implementadas:
 - Design responsivo e tema customizado.
 - Configuração para deployment na Vercel (`vercel.json`).
 - Configuração do Firebase (inicialização e variáveis de ambiente).
-- **Novo:** Página de monitoramento em `/monitoring` para análise de preços médios de produtos por país.
+- Página de monitoramento em `/monitoring` para análise de preços médios de produtos por país.
+- **Novo:** Suporte inicial para internacionalização da UI com `next-intl` (Português e Inglês).
 
 ## 4. Arquitetura do Banco de Dados (Firebase Realtime Database)
 
@@ -256,12 +260,18 @@ Esta estrutura visa balancear a normalização (evitando duplicação excessiva 
 - **Autenticação de Usuários:** Essencial para funcionalidades de escrita no banco de dados (cadastro de lojas, produtos, preços, perfis de usuário) e potencialmente para acesso à página de monitoramento.
 - **Privacidade do Usuário:** A solicitação e o uso da localização GPS do usuário devem ser feitos com consentimento claro e transparente, informando como os dados serão utilizados e armazenados.
 - **Precisão da Geolocalização:** A precisão da localização GPS obtida do navegador pode variar dependendo do dispositivo e do ambiente. A localização de lojas dependerá da precisão dos dados inseridos.
-- **Novo:** **Internacionalização da UI (i18n):** A tradução da interface do aplicativo para diferentes idiomas é uma tarefa complexa que vai além da tradução de dados de objetos já existentes.
-- **Novo:** **Monitoramento e Moedas:** A página de monitoramento atualmente exibe o preço médio e a moeda conforme encontrada. Não realiza conversão de moeda, o que pode ser necessário para uma comparação precisa se várias moedas estiverem presentes para o mesmo produto em diferentes países.
-- **Novo:** **Complexidade da Implementação de RAG Geospacial:** A introdução de um sistema RAG para proximidade geográfica adiciona complexidade significativa à arquitetura, envolvendo bancos de dados vetoriais, pipelines de embedding e sincronização de dados.
+- **Internacionalização da UI (i18n):** A tradução da interface do aplicativo para diferentes idiomas é uma tarefa complexa. A configuração inicial com `next-intl` (PT/EN) foi feita. A tradução completa de todos os textos é um trabalho contínuo. Adicionar mais idiomas e um seletor de idioma na UI são próximos passos.
+- **Monitoramento e Moedas:** A página de monitoramento atualmente exibe o preço médio e a moeda conforme encontrada. Não realiza conversão de moeda, o que pode ser necessário para uma comparação precisa se várias moedas estiverem presentes para o mesmo produto em diferentes países.
+- **Complexidade da Implementação de RAG Geospacial:** A introdução de um sistema RAG para proximidade geográfica adiciona complexidade significativa à arquitetura, envolvendo bancos de dados vetoriais, pipelines de embedding e sincronização de dados.
+- **Novo:** **Roteamento Internacionalizado:** Com `next-intl`, as rotas agora incluem um prefixo de locale (ex: `/pt/pagina` ou `/en/pagina`). Isso precisa ser considerado para quaisquer links internos ou navegação programática.
 
 ## 6. Próximos Passos
 
+- **Internacionalização (i18n) e Localização (L10n) - Continuação:**
+    - **Expandir traduções:** Traduzir todos os textos restantes na UI para Português e Inglês nos arquivos `messages/*.json`.
+    - **Adicionar Seletor de Idioma:** Implementar um componente na UI que permita ao usuário alternar entre os idiomas configurados (Português e Inglês). Isso envolverá o uso de `useRouter` e `usePathname` de `next/navigation` ou helpers de `next-intl` para navegar para a mesma página com um locale diferente.
+    - **Traduzir Títulos de Metadados:** As metatags `<title>` e `<meta name="description">` no `src/app/[locale]/layout.tsx` também podem ser internacionalizadas usando `next-intl`.
+    - **Considerar mais idiomas:** Avaliar a necessidade de adicionar suporte a outros idiomas.
 - **Autenticação e Gerenciamento de Perfis de Usuário:**
     - Implementar autenticação de usuários (ex: Firebase Authentication).
     - Desenvolver funcionalidades CRUD para `/userProfiles`, permitindo que usuários (após consentimento) salvem sua localização GPS e preferências de idioma.
@@ -296,9 +306,6 @@ Esta estrutura visa balancear a normalização (evitando duplicação excessiva 
 - **Página de Monitoramento:**
     - **Novo:** Refinar a lógica de agregação de preços na página de monitoramento, especialmente em relação ao tratamento de múltiplas moedas para o mesmo produto em um país. Considerar a implementação de conversão de moeda para uma moeda base de visualização.
     - **Novo:** Otimizar a busca de dados se o volume de produtos/lojas/disponibilidade crescer significativamente (e.g., paginação, filtros, ou agregação server-side).
-- **Internacionalização (i18n) e Localização (L10n):**
-    - **Novo:** Implementar um sistema de internacionalização (i18n) para toda a interface do usuário (ex: usando `next-intl` ou `react-i18next`). Isso vai além das traduções de dados de objetos já existentes.
-    - **Novo:** Após a i18n da UI, desenvolver lógica para detectar o idioma do usuário (via localização GPS, configurações do navegador, ou preferência do perfil) e ajustar a interface. Permitir seleção manual de idioma.
 - **Refinamento das Regras de Segurança do Firebase.**
 - **Infraestrutura e Operações:**
     - Logging mais robusto.
@@ -336,10 +343,31 @@ A configuração de layout e tema da UI é gerenciada principalmente através do
 - **Primary (`--primary`):** `260 58% 74%` (#9B7EDE - Violeta Suave)
 - **Accent (`--accent`):** `160 49% 67%` (#7ED6BA - Ciano Suave)
 
-O layout geral da página principal (`src/app/page.tsx`) é centralizado, com um cabeçalho, uma área principal para upload e exibição de resultados, e um rodapé. Componentes ShadCN como Card, Accordion, Button, Progress, Badge, Input, Label, e Toast são utilizados para construir a interface. A fonte principal é Geist Sans. O rodapé agora informa que as traduções são fornecidas para: Espanhol, Francês, Alemão, Chinês (Simplificado), Japonês, Português (Brasil), Português (Portugal). A interface também inclui uma seção para o usuário permitir o acesso à sua localização GPS (que é ocultada após sucesso), e essa informação é agora utilizada na busca de lojas. Uma nova página de monitoramento foi adicionada em `/monitoring`.
+O layout geral da página principal (`src/app/[locale]/page.tsx`) é centralizado, com um cabeçalho, uma área principal para upload e exibição de resultados, e um rodapé. Componentes ShadCN como Card, Accordion, Button, Progress, Badge, Input, Label, e Toast são utilizados para construir a interface. A fonte principal é Geist Sans. O rodapé agora informa que as traduções são fornecidas para: Espanhol, Francês, Alemão, Chinês (Simplificado), Japonês, Português (Brasil), Português (Portugal). A interface também inclui uma seção para o usuário permitir o acesso à sua localização GPS (que é ocultada após sucesso), e essa informação é agora utilizada na busca de lojas. Uma nova página de monitoramento foi adicionada em `/monitoring` (acessível via `/[locale]/monitoring`).
 
 ## 8. Processo de Atualização e Manutenção
 
 - **Nota Importante:** Sempre que for identificado um ponto final "." (marcando a conclusão de uma tarefa ou alteração significativa no projeto), o arquivo `memo.md` deve ser analisado e atualizado para refletir a realidade atual do projeto. Isso garante que o documento permaneça uma fonte de verdade relevante e atualizada.
 - Dois pontos finais seguidos ".." significam que o sistema deve continuar o último passo (se estiver em andamento) ou iniciar o próximo passo na lista de tarefas.
 
+## 9. Internacionalização (i18n) com `next-intl`
+
+- **Biblioteca:** `next-intl`
+- **Idiomas Suportados:** Português (`pt` - padrão), Inglês (`en`).
+- **Estrutura de Arquivos:**
+    - `messages/en.json`: Traduções para o inglês.
+    - `messages/pt.json`: Traduções para o português.
+- **Configuração:**
+    - `i18n.ts`: Carrega os arquivos de mensagens.
+    - `middleware.ts`: Gerencia o roteamento de locales e define o locale padrão. O `localePrefix` está configurado como `as-needed`.
+- **Layouts e Páginas:**
+    - `src/app/[locale]/layout.tsx`: Layout raiz para as rotas internacionalizadas, configura o `NextIntlClientProvider`.
+    - `src/app/[locale]/page.tsx`: Página principal.
+    - `src/app/[locale]/monitoring/page.tsx`: Página de monitoramento.
+- **Uso:** O hook `useTranslations` é usado nos componentes para buscar as strings traduzidas.
+- **Próximos Passos para i18n:**
+    - Completar a tradução de todos os textos da UI.
+    - Adicionar um componente seletor de idioma na interface.
+    - Internacionalizar metadados (título da página, descrição).
+
+```
