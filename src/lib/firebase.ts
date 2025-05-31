@@ -1,3 +1,4 @@
+
 // src/lib/firebase.ts
 import { initializeApp, getApp, getApps, type FirebaseApp } from "firebase/app";
 import { getDatabase, type Database } from "firebase/database";
@@ -10,23 +11,37 @@ const dbURL = process.env.NEXT_PUBLIC_FIREBASE_DATABASE_URL;
 // Pre-check the databaseURL format to provide a more specific error message.
 if (!dbURL) {
   console.error(
-    'CRITICAL_CONFIG_ERROR: The NEXT_PUBLIC_FIREBASE_DATABASE_URL environment variable is not set. Firebase Realtime Database will not work. Please ensure this variable is correctly set in your Vercel project environment variables.'
+    'CRITICAL_CONFIG_ERROR: The NEXT_PUBLIC_FIREBASE_DATABASE_URL environment variable is NOT SET. Firebase Realtime Database will not work. Please set this variable in your Vercel project environment variables. It should look like "https://<YOUR-PROJECT-ID>.firebaseio.com" or "https://<YOUR-PROJECT-ID>-default-rtdb.<region>.firebasedatabase.app".'
   );
-} else if (!dbURL.startsWith('https://') || !dbURL.endsWith('.firebaseio.com')) {
-  // This check is based on the specific error message "Please use https://<YOUR FIREBASE>.firebaseio.com"
-  // Some newer projects might use a URL ending in .firebasedatabase.app.
-  // If your Firebase console provides such a URL and you still get parsing errors,
-  // the issue might be more complex, but this check aligns with the SDK's reported expectation.
+} else if (!dbURL.startsWith('https://')) {
+  console.error(
+    `CRITICAL_CONFIG_ERROR: The NEXT_PUBLIC_FIREBASE_DATABASE_URL ("${dbURL}") MUST start with "https://". Please correct this in your Vercel project environment variables.`
+  );
+} else if (!dbURL.endsWith('.firebaseio.com')) {
+  // Este aviso está alinhado com a mensagem de erro específica do Firebase.
+  // Embora URLs '.firebasedatabase.app' sejam comuns para projetos mais novos,
+  // a mensagem de erro "Please use https://<YOUR FIREBASE>.firebaseio.com"
+  // sugere que, para sua versão atual do SDK do Firebase ou configuração de projeto,
+  // este formato '.firebaseio.com' pode ser estritamente necessário, ou o URL fornecido
+  // está malformado de outra forma e o SDK sugere este formato como correção.
   console.warn(
-    `POTENTIAL_CONFIG_ISSUE: The NEXT_PUBLIC_FIREBASE_DATABASE_URL ("${dbURL}") does not strictly match the 'https://<YOUR-PROJECT-ID>.firebaseio.com' format suggested by a Firebase error. If you continue to see "Cannot parse Firebase url" errors, please double-check this URL in your Firebase console and Vercel environment variables. Ensure it includes 'https://' and the correct domain.`
+    `POTENTIAL_CONFIG_WARNING: The NEXT_PUBLIC_FIREBASE_DATABASE_URL ("${dbURL}") does not end with '.firebaseio.com'. The Firebase SDK reported a fatal error: "Cannot parse Firebase url. Please use https://<YOUR FIREBASE>.firebaseio.com". Isso sugere FORTEMENTE que seu URL deve terminar com '.firebaseio.com' ou está malformado. Por favor, VERIFIQUE CUIDADOSAMENTE este URL no console do Firebase e nas variáveis de ambiente da Vercel. Garanta que é o URL completo e correto do Realtime Database.`
   );
 }
+
+// Se o erro fatal "Cannot parse Firebase url" persistir após verificar o acima:
+// 1. Verifique novamente se NEXT_PUBLIC_FIREBASE_DATABASE_URL foi copiado corretamente do Console do Firebase (seção Realtime Database).
+// 2. Certifique-se de que não há erros de digitação ou caracteres extras.
+// 3. Se o seu projeto Firebase for mais recente, ele pode fornecer um URL como 'https://<project-id>-default-rtdb.<region>.firebasedatabase.app'.
+//    Se você estiver usando tal URL e ainda receber o erro sobre '.firebaseio.com', pode haver uma incompatibilidade
+//    ou um problema mais profundo com a análise do SDK em seu ambiente.
+//    No entanto, a mensagem de erro do Firebase é o guia principal aqui.
 
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
   authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
   projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
-  databaseURL: dbURL, // Use the checked (or original, if check passes/warns) URL
+  databaseURL: dbURL, // Usar o URL verificado (ou original, se a verificação passar/avisar)
   storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
   messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
@@ -36,7 +51,13 @@ const firebaseConfig = {
 // Inicializa o Firebase
 let app: FirebaseApp;
 if (!getApps().length) {
-  app = initializeApp(firebaseConfig);
+  try {
+    app = initializeApp(firebaseConfig);
+  } catch (error) {
+    console.error("FIREBASE_INIT_ERROR: Erro durante a inicialização do aplicativo Firebase. Isso frequentemente está relacionado a um 'databaseURL' inválido. URL fornecido:", dbURL, "Configuração completa:", firebaseConfig, "Erro original:", error);
+    // Re-lançar o erro para que seja visível e interrompa se necessário.
+    throw error;
+  }
 } else {
   app = getApp();
 }
@@ -48,31 +69,3 @@ const db: Database = getDatabase(app);
 
 // Exporte os serviços Firebase que você precisa
 export { app, db /*, auth, firestore, storage */ };
-
-// Funções de serviço de exemplo (a serem expandidas)
-
-// Exemplo de como pegar um produto
-// export async function getProductById(productId: string) {
-//   const productRef = ref(db, `products/${productId}`);
-//   const snapshot = await get(productRef);
-//   if (snapshot.exists()) {
-//     return snapshot.val();
-//   } else {
-//     console.log("No data available for product:", productId);
-//     return null;
-//   }
-// }
-
-// Exemplo de como salvar/atualizar um produto
-// export async function saveProduct(productId: string, productData: any) {
-//   const productRef = ref(db, `products/${productId}`);
-//   try {
-//     await set(productRef, {
-//       ...productData,
-//       updatedAt: serverTimestamp(), // Idealmente usar serverTimestamp
-//     });
-//     console.log("Product saved successfully:", productId);
-//   } catch (error) {
-//     console.error("Error saving product:", productId, error);
-//   }
-// }

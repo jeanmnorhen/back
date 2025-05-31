@@ -266,7 +266,7 @@ export default function ImageInsightExplorerPage() {
     
     setIsRequestingLocation(true);
     setLocationError(null);
-    setUserLocation(null);
+    //setUserLocation(null); // Do not clear location if user is re-requesting
 
     navigator.geolocation.getCurrentPosition(
       (position) => {
@@ -372,44 +372,52 @@ export default function ImageInsightExplorerPage() {
           )}
         </Card>
 
-        <Card className="shadow-md">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-xl">
-              <MapPin className="w-6 h-6 text-primary" />
-              Sua Localização
-            </CardTitle>
-            <CardDescription>Permita o acesso à sua localização para otimizar buscas futuras por lojas (opcional).</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <Button 
-              onClick={handleRequestLocation} 
-              disabled={isRequestingLocation || isLoading}
-              variant="outline"
-            >
-              {isRequestingLocation ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Obtendo Localização...
-                </>
-              ) : (
-                <>
-                  <MapPin className="w-4 h-4 mr-2" />
-                  Obter Minha Localização Atual
-                </>
+        {!userLocation && (
+          <Card className="shadow-md">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-xl">
+                <MapPin className="w-6 h-6 text-primary" />
+                Sua Localização
+              </CardTitle>
+              <CardDescription>Permita o acesso à sua localização para otimizar buscas futuras por lojas (opcional).</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <Button 
+                onClick={handleRequestLocation} 
+                disabled={isRequestingLocation || isLoading}
+                variant="outline"
+              >
+                {isRequestingLocation ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Obtendo Localização...
+                  </>
+                ) : (
+                  <>
+                    <MapPin className="w-4 h-4 mr-2" />
+                    Obter Minha Localização Atual
+                  </>
+                )}
+              </Button>
+              {/* {userLocation && ( // This part is now implicitly handled by the parent conditional rendering
+                <div className="text-sm p-3 bg-muted/50 rounded-md">
+                  <p className="font-medium">Localização Obtida:</p>
+                  <p>Latitude: <span className="font-semibold">{userLocation.latitude.toFixed(5)}</span></p>
+                  <p>Longitude: <span className="font-semibold">{userLocation.longitude.toFixed(5)}</span></p>
+                </div>
+              )} */}
+              {locationError && (
+                <p className="text-sm text-destructive flex items-center gap-2"><AlertTriangle className="w-4 h-4"/> {locationError}</p>
               )}
-            </Button>
-            {userLocation && (
-              <div className="text-sm p-3 bg-muted/50 rounded-md">
-                <p className="font-medium">Localização Obtida:</p>
-                <p>Latitude: <span className="font-semibold">{userLocation.latitude.toFixed(5)}</span></p>
-                <p>Longitude: <span className="font-semibold">{userLocation.longitude.toFixed(5)}</span></p>
-              </div>
-            )}
-            {locationError && (
-              <p className="text-sm text-destructive flex items-center gap-2"><AlertTriangle className="w-4 h-4"/> {locationError}</p>
-            )}
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        )}
+         {userLocation && ( // Display confirmation if location is already set and card is hidden
+            <div className="p-4 bg-muted/50 rounded-md text-sm text-muted-foreground flex items-center gap-2">
+                <MapPin className="w-5 h-5 text-primary" />
+                <span>Sua localização foi obtida: Lat {userLocation.latitude.toFixed(4)}, Lng {userLocation.longitude.toFixed(4)}.</span>
+            </div>
+        )}
 
 
         {hasResults && !isLoading && (
