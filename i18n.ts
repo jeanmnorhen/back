@@ -1,4 +1,4 @@
-// i18n.ts (AT PROJECT ROOT - DYNAMIC_JSON_TEST_WITH_UNSTABLE_SET_REQUEST_LOCALE)
+// i18n.ts (AT PROJECT ROOT - DYNAMIC_JSON_FINAL_ATTEMPT)
 import {getRequestConfig} from 'next-intl/server';
 import {notFound} from 'next/navigation';
 

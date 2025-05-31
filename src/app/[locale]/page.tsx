@@ -1,23 +1,16 @@
-// src/app/[locale]/page.tsx (ULTRA MINIMAL i18n TEST - DYNAMIC JSON)
+// src/app/[locale]/page.tsx (FINAL_ATTEMPT_DYNAMIC_JSON - Using AppLayout)
 'use client';
 
-import {useTranslations} from 'next-intl';
+import AppLayout from '@/components/AppLayout';
+import {useTranslations} from 'next-intl'; // Keep for potential direct use if needed
 
-console.log('[MinimalLocalePage - DYNAMIC_JSON_FINAL_ATTEMPT] Rendering component...');
+console.log('[LocalePage - FINAL_ATTEMPT_DYNAMIC_JSON] Rendering component...');
 
-export default function MinimalLocalePage() {
-  const t = useTranslations('MinimalPage');
-  const tLayout = useTranslations('Layout'); 
+export default function LocalePage() {
+  // const t = useTranslations('MinimalPage'); // For direct use if AppLayout wasn't wrapping everything
+  // const tLayout = useTranslations('Layout'); 
 
-  console.log('[MinimalLocalePage - DYNAMIC_JSON_FINAL_ATTEMPT] Rendering with translations...');
+  console.log('[LocalePage - FINAL_ATTEMPT_DYNAMIC_JSON] Rendering with AppLayout...');
 
-  return (
-    <div>
-      <h1>{t('title')}</h1>
-      <p>{t('greeting')}</p>
-      <hr />
-      <p>Layout Title from messages (via useTranslations in page): {tLayout('title')}</p>
-      <p>Current locale (from useTranslations): {useTranslations()('Locale')}.</p>
-    </div>
-  );
+  return <AppLayout />;
 }
