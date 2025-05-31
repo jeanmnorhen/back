@@ -75,14 +75,14 @@
 - **UC12: Definição de Idioma da Interface:**
     - O sistema pode tentar detectar o idioma preferido do usuário.
     - O usuário terá a opção de selecionar manually o idioma da interface (Português/Inglês) (CONCLUÍDO).
-    - A interface suporta i18n (CONCLUÍDO para textos básicos e metadados).
+    - A interface suporta i18n (CONCLUÍDO para textos básicos, metadados e seletor de idioma).
 - **UC13: Monitoramento de Dados Agregados:**
     - O usuário (administrador ou analista do Preço Real) acessa uma página de monitoramento.
     - O usuário seleciona um produto ou categoria.
     - O sistema exibe o valor médio desse produto/categoria em diferentes regiões/países onde há anúncios registrados, com base nos dados de anúncios expirados e perfis de lojas.
 - **UC14 (Administrador): Interação com Superagente de Análise via Chat:**
     - O administrador acessa uma página de chat dedicada (ex: `/admin/super-agent-chat`).
-    - O administrador interage com o "Superagente de Análise e Relatórios" para obter insights sobre o projeto, uso do banco de dados, atividade de usuários, possíveis falhas ou pontos de atenção. (Funcionalidade futura, depende da implementação do agente).
+    - O administrador interage com o "Superagente de Análise e Relatórios" para obter insights sobre o projeto, uso do banco de dados, atividade de usuários, possíveis falhas ou pontos de atenção. (Interface placeholder CONCLUÍDA; interação básica com respostas placeholder CONCLUÍDA).
 - **UC15 (Variação de UC6): Uso da Câmera para Identificação e Busca Rápida:**
     - Um usuário abre o Preço Real.
     - O aplicativo exibe o feed de ofertas locais.
@@ -90,7 +90,7 @@
     - O aplicativo solicita permissão para usar a câmera.
     - O usuário tira uma foto de um item (ex: um hot dog).
     - A imagem capturada é usada para identificar o objeto ("hot dog").
-    - O sistema busca e exibe uma lista de lojas que anunciam "hot dogs", ordenadas por proximidade.
+    - O sistema busca e exibe uma lista de lojas que anunciam "hot dogs", ordenadas por proximidade. (CONCLUÍDO o uso da câmera; a busca de ofertas ainda usa o modelo antigo).
 
 ## 3. Estado Atual
 
@@ -103,15 +103,16 @@ O aplicativo "Preço Real" está em um estágio funcional, com as seguintes tecn
     - `searchRelatedProducts`: Busca produtos relacionados.
     - `extractProductProperties`: Extrai propriedades de produtos.
     - `findProductStoresFlow` (com `findStoresTool`): Busca lojas (atualmente consulta o Firebase para um modelo de produto/loja mais estático, baseado em `productAvailability` e `products`).
-    - `superAgentAnalyticsChatFlow`: Fluxo placeholder para o chat com o superagente de análise.
+    - `superAgentAnalyticsChatFlow`: Fluxo para o chat com o superagente de análise (retorna respostas placeholder).
 - **Testes:** Configuração de Jest.
 - **Banco de Dados:** Firebase Realtime Database (estrutura inicial para produtos e lojas; necessita ser expandida para anúncios e perfis de lojistas).
 - **Deployment:** Configurado para Vercel (funciona bem em produção com as variáveis de ambiente corretas).
 - **Geolocalização:** Frontend obtém localização do usuário.
 - **Página de Monitoramento:** Exibe valor médio de produtos por país (baseado na estrutura de dados atual).
 - **Internacionalização (i18n):** Suporte para Português ("Preço Real") e Inglês ("Real Price") com `next-intl`, incluindo metadados e seletor de idioma.
-- **Layout da Página Principal:** Reformulado para ser um "Feed de Ofertas" com busca, filtros de categoria (mockados) e exibição de ofertas (mockadas). A funcionalidade de análise de imagem (upload) foi mantida como uma ferramenta de apoio na mesma página, dentro de um acordeão. **Funcionalidade de captura de foto via câmera adicionada (UC15).**
-- **Página de Chat com Superagente (Placeholder):** Criada em `/admin/super-agent-chat`.
+- **Layout da Página Principal:** Reformulado para ser um "Feed de Ofertas" com busca, filtros de categoria (mockados) e exibição de ofertas (mockadas). A funcionalidade de análise de imagem (upload e captura pela câmera) foi mantida como uma ferramenta de apoio na mesma página, dentro de um acordeão.
+- **Funcionalidade de Captura de Foto via Câmera:** Adicionada (UC15).
+- **Página de Chat com Superagente:** Criada em `/admin/super-agent-chat` e agora permite interação básica (envio de mensagens e recebimento de respostas placeholder do fluxo Genkit).
 
 Principais funcionalidades implementadas:
 - Feed de ofertas na página principal (com dados mockados).
@@ -125,7 +126,7 @@ Principais funcionalidades implementadas:
 - Configuração Firebase e Vercel.
 - Página de monitoramento básica.
 - Suporte i18n (PT/EN) para textos e metadados, incluindo seletor de idioma.
-- Página placeholder para chat com Superagente de Análise.
+- Página de chat com Superagente de Análise com interação básica (mensagens e respostas placeholder).
 
 **Desafios com a Mudança de Escopo (e próximos passos):**
 A transição para "Preço Real" com foco em anúncios de lojistas e feed geolocalizado requer:
@@ -254,6 +255,7 @@ Mantém estrutura similar à anterior (preferências, localização).
         - Traduzir títulos de metadados (CONCLUÍDO).
         - Adicionar seletor de idioma na UI (CONCLUÍDO).
     - **Implementação da Funcionalidade de Câmera (UC6/UC15):** Permitir que o usuário tire fotos diretamente pelo app para identificar produtos (CONCLUÍDO).
+    - **Chat com Superagente de Análise (UC14):** Interface básica de chat funcional, permitindo envio de mensagens e recebimento de respostas placeholder do fluxo Genkit (CONCLUÍDO).
     - **Histórico de Preços:** Implementar lógica (ex: Cloud Function) para mover dados de anúncios expirados para o histórico de preços.
     - **Página de Monitoramento:** Adaptar para usar dados do novo sistema de anúncios/histórico.
     - **Refinamento da Busca de Produtos (Análise de Imagem):** A função de análise de imagens (`identifyObjects`, `searchRelatedProducts`, `extractProductProperties`) pode ser mantida. O fluxo `findProductStoresFlow` (que usa `productAvailability`) precisará ser reavaliado ou adaptado/substituído pela lógica de busca no feed de anúncios `/advertisements` se o objetivo for encontrar ofertas atuais em vez de apenas lojas que *geralmente* têm o produto.
@@ -273,7 +275,7 @@ Mantém estrutura similar à anterior (preferências, localização).
     - A funcionalidade de análise de imagem (upload de arquivo e **captura pela câmera**) foi mantida como uma ferramenta de apoio, dentro de um componente `Accordion`.
 - A página de monitoramento (`src/app/[locale]/monitoring/page.tsx`) será adaptada.
 - Novas rotas/páginas serão necessárias para perfis de lojistas e gerenciamento de anúncios.
-- Uma nova página de administração (`src/app/[locale]/admin/super-agent-chat/page.tsx`) foi criada como placeholder para o chat com o superagente de análise (Funcionalidade Futura).
+- Uma nova página de administração (`src/app/[locale]/admin/super-agent-chat/page.tsx`) foi criada e agora possui interatividade básica para o chat com o superagente de análise (Funcionalidade Futura para análise real).
 
 **Cores Principais do Tema Atual (Modo Claro e Escuro):**
 (Mantidas conforme definido anteriormente, podem ser ajustadas se necessário para a nova marca "Preço Real")
@@ -293,8 +295,8 @@ Para garantir o bom funcionamento e a evolução contínua do sistema "Preço Re
     - Analisar a estrutura do banco de dados em busca de inconsistências ou otimizações.
     - Identificar anúncios que podem ser fraudulentos ou de baixa qualidade (requer heurísticas e possivelmente feedback de usuários).
     - Sinalizar produtos com pouca ou nenhuma oferta.
-- **Interface:** Uma página de chat dedicada (ex: `/admin/super-agent-chat`) permitirá que um administrador converse com este agente, solicitando análises específicas ou relatórios. (Interface placeholder CONCLUÍDA).
-- **Tecnologia:** Genkit Flow com múltiplas ferramentas (`ai.defineTool`) para acessar e processar dados do Firebase e, potencialmente, outros logs ou métricas do sistema. (Fluxo Genkit placeholder CONCLUÍDO).
+- **Interface:** Uma página de chat dedicada (ex: `/admin/super-agent-chat`) permitirá que um administrador converse com este agente, solicitando análises específicas ou relatórios. (Interface CONCLUÍDA com interatividade básica, respostas placeholder).
+- **Tecnologia:** Genkit Flow com múltiplas ferramentas (`ai.defineTool`) para acessar e processar dados do Firebase e, potencialmente, outros logs ou métricas do sistema. (Fluxo Genkit placeholder CONCLUÍDO, capaz de receber input e dar resposta placeholder).
 
 ### 8.2. Superagente de Descoberta Proativa
 - **Objetivo:** Expandir o catálogo de produtos e o conhecimento do sistema sobre o que os usuários estão procurando, mesmo que ainda não haja ofertas diretas.
@@ -320,7 +322,7 @@ Esses superagentes representam uma evolução significativa e exigirão desenvol
 
 - Mantido: "Sempre que for identificado um ponto final "." ... o arquivo `memo.md` deve ser analisado e atualizado..."
 - Mantido: "Dois pontos finais seguidos ".." significam que o sistema deve continuar..."
-- Mantido: Criação de snapshots do `memo.md` na pasta `historico/` após conclusões de etapas. (Último snapshot: `08_memo_md_post_super_agents_setup.md`)
+- Mantido: Criação de snapshots do `memo.md` na pasta `historico/` após conclusões de etapas. (Último snapshot: `09_memo_md_post_camera_feature.md`)
 
 ## 10. Internacionalização (i18n) com `next-intl`
 

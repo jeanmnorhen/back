@@ -8,10 +8,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 
-// Placeholder para o fluxo de chat do superagente
-// import { superAgentAnalyticsChat, SuperAgentChatInput, SuperAgentChatOutput } from '@/ai/flows/super-agent-analytics-chat-flow';
+import { superAgentAnalyticsChat, type SuperAgentChatInput, type SuperAgentChatOutput } from '@/ai/flows/super-agent-analytics-chat-flow';
 
 interface ChatMessage {
   id: string;
@@ -22,62 +21,64 @@ interface ChatMessage {
 
 export default function SuperAgentChatPage() {
   const t = useTranslations('SuperAgentChatPage');
-  // const [messages, setMessages] = useState<ChatMessage[]>([]);
-  // const [inputValue, setInputValue] = useState('');
-  // const [isLoading, setIsLoading] = useState(false);
+  const initialAgentMessageText = t('initialAgentMessage');
 
-  // Simulação inicial de mensagens
-   const messages: ChatMessage[] = [
-    { id: '1', sender: 'agent', text: t('initialAgentMessage'), timestamp: new Date() },
-   ];
-   const isLoading = false;
-   const inputValue = '';
+  const [messages, setMessages] = useState<ChatMessage[]>([
+    { id: 'initial-agent-message', sender: 'agent', text: initialAgentMessageText, timestamp: new Date() }
+  ]);
+  const [inputValue, setInputValue] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const scrollAreaRef = useRef<HTMLDivElement>(null);
 
+  useEffect(() => {
+    // Scroll to bottom when new messages are added
+    if (scrollAreaRef.current) {
+      const scrollViewport = scrollAreaRef.current.querySelector('div[data-radix-scroll-area-viewport]');
+      if (scrollViewport) {
+        scrollViewport.scrollTop = scrollViewport.scrollHeight;
+      }
+    }
+  }, [messages]);
 
-  // const handleSendMessage = async (e: React.FormEvent) => {
-  //   e.preventDefault();
-  //   if (!inputValue.trim() || isLoading) return;
+  const handleSendMessage = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!inputValue.trim() || isLoading) return;
 
-  //   const userMessage: ChatMessage = {
-  //     id: Date.now().toString(),
-  //     sender: 'user',
-  //     text: inputValue,
-  //     timestamp: new Date(),
-  //   };
-  //   setMessages((prev) => [...prev, userMessage]);
-  //   setInputValue('');
-  //   setIsLoading(true);
+    const userMessage: ChatMessage = {
+      id: Date.now().toString(),
+      sender: 'user',
+      text: inputValue,
+      timestamp: new Date(),
+    };
+    setMessages((prev) => [...prev, userMessage]);
+    const currentInput = inputValue;
+    setInputValue('');
+    setIsLoading(true);
 
-  //   try {
-  //     // Chamada real ao fluxo Genkit (descomentar quando o fluxo estiver pronto)
-  //     // const agentResponse: SuperAgentChatOutput = await superAgentAnalyticsChat({ userInput: userMessage.text });
-  //     // const agentMessageText = agentResponse.responseText || t('agentErrorResponse');
+    try {
+      const agentResponse: SuperAgentChatOutput = await superAgentAnalyticsChat({ userInput: currentInput });
+      const agentMessageText = agentResponse.responseText || t('agentErrorResponse');
 
-  //     // Simulação de resposta do agente por enquanto
-  //     await new Promise(resolve => setTimeout(resolve, 1500));
-  //     const agentMessageText = `${t('agentResponsePrefix')} "${userMessage.text}" - ${t('featureInProgress')}`;
-
-
-  //     const agentMessage: ChatMessage = {
-  //       id: (Date.now() + 1).toString(),
-  //       sender: 'agent',
-  //       text: agentMessageText,
-  //       timestamp: new Date(),
-  //     };
-  //     setMessages((prev) => [...prev, agentMessage]);
-  //   } catch (error) {
-  //     console.error("Error interacting with Super Agent:", error);
-  //     const errorMessage: ChatMessage = {
-  //       id: (Date.now() + 1).toString(),
-  //       sender: 'agent',
-  //       text: t('agentErrorResponse'),
-  //       timestamp: new Date(),
-  //     };
-  //     setMessages((prev) => [...prev, errorMessage]);
-  //   } finally {
-  //     setIsLoading(false);
-  //   }
-  // };
+      const agentMessage: ChatMessage = {
+        id: (Date.now() + 1).toString(),
+        sender: 'agent',
+        text: agentMessageText,
+        timestamp: new Date(),
+      };
+      setMessages((prev) => [...prev, agentMessage]);
+    } catch (error) {
+      console.error("Error interacting with Super Agent:", error);
+      const errorMessage: ChatMessage = {
+        id: (Date.now() + 1).toString(),
+        sender: 'agent',
+        text: t('agentErrorResponse'),
+        timestamp: new Date(),
+      };
+      setMessages((prev) => [...prev, errorMessage]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
     <div className="flex flex-col items-center min-h-screen p-4 sm:p-8 selection:bg-primary/20">
@@ -106,22 +107,22 @@ export default function SuperAgentChatPage() {
             <CardDescription>{t('chatWindowDescription')}</CardDescription>
           </CardHeader>
           <CardContent className="flex-grow flex flex-col p-0">
-            <ScrollArea className="flex-grow p-4 space-y-4">
+            <ScrollArea className="flex-grow p-4 space-y-4" ref={scrollAreaRef}>
               {messages.map((msg) => (
                 <div
                   key={msg.id}
                   className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}
                 >
                   <div
-                    className={`max-w-[70%] p-3 rounded-lg ${
+                    className={`max-w-[80%] p-3 rounded-lg shadow-md ${
                       msg.sender === 'user'
                         ? 'bg-primary text-primary-foreground'
                         : 'bg-muted text-muted-foreground'
                     }`}
                   >
-                    <p className="text-sm">{msg.text}</p>
+                    <p className="text-sm whitespace-pre-wrap">{msg.text}</p>
                     <p className={`text-xs mt-1 ${msg.sender === 'user' ? 'text-primary-foreground/70 text-right' : 'text-muted-foreground/70'}`}>
-                      {msg.timestamp.toLocaleTimeString()}
+                      {msg.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                     </p>
                   </div>
                 </div>
@@ -135,18 +136,19 @@ export default function SuperAgentChatPage() {
               )}
             </ScrollArea>
             <form 
-              // onSubmit={handleSendMessage} 
+              onSubmit={handleSendMessage} 
               className="border-t p-4 flex items-center gap-2"
             >
               <Input
                 type="text"
                 placeholder={t('inputPlaceholder')}
                 value={inputValue}
-                // onChange={(e) => setInputValue(e.target.value)}
-                disabled={isLoading || true} // Desabilitado permanentemente por enquanto
+                onChange={(e) => setInputValue(e.target.value)}
+                disabled={isLoading}
                 className="flex-grow"
+                autoFocus
               />
-              <Button type="submit" disabled={isLoading || true} className="bg-accent hover:bg-accent/90">
+              <Button type="submit" disabled={isLoading || !inputValue.trim()} className="bg-accent hover:bg-accent/90">
                 {isLoading ? t('sendingButton') : t('sendButton')}
               </Button>
             </form>
@@ -162,5 +164,3 @@ export default function SuperAgentChatPage() {
     </div>
   );
 }
-
-    
