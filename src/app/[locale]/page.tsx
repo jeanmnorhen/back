@@ -2,7 +2,7 @@
 'use client';
 
 import type { ChangeEvent, FormEvent } from 'react';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import NextImage from 'next/image';
 import { 
   UploadCloud, 
@@ -23,7 +23,11 @@ import {
   Beer,
   ShoppingCart,
   BadgePercent,
-  Clock
+  Clock,
+  Camera as CameraIcon, // Renomeado para CameraIcon para evitar conflito
+  Video,
+  CircleX,
+  CameraOff
 } from 'lucide-react';
 import {useTranslations} from 'next-intl';
 
@@ -37,6 +41,8 @@ import { Progress } from "@/components/ui/progress";
 import { useToast } from '@/hooks/use-toast';
 import { Separator } from '@/components/ui/separator';
 import LanguageSwitcher from '@/components/LanguageSwitcher';
+import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
+
 
 // AI Flow imports
 import { identifyObjects, type IdentifyObjectsOutput, type TranslatedObjectType } from '@/ai/flows/identify-objects';
@@ -99,7 +105,7 @@ const mockDeals: Deal[] = [
 
 
 export default function PrecoRealPage() {
-  const t = useTranslations('ImageInsightExplorerPage'); // Namespace remains for now
+  const t = useTranslations('ImageInsightExplorerPage'); 
   const tLang = useTranslations('Languages');
 
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -119,6 +125,13 @@ export default function PrecoRealPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [displayedDeals, setDisplayedDeals] = useState<Deal[]>(mockDeals);
+
+  const [hasCameraPermission, setHasCameraPermission] = useState<boolean | null>(null);
+  const [isCameraActive, setIsCameraActive] = useState(false);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [capturedImagePreview, setCapturedImagePreview] = useState<string | null>(null);
+
 
   const { toast } = useToast();
 
@@ -143,13 +156,22 @@ export default function PrecoRealPage() {
       if (previewUrl) {
         URL.revokeObjectURL(previewUrl);
       }
+      if (capturedImagePreview) {
+        URL.revokeObjectURL(capturedImagePreview);
+      }
+      // Stop camera stream if active
+      if (videoRef.current && videoRef.current.srcObject) {
+        const stream = videoRef.current.srcObject as MediaStream;
+        stream.getTracks().forEach(track => track.stop());
+      }
     };
-  }, [previewUrl]);
+  }, [previewUrl, capturedImagePreview]);
 
   const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
     setError(null);
     setResults(initialResultsState);
     setSelectedFile(null);
+    setCapturedImagePreview(null); 
     if (previewUrl) {
         URL.revokeObjectURL(previewUrl);
         setPreviewUrl(null);
@@ -175,6 +197,7 @@ export default function PrecoRealPage() {
       }
       setSelectedFile(file);
       setPreviewUrl(URL.createObjectURL(file));
+      stopCameraStream(); // Stop camera if user uploads a file
     } else {
         setSelectedFile(null);
         setPreviewUrl(null);
@@ -350,6 +373,75 @@ export default function PrecoRealPage() {
     );
   };
 
+  const stopCameraStream = () => {
+    if (videoRef.current && videoRef.current.srcObject) {
+      const stream = videoRef.current.srcObject as MediaStream;
+      stream.getTracks().forEach(track => track.stop());
+      videoRef.current.srcObject = null;
+    }
+    setIsCameraActive(false);
+  };
+
+  const handleToggleCamera = async () => {
+    if (isCameraActive) {
+      stopCameraStream();
+      setHasCameraPermission(null); // Reset permission state if user explicitly stops
+      return;
+    }
+
+    setCapturedImagePreview(null); // Clear any captured image
+    setSelectedFile(null); // Clear any selected file
+    setPreviewUrl(null); // Clear file preview
+    setError(null);
+    setResults(initialResultsState);
+
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      toast({
+        variant: 'destructive',
+        title: t('cameraAccessErrorTitle'),
+        description: t('cameraGenericError'),
+      });
+      setHasCameraPermission(false);
+      return;
+    }
+
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+      setHasCameraPermission(true);
+      setIsCameraActive(true);
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+      }
+    } catch (err) {
+      console.error('Error accessing camera:', err);
+      setHasCameraPermission(false);
+      setIsCameraActive(false);
+      toast({
+        variant: 'destructive',
+        title: t('cameraAccessErrorTitle'),
+        description: t('cameraAccessErrorMessage'),
+      });
+    }
+  };
+
+  const handleTakePicture = () => {
+    if (videoRef.current && canvasRef.current && isCameraActive) {
+      const video = videoRef.current;
+      const canvas = canvasRef.current;
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      const context = canvas.getContext('2d');
+      if (context) {
+        context.drawImage(video, 0, 0, canvas.width, canvas.height);
+        const dataUri = canvas.toDataURL('image/jpeg');
+        setCapturedImagePreview(dataUri);
+        processImage(dataUri); // Process the captured image
+      }
+      stopCameraStream(); // Stop camera after taking picture
+    }
+  };
+
+
   const hasImageAnalysisResults = (results.objects && results.objects.length > 0) || 
                                  (results.relatedProducts && results.relatedProducts.length > 0) || 
                                  results.productProperties;
@@ -508,7 +600,7 @@ export default function PrecoRealPage() {
         <Separator />
 
         {/* Image Analysis Section (Accordion) */}
-        <Accordion type="single" collapsible className="w-full">
+        <Accordion type="single" collapsible className="w-full" defaultValue="image-analysis-tool">
             <AccordionItem value="image-analysis-tool">
                 <AccordionTrigger className="text-2xl font-semibold hover:text-primary py-4">
                     <div className="flex items-center gap-2">
@@ -521,48 +613,103 @@ export default function PrecoRealPage() {
                         <CardHeader>
                             <CardDescription>{t('uploadCardDescription')}</CardDescription>
                         </CardHeader>
-                        <CardContent>
-                            <form onSubmit={handleSubmitImageAnalysis} className="space-y-6">
-                            <div>
-                                <Label htmlFor="image-upload" className="sr-only">Escolher imagem</Label>
-                                <Input
-                                id="image-upload"
-                                type="file"
-                                accept="image/*"
-                                onChange={handleFileChange}
-                                className="file:text-primary file:font-semibold hover:file:bg-primary/10"
-                                disabled={isLoading || isRequestingLocation}
-                                />
-                            </div>
-                            {previewUrl && (
-                                <div className="mt-4 border rounded-lg p-2 bg-muted/50 overflow-hidden aspect-video relative w-full max-w-md mx-auto">
-                                <NextImage
-                                    src={previewUrl}
-                                    alt="Pré-visualização da imagem selecionada"
-                                    layout="fill"
-                                    objectFit="contain"
-                                    className="rounded"
-                                    data-ai-hint="uploaded image"
-                                />
+                        <CardContent className="space-y-6">
+                            <form onSubmit={handleSubmitImageAnalysis} className="space-y-4">
+                                <div className="flex flex-col sm:flex-row gap-4 items-start">
+                                    <div className="flex-grow w-full">
+                                        <Label htmlFor="image-upload" className="sr-only">{t('analyzeButton')}</Label>
+                                        <Input
+                                            id="image-upload"
+                                            type="file"
+                                            accept="image/*"
+                                            onChange={handleFileChange}
+                                            className="file:text-primary file:font-semibold hover:file:bg-primary/10"
+                                            disabled={isLoading || isRequestingLocation || isCameraActive}
+                                        />
+                                    </div>
+                                     <Button 
+                                        type="button"
+                                        onClick={handleToggleCamera} 
+                                        variant="outline" 
+                                        className="w-full sm:w-auto" 
+                                        disabled={isLoading || isRequestingLocation}
+                                    >
+                                        {isCameraActive ? <CircleX className="mr-2 h-4 w-4" /> : <CameraIcon className="mr-2 h-4 w-4" />}
+                                        {isCameraActive ? t('stopCameraButton') : t('useCameraButton')}
+                                    </Button>
+                                </div>
+                                {previewUrl && !isCameraActive && (
+                                    <div className="mt-4 border rounded-lg p-2 bg-muted/50 overflow-hidden aspect-video relative w-full max-w-md mx-auto">
+                                        <NextImage
+                                            src={previewUrl}
+                                            alt="Pré-visualização da imagem selecionada"
+                                            layout="fill"
+                                            objectFit="contain"
+                                            className="rounded"
+                                            data-ai-hint="uploaded image"
+                                        />
+                                    </div>
+                                )}
+                                {selectedFile && !isCameraActive && (
+                                     <Button type="submit" className="w-full sm:w-auto bg-accent hover:bg-accent/90 text-accent-foreground" disabled={isLoading || !selectedFile || isRequestingLocation}>
+                                        {isLoading && currentStep && !isCameraActive ? (
+                                        <>
+                                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                            {t('processingButton')}
+                                        </>
+                                        ) : (
+                                        <>
+                                            <Wand2 className="w-4 h-4 mr-2" />
+                                            {t('analyzeButton')}
+                                        </>
+                                        )}
+                                    </Button>
+                                )}
+                                {error && !isLoading && (
+                                    <p className="text-sm text-destructive flex items-center gap-2"><AlertTriangle className="w-4 h-4"/> {error}</p>
+                                )}
+                            </form>
+
+                            {isCameraActive && hasCameraPermission === true && (
+                                <div className="space-y-4 mt-4">
+                                    <h3 className="text-lg font-medium flex items-center gap-2"><Video className="w-5 h-5 text-primary"/> {t('cameraPreviewTitle')}</h3>
+                                    <div className="border rounded-lg overflow-hidden aspect-video relative w-full max-w-md mx-auto bg-muted">
+                                        <video ref={videoRef} className="w-full h-full object-cover" autoPlay muted playsInline />
+                                    </div>
+                                    <Button onClick={handleTakePicture} className="w-full sm:w-auto" disabled={isLoading}>
+                                        <CameraIcon className="w-4 h-4 mr-2" />
+                                        {t('takePictureButton')}
+                                    </Button>
                                 </div>
                             )}
-                            {error && !isLoading && (
-                                <p className="text-sm text-destructive flex items-center gap-2"><AlertTriangle className="w-4 h-4"/> {error}</p>
+                            <canvas ref={canvasRef} className="hidden"></canvas> 
+
+                            {hasCameraPermission === false && (
+                                 <Alert variant="destructive" className="mt-4">
+                                    <CameraOff className="h-4 w-4" />
+                                    <AlertTitle>{t('alertCameraAccessRequiredTitle')}</AlertTitle>
+                                    <AlertDescription>
+                                        {t('alertCameraAccessRequiredDescription')}
+                                    </AlertDescription>
+                                </Alert>
                             )}
-                            <Button type="submit" className="w-full sm:w-auto bg-accent hover:bg-accent/90 text-accent-foreground" disabled={isLoading || !selectedFile || isRequestingLocation}>
-                                {isLoading && currentStep ? (
-                                <>
-                                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                                    {t('processingButton')}
-                                </>
-                                ) : (
-                                <>
-                                    <Wand2 className="w-4 h-4 mr-2" />
-                                    {t('analyzeButton')}
-                                </>
-                                )}
-                            </Button>
-                            </form>
+
+                            {capturedImagePreview && (
+                                <div className="space-y-2 mt-4">
+                                     <h3 className="text-lg font-medium flex items-center gap-2"><ImageIcon className="w-5 h-5 text-primary"/> {t('capturedImagePreviewTitle')}</h3>
+                                    <div className="border rounded-lg p-2 bg-muted/50 overflow-hidden aspect-video relative w-full max-w-md mx-auto">
+                                        <NextImage
+                                            src={capturedImagePreview}
+                                            alt="Imagem capturada pela câmera"
+                                            layout="fill"
+                                            objectFit="contain"
+                                            className="rounded"
+                                            data-ai-hint="captured camera image"
+                                        />
+                                    </div>
+                                </div>
+                            )}
+
                         </CardContent>
                         {isLoading && currentStep && (
                             <CardFooter className="flex flex-col gap-2 pt-4 border-t">
@@ -620,7 +767,7 @@ export default function PrecoRealPage() {
                 </CardContent>
               </Card>
             )}
-             {results.objects && results.objects.length === 0 && selectedFile && !error && (
+             {results.objects && results.objects.length === 0 && (selectedFile || capturedImagePreview) && !error && (
                  <Card className="shadow-md">
                     <CardHeader>
                         <CardTitle className="flex items-center gap-2 text-xl">
@@ -757,7 +904,7 @@ export default function PrecoRealPage() {
           </div>
         )}
         
-        {!isLoading && !hasImageAnalysisResults && selectedFile && !error && !(results.objects && results.objects.length === 0) && (
+        {!isLoading && !hasImageAnalysisResults && (selectedFile || capturedImagePreview) && !error && !(results.objects && results.objects.length === 0) && (
             <Card className="shadow-md">
                 <CardHeader>
                     <CardTitle className="flex items-center gap-2 text-xl">{t('analysisCompleteToastTitle')}</CardTitle>
@@ -770,9 +917,9 @@ export default function PrecoRealPage() {
       </main>
       <footer className="mt-12 py-6 text-center text-sm text-muted-foreground border-t w-full max-w-5xl">
         <p>{t('footerText', {year: new Date().getFullYear()})}</p>
-        {/* A linha abaixo pode ser removida ou ajustada se as traduções não forem mais um foco principal da análise de imagem */}
-        {/* <p>{t('translationsProvidedFor')}</p> */}
       </footer>
     </div>
   );
 }
+
+    
