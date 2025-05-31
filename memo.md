@@ -13,7 +13,7 @@
     - Os dados dos anúncios expirados serão registrados para compor um histórico de preços.
 - Utilizar a localização GPS do usuário (com consentimento) para otimizar a busca por ofertas e lojas.
 - Oferecer uma interface de usuário intuitiva e responsiva.
-- **Funcionalidade Secundária (Apoio):** Permitir que os usuários façam upload de imagens para análise (identificar objetos, traduções). Essa funcionalidade pode ser usada para ajudar o usuário a identificar um item sobre o qual deseja buscar ofertas no feed principal.
+- **Funcionalidade Secundária (Apoio):** Permitir que os usuários façam upload de imagens (ou tirem fotos) para análise (identificar objetos, traduções). Essa funcionalidade pode ser usada para ajudar o usuário a identificar um item sobre o qual deseja buscar ofertas no feed principal.
 - Integrar com Firebase Realtime Database para:
     - Manter um catálogo de produtos canônicos (para referência, se aplicável).
     - Registrar lojas/estabelecimentos, incluindo sua localização geográfica e perfis.
@@ -22,7 +22,9 @@
     - Manter perfis de usuário (consumidores) com preferências e dados como localização.
 - Implementar internacionalização (i18n) da interface do usuário (Português "Preço Real", Inglês "Real Price").
 - Fornecer uma página de monitoramento para visualizar dados agregados (ex: valor médio de um produto por região/país, tendências de preço).
-- **Visão Futura:** Implementar um sistema de Retrieval Augmented Generation (RAG) geospacial para clusterizar/agrupar lojas, anúncios e produtos por proximidade, otimizando o tráfego de dados e garantindo informações atualizadas das lojas mais próximas ao usuário.
+- **Visão Futura:**
+    - Implementar um sistema de Retrieval Augmented Generation (RAG) geospacial para clusterizar/agrupar lojas, anúncios e produtos por proximidade, otimizando o tráfego de dados e garantindo informações atualizadas das lojas mais próximas ao usuário.
+    - Desenvolver "Superagentes" de IA para funcionalidades avançadas (ver seção 8).
 
 ## 2. Casos de Uso
 
@@ -49,12 +51,13 @@
     - Anúncios publicados têm um tempo de vida limitado (ex: 24 horas).
     - Após a expiração, o anúncio desaparece do feed ativo dos usuários.
     - Os dados do anúncio expirado (produto, preço, loja, data) são registrados no sistema de histórico de preços associado ao produto (se for um produto catalogado) e/ou à loja.
-- **UC6 (Apoio): Análise de Imagem para Identificação de Produto:**
-    - O usuário (consumidor) tem um item físico mas não sabe o nome exato para buscar ofertas.
-    - O usuário seleciona uma imagem do item do seu dispositivo e faz o upload.
-    - O sistema identifica objetos na imagem (ex: "lata de refrigerante").
-    - O usuário pode então usar o nome do objeto identificado para buscar ofertas no Preço Real (ver UC2).
-    - O sistema pode, opcionalmente, exibir traduções dos nomes dos objetos.
+- **UC6 (Apoio): Análise de Imagem para Identificação de Produto (Upload/Câmera):**
+    - Um usuário (consumidor), como o de Formosa, Goiás, está com fome e quer um "hot dog".
+    - Ele abre o app Preço Real, que atualiza o feed de ofertas locais.
+    - O usuário pode opcionalmente tocar no ícone da câmera (funcionalidade futura de acesso direto à câmera), tirar uma foto de um hot dog (ou selecionar uma imagem do seu dispositivo).
+    - O sistema identifica "hot dog" na imagem.
+    - O sistema então busca e exibe uma lista de todas as lojas que vendem "hot dogs", ordenadas por proximidade.
+    - (Original) O usuário (consumidor) tem um item físico mas não sabe o nome exato para buscar ofertas. O usuário seleciona uma imagem do item do seu dispositivo e faz o upload (ou tira uma foto). O sistema identifica objetos na imagem (ex: "lata de refrigerante"). O usuário pode então usar o nome do objeto identificado para buscar ofertas no Preço Real (ver UC2). O sistema pode, opcionalmente, exibir traduções dos nomes dos objetos.
 - **UC7 (Apoio à busca via imagem): Descoberta de Produtos Relacionados (IA):**
     - Após a identificação de objetos (UC6), se o usuário desejar, o sistema (via IA) pode sugerir produtos comercialmente disponíveis que são relevantes (usando nomes em inglês/idioma base).
 - **UC8 (Apoio à informação via imagem): Extração de Propriedades de Produtos (IA):**
@@ -76,6 +79,9 @@
     - O usuário (administrador ou analista do Preço Real) acessa uma página de monitoramento.
     - O usuário seleciona um produto ou categoria.
     - O sistema exibe o valor médio desse produto/categoria em diferentes regiões/países onde há anúncios registrados, com base nos dados de anúncios expirados e perfis de lojas.
+- **UC14 (Administrador): Interação com Superagente de Análise via Chat:**
+    - O administrador acessa uma página de chat dedicada (ex: `/admin/super-agent-chat`).
+    - O administrador interage com o "Superagente de Análise e Relatórios" para obter insights sobre o projeto, uso do banco de dados, atividade de usuários, possíveis falhas ou pontos de atenção. (Funcionalidade futura, depende da implementação do agente).
 
 ## 3. Estado Atual
 
@@ -116,6 +122,8 @@ A transição para "Preço Real" com foco em anúncios de lojistas e feed geoloc
 - Desenvolvimento do sistema de feed geolocalizado (consultas espaciais no Firebase ou sistema RAG), substituindo os dados mockados.
 - Nova modelagem de dados para anúncios/ofertas com prazo de validade no Firebase.
 - Adaptação/criação dos fluxos de IA e ferramentas para o novo modelo de anúncios e busca no feed.
+- Implementação da funcionalidade de tirar foto diretamente pela câmera (UC6).
+- Desenvolvimento dos Superagentes de IA (ver seção 8).
 
 ## 4. Arquitetura do Banco de Dados (Firebase Realtime Database) - Proposta para "Preço Real"
 
@@ -234,10 +242,12 @@ Mantém estrutura similar à anterior (preferências, localização).
         - Expandir traduções para todos os textos da UI (CONTÍNUO).
         - Traduzir títulos de metadados (CONCLUÍDO).
         - Adicionar seletor de idioma na UI (CONCLUÍDO).
+    - **Implementação da Funcionalidade de Câmera (UC6):** Permitir que o usuário tire fotos diretamente pelo app para identificar produtos.
     - **Histórico de Preços:** Implementar lógica (ex: Cloud Function) para mover dados de anúncios expirados para o histórico de preços.
     - **Página de Monitoramento:** Adaptar para usar dados do novo sistema de anúncios/histórico.
     - **Refinamento da Busca de Produtos (Análise de Imagem):** A função de análise de imagens (`identifyObjects`, `searchRelatedProducts`, `extractProductProperties`) pode ser mantida. O fluxo `findProductStoresFlow` (que usa `productAvailability`) precisará ser reavaliado ou adaptado/substituído pela lógica de busca no feed de anúncios `/advertisements` se o objetivo for encontrar ofertas atuais em vez de apenas lojas que *geralmente* têm o produto.
     - **Implementação de RAG Geospacial (Visão de Longo Prazo):** Para otimizar buscas por proximidade.
+    - **Desenvolvimento dos Superagentes de IA (Visão de Longo Prazo - Seção 8).**
     - **Melhorias na UI/UX para Consumidores e Lojistas.**
     - **Testes.**
 
@@ -252,21 +262,62 @@ Mantém estrutura similar à anterior (preferências, localização).
     - A funcionalidade de análise de imagem foi mantida como uma ferramenta de apoio, dentro de um componente `Accordion`.
 - A página de monitoramento (`src/app/[locale]/monitoring/page.tsx`) será adaptada.
 - Novas rotas/páginas serão necessárias para perfis de lojistas e gerenciamento de anúncios.
+- Uma nova página de administração (`src/app/[locale]/admin/super-agent-chat/page.tsx`) foi criada como placeholder para o chat com o superagente de análise (Funcionalidade Futura).
 
 **Cores Principais do Tema Atual (Modo Claro e Escuro):**
 (Mantidas conforme definido anteriormente, podem ser ajustadas se necessário para a nova marca "Preço Real")
 
-## 8. Processo de Atualização e Manutenção
+## 8. Superagentes de IA (Visão Futura)
+
+Para garantir o bom funcionamento e a evolução contínua do sistema "Preço Real", propõe-se o desenvolvimento de "superagentes" de IA com responsabilidades específicas:
+
+### 8.1. Superagente de Análise e Relatórios
+- **Objetivo:** Monitorar a saúde do projeto, a integridade do banco de dados, o comportamento dos usuários e identificar proativamente possíveis falhas, gargalos ou pontos de atenção.
+- **Funcionalidades:**
+    - Gerar relatórios periódicos ou sob demanda sobre:
+        - Uso de recursos do Firebase (leituras/escritas, armazenamento).
+        - Padrões de busca de produtos e categorias.
+        - Atividade de lojistas (novos anúncios, lojas cadastradas).
+        - Erros de sistema (se logs de erro forem centralizados e acessíveis).
+    - Analisar a estrutura do banco de dados em busca de inconsistências ou otimizações.
+    - Identificar anúncios que podem ser fraudulentos ou de baixa qualidade (requer heurísticas e possivelmente feedback de usuários).
+    - Sinalizar produtos com pouca ou nenhuma oferta.
+- **Interface:** Uma página de chat dedicada (ex: `/admin/super-agent-chat`) permitirá que um administrador converse com este agente, solicitando análises específicas ou relatórios.
+- **Tecnologia:** Genkit Flow com múltiplas ferramentas (`ai.defineTool`) para acessar e processar dados do Firebase e, potencialmente, outros logs ou métricas do sistema.
+
+### 8.2. Superagente de Descoberta Proativa
+- **Objetivo:** Expandir o catálogo de produtos e o conhecimento do sistema sobre o que os usuários estão procurando, mesmo que ainda não haja ofertas diretas.
+- **Funcionalidades:**
+    - Monitorar as buscas textuais dos usuários no feed de ofertas.
+    - Monitorar os objetos identificados através da análise de imagem (via upload ou câmera).
+    - Quando um objeto/produto é frequentemente buscado/identificado mas tem poucas ou nenhuma oferta correspondente no nó `/advertisements` ou no catálogo `/products`:
+        - O agente pode tentar encontrar informações adicionais sobre este produto online (requer ferramentas de busca na web).
+        - Pode sugerir a criação de uma entrada canônica para este produto no catálogo `/products`.
+        - Pode sinalizar para administradores ou para o "Superagente de Análise" que há uma demanda não atendida.
+- **Interface:** Este agente operaria primariamente em background ou de forma automatizada, acionado por eventos de busca/identificação. Seus resultados poderiam ser enviados para uma área de "sugestões" para administradores ou alimentar diretamente o "Superagente de Análise".
+- **Tecnologia:** Genkit Flows acionados por eventos ou periodicamente, utilizando ferramentas para analisar dados de busca/identificação e, potencialmente, ferramentas de busca na web.
+
+### 8.3. Considerações sobre o "Superagente Coordenador"
+A ideia de um "superagente que gerencia o comportamento dos outros agentes" é um conceito de arquitetura interessante. Em termos práticos com Genkit, isso pode ser traduzido como:
+- **Fluxos Compostos:** Um fluxo de nível superior que invoca outros fluxos (os "agentes" individuais) em uma sequência lógica ou condicional para realizar uma tarefa complexa.
+- **Orquestração:** O fluxo principal (o "superagente coordenador") seria responsável por passar os dados corretos para cada sub-fluxo e agregar/processar os resultados.
+- **Estado Compartilhado:** Se necessário, poderia haver um mecanismo (ex: um registro no Firebase ou um cache) para que diferentes agentes/fluxos compartilhem informações ou estado, embora isso adicione complexidade.
+
+Esses superagentes representam uma evolução significativa e exigirão desenvolvimento iterativo e cuidadoso das ferramentas e prompts de IA.
+
+## 9. Processo de Atualização e Manutenção
 
 - Mantido: "Sempre que for identificado um ponto final "." ... o arquivo `memo.md` deve ser analisado e atualizado..."
 - Mantido: "Dois pontos finais seguidos ".." significam que o sistema deve continuar..."
-- Mantido: Criação de snapshots do `memo.md` na pasta `historico/` após conclusões de etapas. (Último snapshot: `05_memo_md_post_translate_to_preco_real.md`)
+- Mantido: Criação de snapshots do `memo.md` na pasta `historico/` após conclusões de etapas. (Último snapshot: `07_memo_md_post_new_camera_use_case.md`)
 
-## 9. Internacionalização (i18n) com `next-intl`
+## 10. Internacionalização (i18n) com `next-intl`
 
 - A estrutura existente será mantida e expandida para os novos textos e seções do "Preço Real".
 - Idiomas Suportados: Português (`pt` - padrão, nome "Preço Real"), Inglês (`en`, nome "Real Price").
 - O `LanguageSwitcher` está implementado (CONCLUÍDO).
 - Metadados traduzidos (CONCLUÍDO).
 - Textos básicos da UI das páginas principal e de monitoramento estão traduzidos (CONTÍNUO).
-- Próximos passos: Traduzir novos textos da UI para o feed, perfis de lojistas, etc., à medida que são adicionados.
+- Próximos passos: Traduzir novos textos da UI para o feed, perfis de lojistas, página de chat do superagente, etc., à medida que são adicionados.
+
+    

@@ -102,6 +102,21 @@
     "insufficientDataToastDescription": "Não foi possível agregar dados de preço por país (verifique se as lojas têm 'countryCode').",
     "fetchPriceDataErrorToastTitle": "Erro ao Buscar Dados de Preço"
   },
+  "SuperAgentChatPage": {
+    "title": "Chat com Superagente",
+    "description": "Interaja com o Superagente do Preço Real para insights e análises.",
+    "chatWindowTitle": "Chat com Superagente de Análise",
+    "chatWindowDescription": "Faça perguntas sobre o status do projeto, uso do banco de dados, atividade dos usuários ou possíveis problemas.",
+    "inputPlaceholder": "Digite sua mensagem para o Superagente...",
+    "sendButton": "Enviar",
+    "sendingButton": "Enviando...",
+    "initialAgentMessage": "Olá! Sou o Superagente de Análise. Como posso ajudá-lo hoje com insights sobre o projeto Preço Real? Este chat é atualmente um placeholder para um agente totalmente funcional no futuro.",
+    "agentResponsePrefix": "Entendido. Se eu estivesse totalmente funcional, eu analisaria agora sua consulta sobre",
+    "agentErrorResponse": "Desculpe, encontrei um problema ao tentar processar sua solicitação ou ainda não estou totalmente configurado.",
+    "agentTyping": "Superagente está digitando...",
+    "featureInProgress": "Observação: A funcionalidade completa do Superagente está em desenvolvimento. Esta é uma interface placeholder.",
+    "footerText": "© {year} Preço Real. Painel do Superagente."
+  },
   "Languages": {
     "es": "Espanhol",
     "fr": "Francês",
@@ -117,3 +132,5 @@
     "portuguese": "Português"
   }
 }
+
+    

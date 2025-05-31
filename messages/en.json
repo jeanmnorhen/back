@@ -102,6 +102,21 @@
     "insufficientDataToastDescription": "Could not aggregate price data by country (check if stores have 'countryCode').",
     "fetchPriceDataErrorToastTitle": "Error Fetching Price Data"
   },
+  "SuperAgentChatPage": {
+    "title": "Super Agent Chat",
+    "description": "Interact with the Real Price Super Agent for insights and analysis.",
+    "chatWindowTitle": "Chat with Analytics Super Agent",
+    "chatWindowDescription": "Ask questions about project status, database usage, user activity, or potential issues.",
+    "inputPlaceholder": "Type your message to the Super Agent...",
+    "sendButton": "Send",
+    "sendingButton": "Sending...",
+    "initialAgentMessage": "Hello! I am the Analytics Super Agent. How can I assist you today with insights about the Real Price project? This chat is currently a placeholder for a future fully functional agent.",
+    "agentResponsePrefix": "Understood. If I were fully functional, I would now analyze your query about",
+    "agentErrorResponse": "Sorry, I encountered an issue trying to process your request or I am not fully configured yet.",
+    "agentTyping": "Super Agent is typing...",
+    "featureInProgress": "Note: Full Super Agent functionality is under development. This is a placeholder interface.",
+    "footerText": "© {year} Real Price. Super Agent Panel."
+  },
   "Languages": {
     "es": "Spanish",
     "fr": "French",
@@ -117,3 +132,5 @@
     "portuguese": "Portuguese"
   }
 }
+
+    
