@@ -19,16 +19,14 @@ jest.mock('@/ai/genkit', () => {
 });
 
 // Mock the findStoresTool *implementation* specifically
+// This is not strictly necessary for these tests as we mock the prompt output directly,
+// but it's good practice if we wanted to verify the tool was called correctly.
 jest.mock('@/ai/tools/find-stores-tool', () => {
     const originalModule = jest.requireActual('@/ai/tools/find-stores-tool');
     return {
-        ...originalModule, // Preserve schemas
-        findStoresTool: { // Mock the tool object itself
-            ...originalModule.findStoresTool, // Preserve structure
-            // The actual function called by the LLM/Genkit is not directly invoked in this test setup
-            // Instead, the `ai.definePrompt`'s mock will simulate the tool's output
-            // as if the LLM decided to call it and got a response.
-            // If we needed to test the tool's *internal* logic, we'd mock its async handler directly.
+        ...originalModule, 
+        findStoresTool: { 
+            ...originalModule.findStoresTool,
         }
     };
 });
@@ -39,26 +37,23 @@ describe('findProductStores Flow', () => {
     (ai.definePrompt as jest.Mock).mockClear();
   });
 
-  it('should return stores when the tool finds them', async () => {
+  it('should return stores when the tool finds them (no location)', async () => {
     const mockProductName = 'Test Product With Stores';
     const mockStoresFound = ['Store A', 'Store B'];
 
     (ai.definePrompt as jest.Mock).mockImplementation((promptConfig: { name: string, tools: any[] }) => {
-      // Ensure the prompt is configured with the correct tool
       expect(promptConfig.tools).toEqual(expect.arrayContaining([findStoresTool]));
       
       return jest.fn(async (input: FindProductStoresInput) => {
-        // Simulate the LLM deciding to use the tool and receiving its output
-        // The LLM (simulated by this mock prompt) is then expected to format this into the final flow output.
-        if (input.productName === mockProductName) {
-          return {
-            output: {
-              productName: input.productName,
-              foundStores: mockStoresFound, // This is what the LLM would structure based on the tool's (simulated) return
-            },
-          };
-        }
-        return { output: { productName: input.productName, foundStores: [] }};
+        expect(input.productName).toBe(mockProductName);
+        expect(input.latitude).toBeUndefined();
+        expect(input.longitude).toBeUndefined();
+        return {
+          output: {
+            productName: input.productName,
+            foundStores: mockStoresFound, 
+          },
+        };
       });
     });
 
@@ -75,12 +70,46 @@ describe('findProductStores Flow', () => {
     );
   });
 
+  it('should return stores when the tool finds them (with location)', async () => {
+    const mockProductName = 'Test Product With Stores And Location';
+    const mockLatitude = -22.9068;
+    const mockLongitude = -43.1729;
+    const mockStoresFound = ['Store C', 'Store D (Near User)'];
+
+    (ai.definePrompt as jest.Mock).mockImplementation((promptConfig: { name: string, tools: any[] }) => {
+      expect(promptConfig.tools).toEqual(expect.arrayContaining([findStoresTool]));
+      
+      return jest.fn(async (input: FindProductStoresInput) => {
+        expect(input.productName).toBe(mockProductName);
+        expect(input.latitude).toBe(mockLatitude);
+        expect(input.longitude).toBe(mockLongitude);
+        // Simulate that the LLM/tool used the location and returned appropriate stores
+        return {
+          output: {
+            productName: input.productName,
+            foundStores: mockStoresFound, 
+          },
+        };
+      });
+    });
+
+    const input: FindProductStoresInput = { 
+        productName: mockProductName,
+        latitude: mockLatitude,
+        longitude: mockLongitude
+    };
+    const result: FindProductStoresOutput = await findProductStores(input);
+
+    expect(result.productName).toBe(mockProductName);
+    expect(result.foundStores).toEqual(mockStoresFound);
+  });
+
+
   it('should return an empty array when the tool finds no stores', async () => {
     const mockProductName = 'Test Product Without Stores';
     
     (ai.definePrompt as jest.Mock).mockImplementation((promptConfig: { name: string }) => {
         return jest.fn(async (input: FindProductStoresInput) => {
-            // Simulate LLM receiving empty stores from the tool and formatting output
             return {
                 output: {
                   productName: input.productName,
@@ -101,7 +130,6 @@ describe('findProductStores Flow', () => {
     const mockProductName = 'Product With Null Prompt Output';
     (ai.definePrompt as jest.Mock).mockImplementation((promptConfig: { name: string }) => {
       return jest.fn(async (input: FindProductStoresInput) => {
-        // Simulate the prompt returning a completely null output
         return { output: null };
       });
     });
@@ -111,8 +139,6 @@ describe('findProductStores Flow', () => {
 
     expect(result.productName).toBe(mockProductName);
     expect(result.foundStores).toEqual([]);
-    // You might want to spy on console.warn here if that's critical
   });
 });
 
-```

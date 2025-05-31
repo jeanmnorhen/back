@@ -1,3 +1,4 @@
+
 # Relatório do Projeto: Image Insight Explorer
 
 ## 1. Objetivos do Projeto
@@ -8,7 +9,7 @@
 - Fornecer uma lista de produtos relacionados aos objetos identificados.
 - Extrair e exibir propriedades chave dos produtos relacionados.
 - Permitir a busca por lojas que vendem um produto específico (usando IA e ferramentas).
-- **Novo:** Permitir que o sistema utilize a localização GPS do usuário (com consentimento) para otimizar a busca por lojas.
+- **Novo:** Permitir que o sistema utilize a localização GPS do usuário (com consentimento) para otimizar a busca por lojas. (Frontend implementado para obter localização; Backend e ferramenta agora aceitam coordenadas).
 - **Novo:** Permitir o cadastro de URLs de produtos em lojas específicas.
 - Integrar com Firebase Realtime Database para:
     - Manter um catálogo de produtos com informações multilíngues.
@@ -36,8 +37,8 @@
     - Usuários autenticados (administradores) poderão adicionar/editar produtos, lojas e registrar preços.
 - **UC7: Busca de Lojas para um Produto (IA com Ferramenta e DB):**
     - O usuário (ou sistema, após identificar um produto) pode solicitar a busca de lojas que vendem um produto específico.
-    - O sistema (via IA e uma ferramenta `findStoresTool` conectada ao Firebase) retorna uma lista de lojas que vendem o produto. (UI parcialmente integrada para chamar o fluxo `findProductStoresFlow`)
-    - **Novo:** Opcionalmente, se o usuário fornecer sua localização, o sistema pode priorizar lojas próximas.
+    - O sistema (via IA e uma ferramenta `findStoresTool` conectada ao Firebase) retorna uma lista de lojas que vendem o produto. (UI integrada para chamar o fluxo `findProductStoresFlow`)
+    - **Atualizado:** Opcionalmente, se o usuário fornecer sua localização, o sistema (fluxo e ferramenta) agora recebe essas coordenadas, e a ferramenta `findStoresTool` (atualmente simulada) pode usar essa informação para priorizar lojas próximas.
 - **UC8 (Novo): Cadastro de Informações de Lojas e Produtos:**
     - Usuários administradores (ou o sistema via IA no futuro, para sugestões) poderão cadastrar novas lojas, incluindo sua localização (coordenadas GPS), e os produtos que vendem com seus respectivos URLs de site de venda e preços.
 
@@ -51,19 +52,19 @@ O aplicativo "Image Insight Explorer" está em um estágio funcional, implementa
     - `identifyObjects`: Identifica objetos na imagem e traduz seus nomes para Espanhol, Francês, Alemão, Chinês (Simplificado), Japonês, Português (Brasil) e Português (Portugal).
     - `searchRelatedProducts`: Busca produtos relacionados aos objetos (usando nomes em inglês).
     - `extractProductProperties`: Extrai propriedades dos produtos encontrados.
-    - `findProductStoresFlow` (com `findStoresTool`): Busca lojas que vendem um produto específico (atualmente com dados simulados pela ferramenta, com planejamento para conectar ao Firebase). **Integrado na UI.**
-- **Testes:** Configuração de Jest para testes unitários, com testes iniciais para `identifyObjects` e `findProductStoresFlow`.
+    - `findProductStoresFlow` (com `findStoresTool`): Busca lojas que vendem um produto específico. A ferramenta agora aceita coordenadas de localização do usuário (se fornecidas) e simula uma priorização. **Integrado na UI, incluindo passagem de localização.**
+- **Testes:** Configuração de Jest para testes unitários, com testes para `identifyObjects` e `findProductStoresFlow` (incluindo cenários com localização).
 - **Banco de Dados:** Configuração inicial do Firebase Realtime Database (inicialização e definição da estrutura de dados).
 - **Deployment:** Configurado para Vercel.
-- **Geolocalização:** Frontend implementado para solicitar e obter a localização GPS do usuário.
+- **Geolocalização:** Frontend implementado para solicitar e obter a localização GPS do usuário. Essa localização agora é passada para o fluxo `findProductStoresFlow`.
 
 Principais funcionalidades implementadas:
 - Upload de imagens (com validação de tipo e tamanho).
 - Pré-visualização da imagem selecionada.
 - Processamento de imagem em três etapas assíncronas com IA (identificação, busca de produtos, extração de propriedades).
 - Exibição dos resultados da IA em seções distintas, incluindo traduções de objetos para Espanhol, Francês, Alemão, Chinês (Simplificado), Japonês, Português (Brasil) e Português (Portugal).
-- Interface para acionar a busca de lojas para produtos relacionados e exibir os resultados (usando o fluxo `findProductStoresFlow` com dados simulados).
-- **Novo:** Interface para solicitar e exibir a localização GPS do usuário (via navegador).
+- Interface para acionar a busca de lojas para produtos relacionados e exibir os resultados (usando o fluxo `findProductStoresFlow`, que agora pode receber a localização do usuário).
+- Interface para solicitar e exibir a localização GPS do usuário (via navegador).
 - Barra de progresso e mensagens de status durante a análise.
 - Sistema de notificações (toast).
 - Design responsivo e tema customizado.
@@ -199,7 +200,7 @@ Esta estrutura visa balancear a normalização (evitando duplicação excessiva 
 ## 5. Pontos de Atenção
 
 - **Precisão da IA:** A qualidade dos resultados (objetos, traduções, produtos, propriedades, lojas) depende da precisão dos modelos Genkit e Gemini. Casos de ambiguidade ou imagens de baixa qualidade podem levar a resultados subótimos.
-- **Dados Simulados para Ferramentas:** A ferramenta `findStoresTool` atualmente usa dados simulados. Para funcionalidade real, precisará ser conectada a um banco de dados de lojas ou API externa.
+- **Dados Simulados para Ferramentas:** A ferramenta `findStoresTool` atualmente usa dados simulados, embora agora possa receber coordenadas e simular uma resposta baseada nisso. Para funcionalidade real, precisará ser conectada a um banco de dados de lojas ou API externa.
 - **Limites da API:** O uso das APIs de IA (Google AI) pode estar sujeito a cotas e limitações.
 - **Tamanho da Imagem:** Atualmente, há um limite de 5MB para upload, o que é uma boa prática, mas deve ser comunicado claramente.
 - **Performance:** O processamento de IA pode levar alguns segundos. A obtenção da localização GPS depende da resposta do usuário e do hardware/software.
@@ -221,10 +222,10 @@ Esta estrutura visa balancear a normalização (evitando duplicação excessiva 
 - **Integração dos Fluxos de IA com o Banco de Dados:**
     - Modificar `searchRelatedProducts` para tentar encontrar correspondências no catálogo de produtos do Firebase.
     - Permitir que `extractProductProperties` salve as propriedades extraídas para os produtos no Firebase.
-    - Conectar a ferramenta `findStoresTool` ao catálogo de `/stores` e `/productAvailability` do Firebase em vez de usar dados simulados. **Novo:** Incluir a capacidade de usar a localização GPS do usuário (se fornecida e consentida) para filtrar ou priorizar os resultados da busca por lojas.
+    - **Atualizado:** Conectar a ferramenta `findStoresTool` ao catálogo de `/stores` e `/productAvailability` do Firebase em vez de usar dados simulados. **A ferramenta já recebe as coordenadas do usuário (se fornecidas); a lógica de busca por proximidade real precisa ser implementada na ferramenta quando conectada ao DB.**
     - Adicionar funcionalidade para sugerir a criação de novos produtos/lojas no banco se não existirem.
 - **Melhorias na UI/UX:**
-    - **(Frontend Implementado)** Implementar funcionalidade no frontend para solicitar e obter a localização GPS do usuário (com consentimento claro) para ser usada na busca por lojas. *Próximo passo: integrar com backend/fluxos.*
+    - **(Frontend Implementado; Backend parcialmente integrado)** Implementar funcionalidade no frontend para solicitar e obter a localização GPS do usuário (com consentimento claro) para ser usada na busca por lojas. *A localização é passada para o fluxo `findProductStoresFlow`.*
     - **Novo:** Permitir que o usuário clique em um produto para ver mais detalhes (combinando dados da IA e do Firebase, incluindo URLs de venda e histórico de preços).
     - **Novo:** Desenvolver interfaces (protegidas por autenticação) para gerenciamento de lojas e disponibilidade de produtos (CRUD), incluindo URLs de produtos em lojas específicas e preços.
     - Adicionar opções de filtragem ou ordenação nos resultados.
@@ -235,9 +236,9 @@ Esta estrutura visa balancear a normalização (evitando duplicação excessiva 
 - **Infraestrutura e Operações:**
     - Logging mais robusto.
 - **Testes:**
-    - Aumentar a cobertura de testes unitários para os fluxos de IA, incluindo o novo fluxo `findProductStoresFlow` e a ferramenta `findStoresTool`.
+    - Aumentar a cobertura de testes unitários para os fluxos de IA, incluindo o fluxo `findProductStoresFlow` (já atualizado com testes de localização) e a ferramenta `findStoresTool`.
     - Adicionar testes para os serviços Firebase quando implementados.
-    - **Novo:** Testar a lógica de geolocalização e busca de lojas próximas.
+    - **Novo:** Testar a lógica de geolocalização e busca de lojas próximas quando a ferramenta for conectada ao DB.
 
 ## 7. Histórico de Configurações de Layout da UI (Tema Atual)
 
@@ -266,9 +267,10 @@ A configuração de layout e tema da UI é gerenciada principalmente através do
 - **Primary (`--primary`):** `260 58% 74%` (#9B7EDE - Violeta Suave)
 - **Accent (`--accent`):** `160 49% 67%` (#7ED6BA - Ciano Suave)
 
-O layout geral da página principal (`src/app/page.tsx`) é centralizado, com um cabeçalho, uma área principal para upload e exibição de resultados, e um rodapé. Componentes ShadCN como Card, Accordion, Button, Progress, Badge, Input, Label, e Toast são utilizados para construir a interface. A fonte principal é Geist Sans. O rodapé agora informa que as traduções são fornecidas para: Espanhol, Francês, Alemão, Chinês (Simplificado), Japonês, Português (Brasil), Português (Portugal). A interface também inclui uma seção para o usuário permitir o acesso à sua localização GPS.
+O layout geral da página principal (`src/app/page.tsx`) é centralizado, com um cabeçalho, uma área principal para upload e exibição de resultados, e um rodapé. Componentes ShadCN como Card, Accordion, Button, Progress, Badge, Input, Label, e Toast são utilizados para construir a interface. A fonte principal é Geist Sans. O rodapé agora informa que as traduções são fornecidas para: Espanhol, Francês, Alemão, Chinês (Simplificado), Japonês, Português (Brasil), Português (Portugal). A interface também inclui uma seção para o usuário permitir o acesso à sua localização GPS, e essa informação é agora utilizada na busca de lojas.
 
 ## 8. Processo de Atualização e Manutenção
 
 - **Nota Importante:** Sempre que for identificado um ponto final "." (marcando a conclusão de uma tarefa ou alteração significativa no projeto), o arquivo `memo.md` deve ser analisado e atualizado para refletir a realidade atual do projeto. Isso garante que o documento permaneça uma fonte de verdade relevante e atualizada.
 - **Novo:** Dois pontos finais seguidos ".." significam que o sistema deve continuar o último passo (se estiver em andamento) ou iniciar o próximo passo na lista de tarefas.
+

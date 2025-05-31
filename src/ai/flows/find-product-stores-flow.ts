@@ -14,6 +14,8 @@ import { z } from 'genkit';
 
 const _FindProductStoresInputSchema = z.object({
   productName: z.string().describe('O nome do produto para o qual encontrar lojas.'),
+  latitude: z.number().optional().describe('A latitude da localização do usuário (opcional).'),
+  longitude: z.number().optional().describe('A longitude da localização do usuário (opcional).'),
 });
 export type FindProductStoresInput = z.infer<typeof _FindProductStoresInputSchema>;
 
@@ -34,8 +36,13 @@ const findStoresPrompt = ai.definePrompt({
   tools: [findStoresTool],
   prompt: `Você é um assistente de IA encarregado de encontrar lojas que vendem um determinado produto.
 Nome do Produto: {{{productName}}}
-
+{{#if latitude}}
+Localização do Usuário: Latitude {{{latitude}}}, Longitude {{{longitude}}}
+Utilize a ferramenta 'findStoresTool' para obter uma lista de lojas para este produto. Se a localização do usuário for fornecida, a ferramenta pode usá-la para encontrar lojas próximas.
+{{else}}
 Use a ferramenta 'findStoresTool' para obter uma lista de lojas para este produto.
+{{/if}}
+
 Se a ferramenta retornar lojas, sua resposta DEVE incluir o nome do produto original e a lista de lojas retornada pela ferramenta.
 Se a ferramenta retornar uma lista vazia de lojas, sua resposta DEVE indicar que nenhuma loja foi encontrada para o produto, mas ainda assim incluir o nome do produto.
 
@@ -45,7 +52,7 @@ A saída final DEVE ser um objeto JSON estruturado de acordo com este esquema:
   "foundStores": ["Loja A", "Loja B", "..."] // Esta é a lista de lojas da findStoresTool. Pode ser uma lista vazia se nenhuma loja for encontrada.
 }
 
-Exemplo se lojas forem encontradas:
+Exemplo se lojas forem encontradas (e localização não usada explicitamente na saída do prompt):
 {
   "productName": "Coca-Cola 2 Litros",
   "foundStores": ["Supermercado Central", "Loja da Esquina"]
@@ -79,3 +86,4 @@ const findProductStoresFlow = ai.defineFlow(
     return output;
   }
 );
+

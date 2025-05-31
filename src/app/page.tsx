@@ -221,8 +221,16 @@ export default function ImageInsightExplorerPage() {
       }
     }));
 
+    const input: FindProductStoresInput = { 
+      productName 
+    };
+    if (userLocation) {
+      input.latitude = userLocation.latitude;
+      input.longitude = userLocation.longitude;
+    }
+
     try {
-      const storeResults: FindProductStoresOutput = await findProductStores({ productName });
+      const storeResults: FindProductStoresOutput = await findProductStores(input);
       setResults(prev => ({
         ...prev,
         storeSearch: {
@@ -370,7 +378,7 @@ export default function ImageInsightExplorerPage() {
               <MapPin className="w-6 h-6 text-primary" />
               Sua Localização
             </CardTitle>
-            <CardDescription>Permita o acesso à sua localização para otimizar buscas futuras (opcional).</CardDescription>
+            <CardDescription>Permita o acesso à sua localização para otimizar buscas futuras por lojas (opcional).</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <Button 
@@ -503,6 +511,7 @@ export default function ImageInsightExplorerPage() {
                                                     <Store className="w-4 h-4 mr-2" />
                                                 )}
                                                 Encontrar Lojas
+                                                {userLocation && <MapPin className="w-3 h-3 ml-1 text-primary" />}
                                             </Button>
                                         </div>
                                         {results.storeSearch[product]?.isLoading && (
@@ -605,3 +614,4 @@ export default function ImageInsightExplorerPage() {
     </div>
   );
 }
+
