@@ -1,10 +1,10 @@
-// src/app/[locale]/layout.tsx (ULTRA MINIMAL i18n TEST - DYNAMIC JSON)
+// src/app/[locale]/layout.tsx (ULTRA MINIMAL i18n TEST + unstable_setRequestLocale)
 import type { ReactNode } from 'react';
 import { NextIntlClientProvider } from 'next-intl';
-import { getMessages } from 'next-intl/server';
+import { getMessages, unstable_setRequestLocale } from 'next-intl/server';
 import '../globals.css';
 
-console.log(`[LocaleLayout - ULTRA_MINIMAL_DYNAMIC_JSON_TEST] TOP LEVEL: File imported/evaluated. Timestamp:`, new Date().toISOString());
+console.log(`[LocaleLayout - SET_REQUEST_LOCALE_TEST] TOP LEVEL: File imported/evaluated. Timestamp:`, new Date().toISOString());
 
 export default async function LocaleLayout({
   children,
@@ -13,17 +13,18 @@ export default async function LocaleLayout({
   children: ReactNode;
   params: {locale: string};
 }>) {
-  console.log(`[LocaleLayout - ULTRA_MINIMAL_DYNAMIC_JSON_TEST] Rendering for locale: "${locale}".`);
+  // Ensure the locale is set for the current request
+  unstable_setRequestLocale(locale);
+  console.log(`[LocaleLayout - SET_REQUEST_LOCALE_TEST] Rendering for locale: "${locale}". unstable_setRequestLocale called. Timestamp:`, new Date().toISOString());
 
   let messages;
   try {
-    console.log(`[LocaleLayout - ULTRA_MINIMAL_DYNAMIC_JSON_TEST] Attempting to get messages for locale: ${locale} using getMessages({locale})`);
+    console.log(`[LocaleLayout - SET_REQUEST_LOCALE_TEST] Attempting to get messages for locale: ${locale}.`);
     messages = await getMessages({locale}); // Explicitly pass locale
-    console.log(`[LocaleLayout - ULTRA_MINIMAL_DYNAMIC_JSON_TEST] Successfully got messages for locale: ${locale}. Message keys: ${Object.keys(messages || {}).join(', ')}`);
-  } catch (error) {
-    console.error(`[LocaleLayout - ULTRA_MINIMAL_DYNAMIC_JSON_TEST] CRITICAL ERROR calling getMessages({locale}) for locale ${locale}:`, error);
-    // Re-throwing the error so Next.js can handle it and show an error page.
-    // This is important because if messages are not available, the app can't render correctly.
+    console.log(`[LocaleLayout - SET_REQUEST_LOCALE_TEST] Successfully got messages for locale: ${locale}. Message keys: ${Object.keys(messages || {}).join(', ')}`);
+  } catch (error: any) {
+    const errorMessage = error instanceof Error ? `${error.name}: ${error.message}` : String(error);
+    console.error(`[LocaleLayout - SET_REQUEST_LOCALE_TEST] CRITICAL ERROR calling getMessages({locale}) for locale ${locale}. Error: ${errorMessage}. Stack: ${error.stack ? error.stack.substring(0, 300) + '...' : 'No stack'}`);
     throw error;
   }
 

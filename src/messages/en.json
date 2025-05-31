@@ -1,9 +1,2 @@
-{
-  "MinimalPage": {
-    "greeting": "Hello from Minimal English Page!",
-    "title": "Minimal English Title"
-  },
-  "Layout": {
-    "title": "Layout (EN - Dynamic JSON)"
-  }
-}
+
+{}
