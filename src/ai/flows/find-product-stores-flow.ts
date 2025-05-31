@@ -38,7 +38,7 @@ const findStoresPrompt = ai.definePrompt({
 Nome do Produto: {{{productName}}}
 {{#if latitude}}
 Localização do Usuário: Latitude {{{latitude}}}, Longitude {{{longitude}}}
-Utilize a ferramenta 'findStoresTool' para obter uma lista de lojas para este produto. Se a localização do usuário for fornecida, a ferramenta pode usá-la para encontrar lojas próximas.
+Utilize a ferramenta 'findStoresTool' para obter uma lista de lojas para este produto. Se a localização do usuário (latitude, longitude) for fornecida, passe-a para a ferramenta. A ferramenta atualmente registra essa localização para uso futuro em buscas por proximidade, mas a lista de lojas retornada pela ferramenta no momento não é filtrada ou ordenada por essa localização.
 {{else}}
 Use a ferramenta 'findStoresTool' para obter uma lista de lojas para este produto.
 {{/if}}

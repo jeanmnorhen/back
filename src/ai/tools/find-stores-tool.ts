@@ -27,14 +27,14 @@ export type FindStoresToolOutput = z.infer<typeof _FindStoresToolOutputSchema>;
 export const findStoresTool = ai.defineTool(
   {
     name: 'findStoresTool',
-    description: 'Busca e retorna uma lista de lojas que vendem um produto específico, consultando um banco de dados. Se a latitude e longitude do usuário forem fornecidas, pode usá-las para priorizar lojas próximas. Use esta ferramenta quando o usuário perguntar onde comprar um produto.',
+    description: 'Busca e retorna uma lista de lojas que vendem um produto específico, consultando um banco de dados. Aceita latitude e longitude do usuário (opcional), que são registradas e podem ser usadas futuramente para priorizar lojas próximas; a busca atual não filtra ou ordena por proximidade. Use esta ferramenta quando o usuário perguntar onde comprar um produto.',
     inputSchema: _FindStoresToolInputSchema,
     outputSchema: _FindStoresToolOutputSchema,
   },
   async ({ productName, latitude, longitude }) => {
     console.log(`[findStoresTool] Buscando lojas para: ${productName} no Firebase.`);
     if (latitude && longitude) {
-      console.log(`[findStoresTool] Localização do usuário fornecida: Lat ${latitude}, Lng ${longitude}. Esta informação será usada futuramente para proximidade.`);
+      console.log(`[findStoresTool] Localização do usuário fornecida: Lat ${latitude}, Lng ${longitude}. Esta informação será usada futuramente para busca por proximidade. A busca atual não utiliza estas coordenadas para filtrar ou ordenar.`);
     } else {
       console.log('[findStoresTool] Localização do usuário não fornecida.');
     }
