@@ -1,9 +1,4 @@
-{
-  "MinimalPage": {
-    "greeting": "Olá da Página Mínima em Português!",
-    "title": "Título Mínimo em Português"
-  },
-  "Layout": {
-    "title": "Título Layout Mínimo PT (de pt.json)"
-  }
-}
+// This file is not used when i18n.ts has hardcoded messages.
+// Kept for potential future use if dynamic loading is restored.
+// Content can be minimal or empty for this test.
+{}
