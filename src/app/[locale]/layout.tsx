@@ -1,15 +1,20 @@
 import type {Metadata} from 'next';
 import {NextIntlClientProvider} from 'next-intl';
-import {getMessages} from 'next-intl/server';
+import {getMessages, getTranslations} from 'next-intl/server'; // Added getTranslations
 import { GeistSans } from 'geist/font/sans';
 import { GeistMono } from 'geist/font/mono';
 import '../globals.css'; // Adjusted path
 import { Toaster } from "@/components/ui/toaster";
 
-export const metadata: Metadata = {
-  title: 'Image Insight Explorer', // This title can also be internationalized later if needed
-  description: 'Identify objects in images and explore related products and properties with AI.',
-};
+// Function to generate metadata dynamically
+export async function generateMetadata({params: {locale}}: {params: {locale: string}}): Promise<Metadata> {
+  const t = await getTranslations({locale, namespace: 'Layout'});
+
+  return {
+    title: t('title'),
+    description: t('description'),
+  };
+}
 
 export default async function LocaleLayout({
   children,

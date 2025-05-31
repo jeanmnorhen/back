@@ -1,4 +1,8 @@
 {
+  "Layout": {
+    "title": "Image Insight Explorer - Análise de Objetos e Produtos com IA",
+    "description": "Envie uma imagem para identificar objetos, obter traduções, descobrir produtos relacionados, encontrar lojas e monitorar preços. Com IA."
+  },
   "ImageInsightExplorerPage": {
     "title": "Image Insight Explorer",
     "description": "Envie uma imagem para identificar objetos, ver traduções e descobrir produtos e lojas relacionadas.",

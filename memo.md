@@ -74,7 +74,7 @@ O aplicativo "Image Insight Explorer" está em um estágio funcional, implementa
 - **Deployment:** Configurado para Vercel.
 - **Geolocalização:** Frontend implementado para solicitar e obter a localização GPS do usuário. Essa localização agora é passada para o fluxo `findProductStoresFlow`. O card para solicitar a localização é ocultado após a obtenção bem-sucedida.
 - **Página de Monitoramento:** Uma nova página (`/monitoring`) foi adicionada para exibir o valor médio de produtos por país. Ela busca produtos, permite a seleção de um produto e, em seguida, agrega e exibe os dados de preço médio por país com base nas informações de `productAvailability` e `stores` no Firebase.
-- **Novo:** **Internacionalização (i18n):** A estrutura básica para internacionalização da interface foi implementada usando `next-intl`. Foram adicionados arquivos de tradução para Português (`pt.json` - padrão) e Inglês (`en.json`). As rotas agora são prefixadas com o locale (ex: `/en/monitoring`, `/pt/monitoring`, ou `/monitoring` que redireciona para `/pt/monitoring`). Textos chave nas páginas principal e de monitoramento foram traduzidos.
+- **Novo:** **Internacionalização (i18n):** A estrutura básica para internacionalização da interface foi implementada usando `next-intl`. Foram adicionados arquivos de tradução para Português (`pt.json` - padrão) e Inglês (`en.json`). As rotas agora são prefixadas com o locale (ex: `/en/monitoring`, `/pt/monitoring`, ou `/monitoring` que redireciona para `/pt/monitoring`). Textos chave nas páginas principal e de monitoramento foram traduzidos. **Os metadados (título e descrição da página) agora também são internacionalizados.**
 
 Principais funcionalidades implementadas:
 - Upload de imagens (com validação de tipo e tamanho).
@@ -89,7 +89,7 @@ Principais funcionalidades implementadas:
 - Configuração para deployment na Vercel (`vercel.json`).
 - Configuração do Firebase (inicialização e variáveis de ambiente).
 - Página de monitoramento em `/monitoring` para análise de preços médios de produtos por país.
-- **Novo:** Suporte inicial para internacionalização da UI com `next-intl` (Português e Inglês).
+- **Novo:** Suporte inicial para internacionalização da UI com `next-intl` (Português e Inglês), **incluindo metadados da página.**
 
 ## 4. Arquitetura do Banco de Dados (Firebase Realtime Database)
 
@@ -260,7 +260,7 @@ Esta estrutura visa balancear a normalização (evitando duplicação excessiva 
 - **Autenticação de Usuários:** Essencial para funcionalidades de escrita no banco de dados (cadastro de lojas, produtos, preços, perfis de usuário) e potencialmente para acesso à página de monitoramento.
 - **Privacidade do Usuário:** A solicitação e o uso da localização GPS do usuário devem ser feitos com consentimento claro e transparente, informando como os dados serão utilizados e armazenados.
 - **Precisão da Geolocalização:** A precisão da localização GPS obtida do navegador pode variar dependendo do dispositivo e do ambiente. A localização de lojas dependerá da precisão dos dados inseridos.
-- **Internacionalização da UI (i18n):** A tradução da interface do aplicativo para diferentes idiomas é uma tarefa complexa. A configuração inicial com `next-intl` (PT/EN) foi feita. A tradução completa de todos os textos é um trabalho contínuo. Adicionar mais idiomas e um seletor de idioma na UI são próximos passos.
+- **Internacionalização da UI (i18n):** A tradução da interface do aplicativo para diferentes idiomas é uma tarefa complexa. A configuração inicial com `next-intl` (PT/EN) foi feita. A tradução completa de todos os textos é um trabalho contínuo. Adicionar mais idiomas e um seletor de idioma na UI são próximos passos. **Metadados da página agora são internacionalizados.**
 - **Monitoramento e Moedas:** A página de monitoramento atualmente exibe o preço médio e a moeda conforme encontrada. Não realiza conversão de moeda, o que pode ser necessário para uma comparação precisa se várias moedas estiverem presentes para o mesmo produto em diferentes países.
 - **Complexidade da Implementação de RAG Geospacial:** A introdução de um sistema RAG para proximidade geográfica adiciona complexidade significativa à arquitetura, envolvendo bancos de dados vetoriais, pipelines de embedding e sincronização de dados.
 - **Novo:** **Roteamento Internacionalizado:** Com `next-intl`, as rotas agora incluem um prefixo de locale (ex: `/pt/pagina` ou `/en/pagina`). Isso precisa ser considerado para quaisquer links internos ou navegação programática.
@@ -268,9 +268,9 @@ Esta estrutura visa balancear a normalização (evitando duplicação excessiva 
 ## 6. Próximos Passos
 
 - **Internacionalização (i18n) e Localização (L10n) - Continuação:**
-    - **Expandir traduções:** Traduzir todos os textos restantes na UI para Português e Inglês nos arquivos `messages/*.json`.
+    - **Expandir traduções:** Traduzir todos os textos restantes na UI para Português e Inglês nos arquivos `messages/*.json`. (Parcialmente feito, foco nos metadados nesta etapa).
     - **Adicionar Seletor de Idioma:** Implementar um componente na UI que permita ao usuário alternar entre os idiomas configurados (Português e Inglês). Isso envolverá o uso de `useRouter` e `usePathname` de `next/navigation` ou helpers de `next-intl` para navegar para a mesma página com um locale diferente.
-    - **Traduzir Títulos de Metadados:** As metatags `<title>` e `<meta name="description">` no `src/app/[locale]/layout.tsx` também podem ser internacionalizadas usando `next-intl`.
+    - **Traduzir Títulos de Metadados:** As metatags `<title>` e `<meta name="description">` no `src/app/[locale]/layout.tsx` também podem ser internacionalizadas usando `next-intl`. **(Concluído)**
     - **Considerar mais idiomas:** Avaliar a necessidade de adicionar suporte a outros idiomas.
 - **Autenticação e Gerenciamento de Perfis de Usuário:**
     - Implementar autenticação de usuários (ex: Firebase Authentication).
@@ -361,13 +361,13 @@ O layout geral da página principal (`src/app/[locale]/page.tsx`) é centralizad
     - `i18n.ts`: Carrega os arquivos de mensagens.
     - `middleware.ts`: Gerencia o roteamento de locales e define o locale padrão. O `localePrefix` está configurado como `as-needed`.
 - **Layouts e Páginas:**
-    - `src/app/[locale]/layout.tsx`: Layout raiz para as rotas internacionalizadas, configura o `NextIntlClientProvider`.
+    - `src/app/[locale]/layout.tsx`: Layout raiz para as rotas internacionalizadas, configura o `NextIntlClientProvider`. **Agora também gera metadados (título, descrição) traduzidos.**
     - `src/app/[locale]/page.tsx`: Página principal.
     - `src/app/[locale]/monitoring/page.tsx`: Página de monitoramento.
 - **Uso:** O hook `useTranslations` é usado nos componentes para buscar as strings traduzidas.
 - **Próximos Passos para i18n:**
     - Completar a tradução de todos os textos da UI.
     - Adicionar um componente seletor de idioma na interface.
-    - Internacionalizar metadados (título da página, descrição).
+    - Internacionalizar metadados (título da página, descrição). **(Concluído)**
 
 ```

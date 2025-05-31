@@ -1,4 +1,8 @@
 {
+  "Layout": {
+    "title": "Image Insight Explorer - AI Object & Product Analysis",
+    "description": "Upload an image to identify objects, get translations, discover related products, find stores, and monitor prices. Powered by AI."
+  },
   "ImageInsightExplorerPage": {
     "title": "Image Insight Explorer",
     "description": "Upload an image to identify objects, see translations, and discover related products and stores.",
