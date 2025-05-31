@@ -1,6 +1,6 @@
 
 /**
- * @fileOverview Ferramenta Genkit para encontrar lojas que vendem um determinado produto.
+ * @fileOverview Ferramenta Genkit para encontrar lojas que vendem um determinado produto, consultando o Firebase Realtime Database.
  *
  * - findStoresTool - A definição da ferramenta Genkit.
  * - FindStoresToolInput - O tipo de entrada para a ferramenta (schema é interno).
@@ -9,6 +9,8 @@
 
 import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
+import { db } from '@/lib/firebase'; // Importar instância do DB
+import { ref, get, query, orderByChild, equalTo } from 'firebase/database'; // Importar funções do Firebase
 
 const _FindStoresToolInputSchema = z.object({
   productName: z.string().describe('O nome do produto para o qual encontrar lojas.'),
@@ -25,47 +27,131 @@ export type FindStoresToolOutput = z.infer<typeof _FindStoresToolOutputSchema>;
 export const findStoresTool = ai.defineTool(
   {
     name: 'findStoresTool',
-    description: 'Busca e retorna uma lista de lojas que vendem um produto específico. Se a latitude e longitude do usuário forem fornecidas, pode usá-las para priorizar lojas próximas. Use esta ferramenta quando o usuário perguntar onde comprar um produto.',
+    description: 'Busca e retorna uma lista de lojas que vendem um produto específico, consultando um banco de dados. Se a latitude e longitude do usuário forem fornecidas, pode usá-las para priorizar lojas próximas. Use esta ferramenta quando o usuário perguntar onde comprar um produto.',
     inputSchema: _FindStoresToolInputSchema,
     outputSchema: _FindStoresToolOutputSchema,
   },
   async ({ productName, latitude, longitude }) => {
-    // Implementação simulada (mock)
-    // No futuro, isso poderia consultar um banco de dados ou uma API externa.
-    console.log(`[findStoresTool] Buscando lojas para: ${productName}`);
+    console.log(`[findStoresTool] Buscando lojas para: ${productName} no Firebase.`);
     if (latitude && longitude) {
-      console.log(`[findStoresTool] Localização do usuário fornecida: Lat ${latitude}, Lng ${longitude}`);
-      // Aqui, no futuro, a lógica de busca usaria essas coordenadas.
-      // Por exemplo, poderia filtrar lojas em um raio de X km, ou ordenar pela distância.
+      console.log(`[findStoresTool] Localização do usuário fornecida: Lat ${latitude}, Lng ${longitude}. Esta informação será usada futuramente para proximidade.`);
     } else {
       console.log('[findStoresTool] Localização do usuário não fornecida.');
     }
-    
-    let mockStores: string[] = [];
 
-    const lowerProductName = productName.toLowerCase();
+    const foundStoreNames: string[] = [];
 
-    if (lowerProductName.includes('coca-cola')) {
-      mockStores = ['Supermercado Central', 'Loja da Esquina', 'Mercado Preço Bom', 'Distribuidora de Bebidas XYZ'];
-      if (latitude) mockStores.push('Loja Próxima Fictícia de Bebidas');
-    } else if (lowerProductName.includes('sabão em pó') || lowerProductName.includes('detergente')) {
-      mockStores = ['Supermercado Central', 'Mercado Preço Bom', 'Atacadão Limpeza'];
-    } else if (lowerProductName.includes('notebook') || lowerProductName.includes('laptop') || lowerProductName.includes('smartphone')) {
-      mockStores = ['Tech Store XYZ', 'Magazine Luiza', 'Casas Bahia', 'Fast Shop'];
-      if (latitude) mockStores.unshift('Tech Perto de Você'); // Adiciona no início se houver localização
-    } else if (lowerProductName.includes('livro')) {
-      mockStores = ['Livraria Cultura', 'Amazon Books', 'Saraiva'];
-    } else {
-      mockStores = ['Loja Variedades Online', 'Depósito Geral'];
+    try {
+      // Passo 1: Encontrar o productId com base no productName (buscando pelo canonicalName)
+      const productsRef = ref(db, 'products');
+      const productsSnapshot = await get(productsRef);
+      let targetProductId: string | null = null;
+
+      if (productsSnapshot.exists()) {
+        const productsData = productsSnapshot.val();
+        for (const productId in productsData) {
+          if (productsData[productId].canonicalName && productsData[productId].canonicalName.toLowerCase() === productName.toLowerCase()) {
+            targetProductId = productId;
+            break;
+          }
+        }
+      }
+
+      if (!targetProductId) {
+        console.log(`[findStoresTool] Produto "${productName}" não encontrado no nó /products pelo canonicalName.`);
+        return { stores: [] };
+      }
+      console.log(`[findStoresTool] Produto ID encontrado para "${productName}": ${targetProductId}`);
+
+      // Passo 2: Consultar /productAvailability/{productId} para obter storeIds
+      const productAvailabilityRef = ref(db, `productAvailability/${targetProductId}`);
+      const availabilitySnapshot = await get(productAvailabilityRef);
+
+      if (!availabilitySnapshot.exists()) {
+        console.log(`[findStoresTool] Nenhuma disponibilidade encontrada para o produto ID: ${targetProductId}`);
+        return { stores: [] };
+      }
+
+      const availabilityData = availabilitySnapshot.val();
+      const storeIds = Object.keys(availabilityData);
+
+      if (storeIds.length === 0) {
+        console.log(`[findStoresTool] Nenhuma loja encontrada com disponibilidade para o produto ID: ${targetProductId}`);
+        return { stores: [] };
+      }
+
+      // Passo 3: Para cada storeId, buscar os detalhes da loja em /stores/{storeId}
+      for (const storeId of storeIds) {
+        const storeRef = ref(db, `stores/${storeId}`);
+        const storeSnapshot = await get(storeRef);
+        if (storeSnapshot.exists()) {
+          const storeData = storeSnapshot.val();
+          if (storeData.name) {
+            foundStoreNames.push(storeData.name);
+          } else {
+            console.warn(`[findStoresTool] Loja com ID ${storeId} não possui um nome.`);
+          }
+        } else {
+          console.warn(`[findStoresTool] Detalhes da loja não encontrados para o ID: ${storeId}`);
+        }
+      }
+
+      // Futuramente: aqui poderia entrar a lógica de filtragem/ordenação por proximidade
+      // usando as coordenadas do usuário e das lojas (se as lojas tiverem coordenadas no DB).
+
+    } catch (error) {
+      console.error('[findStoresTool] Erro ao consultar o Firebase:', error);
+      // Em caso de erro, retorna uma lista vazia para não quebrar o fluxo.
+      return { stores: [] };
     }
-
-    // Simular alguns produtos não encontrados em nenhuma loja
-    if (lowerProductName.includes('flux capacitor') || lowerProductName.includes('unobtainium')) {
-      mockStores = [];
-    }
     
-    console.log(`[findStoresTool] Lojas encontradas para ${productName}: ${mockStores.join(', ')}`);
-    return { stores: mockStores };
+    console.log(`[findStoresTool] Lojas encontradas para ${productName} via Firebase: ${foundStoreNames.join(', ')}`);
+    return { stores: foundStoreNames };
   }
 );
 
+// Exemplo de como dados poderiam ser estruturados no Firebase para teste:
+/*
+{
+  "products": {
+    "coke2l": {
+      "canonicalName": "Coca-Cola 2 Liter Bottle",
+      "brand": "Coca-Cola",
+      // ... outros dados do produto
+    },
+    "pepsi1l": {
+      "canonicalName": "Pepsi 1 Liter Bottle",
+      "brand": "Pepsi"
+    }
+  },
+  "stores": {
+    "storeABC": {
+      "name": "Supermercado Central",
+      "location": { "city": "Cidade Exemplo" }
+      // ... outros dados da loja
+    },
+    "storeXYZ": {
+      "name": "Mercado Preço Bom",
+      "location": { "city": "Outra Cidade" }
+    }
+  },
+  "productAvailability": {
+    "coke2l": { // productId
+      "storeABC": { // storeId
+        "currentPrice": 7.99,
+        "inStock": true
+      },
+      "storeXYZ": {
+        "currentPrice": 7.85,
+        "inStock": true
+      }
+    },
+    "pepsi1l": {
+      "storeABC": {
+        "currentPrice": 5.50,
+        "inStock": false
+      }
+    }
+  }
+}
+*/

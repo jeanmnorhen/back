@@ -5,11 +5,28 @@ import { getDatabase, type Database } from "firebase/database";
 // import { getFirestore } from "firebase/firestore"; // Descomente se for usar Firestore
 // import { getStorage } from "firebase/storage"; // Descomente se for usar Storage
 
+const dbURL = process.env.NEXT_PUBLIC_FIREBASE_DATABASE_URL;
+
+// Pre-check the databaseURL format to provide a more specific error message.
+if (!dbURL) {
+  console.error(
+    'CRITICAL_CONFIG_ERROR: The NEXT_PUBLIC_FIREBASE_DATABASE_URL environment variable is not set. Firebase Realtime Database will not work. Please ensure this variable is correctly set in your Vercel project environment variables.'
+  );
+} else if (!dbURL.startsWith('https://') || !dbURL.endsWith('.firebaseio.com')) {
+  // This check is based on the specific error message "Please use https://<YOUR FIREBASE>.firebaseio.com"
+  // Some newer projects might use a URL ending in .firebasedatabase.app.
+  // If your Firebase console provides such a URL and you still get parsing errors,
+  // the issue might be more complex, but this check aligns with the SDK's reported expectation.
+  console.warn(
+    `POTENTIAL_CONFIG_ISSUE: The NEXT_PUBLIC_FIREBASE_DATABASE_URL ("${dbURL}") does not strictly match the 'https://<YOUR-PROJECT-ID>.firebaseio.com' format suggested by a Firebase error. If you continue to see "Cannot parse Firebase url" errors, please double-check this URL in your Firebase console and Vercel environment variables. Ensure it includes 'https://' and the correct domain.`
+  );
+}
+
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
   authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
   projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
-  databaseURL: process.env.NEXT_PUBLIC_FIREBASE_DATABASE_URL,
+  databaseURL: dbURL, // Use the checked (or original, if check passes/warns) URL
   storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
   messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
