@@ -1,6 +1,6 @@
 
 // src/i18n.ts
-console.log('[i18n.ts] File imported/evaluated by Node/Next.js. Timestamp:', new Date().toISOString());
+console.log(`[i18n.ts] TOP LEVEL: File imported/evaluated. Timestamp:`, new Date().toISOString());
 
 import {getRequestConfig} from 'next-intl/server';
 import {notFound} from 'next/navigation';
@@ -9,7 +9,7 @@ import {notFound} from 'next/navigation';
 const locales = ['en', 'pt'];
 
 export default getRequestConfig(async ({locale}) => {
-  console.log(`[i18n.ts] getRequestConfig called for locale: "${locale}". Timestamp:`, new Date().toISOString());
+  console.log(`[i18n.ts] getRequestConfig CALLED for locale: "${locale}". Timestamp:`, new Date().toISOString());
 
   // Validate that the incoming `locale` parameter is valid
   if (!locales.includes(locale as any)) {
@@ -17,22 +17,49 @@ export default getRequestConfig(async ({locale}) => {
     notFound();
   }
 
-  try {
-    console.log(`[i18n.ts] Attempting to load messages for locale: "${locale}" from "./messages/${locale}.json". Timestamp:`, new Date().toISOString());
-    const messages = (await import(`./messages/${locale}.json`)).default;
-    console.log(`[i18n.ts] Successfully loaded messages for locale: "${locale}". Timestamp:`, new Date().toISOString());
+  // Return hardcoded messages for testing
+  if (locale === 'pt') {
+    console.log('[i18n.ts] Returning HARDCODED messages for PT locale.');
     return {
-      messages
+      messages: {
+        Locale: "pt",
+        Layout: {
+          title: "[TESTE PT] Preço Real - Ofertas Locais",
+          description: "[TESTE PT] Encontre produtos e ofertas perto de você."
+        },
+        AppLayout: {
+          dealsTabTitle: "Ofertas (PT)",
+          identifyTabTitle: "Identificar (PT)",
+          mapTabTitle: "Mapa (PT)",
+          accountTabTitle: "Conta (PT)",
+          mapFeatureComingSoon: "Mapa em breve! (PT)"
+        }
+        // Add a few more essential keys if your layout depends on them,
+        // otherwise, this minimal set is fine for testing the config loading.
+      }
     };
-  } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : String(error);
-    const errorStack = error instanceof Error ? error.stack : 'No stack available.';
-    console.error(`[i18n.ts] CRITICAL ERROR during \`import('./messages/${locale}.json')\`. Locale: "${locale}". Error: ${errorMessage}. Stack: ${errorStack}. Timestamp:`, new Date().toISOString());
-    // This error will be logged on the server.
-    // For the client/Next.js error overlay, re-throwing a new error with more context can be helpful.
-    throw new Error(
-      `[i18n.ts] Failed to load messages for locale "${locale}". Check server logs for details. Original error: ${errorMessage}`
-    );
+  } else if (locale === 'en') {
+    console.log('[i18n.ts] Returning HARDCODED messages for EN locale.');
+    return {
+      messages: {
+        Locale: "en",
+        Layout: {
+          title: "[TEST EN] Real Price - Local Deals",
+          description: "[TEST EN] Find products and deals near you."
+        },
+        AppLayout: {
+          dealsTabTitle: "Deals (EN)",
+          identifyTabTitle: "Identify (EN)",
+          mapTabTitle: "Map (EN)",
+          accountTabTitle: "Account (EN)",
+          mapFeatureComingSoon: "Map feature coming soon! (EN)"
+        }
+      }
+    };
   }
+
+  // Fallback for any other locale, though validation should catch this.
+  console.error(`[i18n.ts] Locale "${locale}" was not 'en' or 'pt' after validation. This should not happen. Calling notFound().`);
+  notFound();
 });
 
