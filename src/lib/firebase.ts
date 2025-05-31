@@ -34,34 +34,44 @@ const dbURL = rawDbURLFromEnv;
 console.log(`[Firebase Setup] DIAGNOSTIC: VALOR SENDO VERIFICADO PARA dbURL (derivado de NEXT_PUBLIC_FIREBASE_DATABASE_URL): "${dbURL}"`);
 
 if (typeof dbURL !== 'string' || !dbURL.startsWith('https://')) {
-  const detailedErrorMessage = `
+  let serverLogErrorMessage = `
     --------------------------------------------------------------------------------------
-    ERRO CRÍTICO DE CONFIGURAÇÃO DO FIREBASE - INTERRUPÇÃO IMEDIATA
+    [Firebase Setup] ERRO CRÍTICO DE CONFIGURAÇÃO DO FIREBASE (Server Log)
     --------------------------------------------------------------------------------------
-    A variável de ambiente NEXT_PUBLIC_FIREBASE_DATABASE_URL NÃO ESTÁ CONFIGURADA, está vazia, ou não começa com "https://".
-    Valor recebido do ambiente para NEXT_PUBLIC_FIREBASE_DATABASE_URL: "${dbURL}" (Se estiver em branco, não está configurada, está vazia ou não está acessível pela aplicação)
-
-    O Firebase Realtime Database NÃO FUNCIONARÁ sem uma URL válida.
-
-    >>> AÇÃO IMEDIATA NECESSÁRIA NAS CONFIGURAÇÕES DO SEU PROJETO VERCEL <<<
-    1. ACESSE O PAINEL DO SEU PROJETO NA VERCEL.
-    2. Navegue até a aba "Settings" do seu projeto.
-    3. Clique em "Environment Variables" na barra lateral.
-    4. VERIFIQUE O SEGUINTE PARA A VARIÁVEL CHAMADA 'NEXT_PUBLIC_FIREBASE_DATABASE_URL':
-        a. EXISTÊNCIA: Certifique-se de que a variável 'NEXT_PUBLIC_FIREBASE_DATABASE_URL' realmente existe.
-        b. GRAFIA: Verifique novamente se há erros de digitação no NOME da variável. Deve ser EXATAMENTE "NEXT_PUBLIC_FIREBASE_DATABASE_URL".
-        c. VALOR: Certifique-se de que o VALOR é o URL HTTPS correto e completo do seu Firebase Realtime Database.
-           - Exemplo para projetos Firebase mais antigos ou regiões específicas: "https://seu-projeto-id-default-rtdb.firebaseio.com"
-           - Exemplo para projetos Firebase mais recentes ou regiões diferentes: "https://seu-projeto-id-default-rtdb.sua-regiao.firebasedatabase.app"
-           - Copie esta URL diretamente da seção Realtime Database do seu Projeto Firebase.
-        d. ESCOPO: Certifique-se de que a variável está disponível para todos os ambientes necessários (Production, Preview e Development).
-        e. SEM CARACTERES EXTRAS: Certifique-se de que não há espaços no início/fim ou caracteres invisíveis no valor da variável.
-    5. Após corrigir quaisquer problemas, você DEVE FAZER UM NOVO DEPLOY da sua aplicação na Vercel (uma nova implantação, não apenas uma reinicialização) para que as alterações entrem em vigor.
+    A variável de ambiente NEXT_PUBLIC_FIREBASE_DATABASE_URL está ausente, com valor inválido, ou não começa com "https://".
+    Valor recebido para NEXT_PUBLIC_FIREBASE_DATABASE_URL que causou o erro: "${dbURL}"
+    Isso impede a inicialização do Firebase Realtime Database.
+    
+    >>> VERIFIQUE IMEDIATAMENTE AS VARIÁVEIS DE AMBIENTE NO SEU PROJETO VERCEL: <<<
+    1. Acesse: Vercel Dashboard -> Seu Projeto -> Settings -> Environment Variables.
+    2. Confirme que 'NEXT_PUBLIC_FIREBASE_DATABASE_URL' existe, está escrita corretamente e possui o URL HTTPS completo do seu Firebase Realtime Database.
+       Exemplo: "https://seu-projeto-id-default-rtdb.firebaseio.com" ou "https://seu-projeto-id-default-rtdb.sua-regiao.firebasedatabase.app"
+    3. Garanta que a variável está disponível para o ambiente correto (Production, Preview, Development).
+    4. FAÇA UM NOVO DEPLOY após qualquer correção.
     --------------------------------------------------------------------------------------
   `;
-  console.error(detailedErrorMessage); // This is the detailed log that appears in Vercel's server console.
-  // The error message thrown to the application is now more direct.
-  throw new Error(
+
+  if (dbURL === "") {
+    serverLogErrorMessage = `
+    --------------------------------------------------------------------------------------
+    [Firebase Setup] ERRO CRÍTICO: NEXT_PUBLIC_FIREBASE_DATABASE_URL ESTÁ VAZIA (Server Log)
+    --------------------------------------------------------------------------------------
+    A variável de ambiente NEXT_PUBLIC_FIREBASE_DATABASE_URL foi recebida como uma STRING VAZIA ("").
+    Isso impede a inicialização do Firebase Realtime Database.
+    
+    >>> AÇÃO IMEDIATA NECESSÁRIA NAS CONFIGURAÇÕES DO SEU PROJETO VERCEL: <<<
+    1. Acesse: Vercel Dashboard -> Seu Projeto -> Settings -> Environment Variables.
+    2. VERIFIQUE O VALOR de 'NEXT_PUBLIC_FIREBASE_DATABASE_URL'. NÃO PODE ESTAR VAZIO.
+       Deve ser o URL HTTPS completo do seu Firebase Realtime Database (ex: https://<seu-projeto>.firebaseio.com).
+    3. Garanta que a variável está disponível para o ambiente correto (Production, Preview, Development).
+    4. FAÇA UM NOVO DEPLOY após corrigir o VALOR da variável.
+    --------------------------------------------------------------------------------------
+    `;
+  }
+  console.error(serverLogErrorMessage); // Este é o log detalhado que aparece no console do servidor da Vercel.
+  // A mensagem de erro lançada para a aplicação (que aparece no overlay do Next.js) permanece a mesma,
+  // pois já é clara e contém as instruções corretas para o usuário.
+  throw new Error( // Esta é a linha 61 no arquivo original, que corresponde à localização do erro que você está vendo
     `Firebase setup halted. CRITICAL: The NEXT_PUBLIC_FIREBASE_DATABASE_URL environment variable is missing, empty, or invalid in your Vercel deployment (received: "${dbURL}"). ` +
     `ACTION REQUIRED: 1. Go to your Vercel Project Settings -> Environment Variables. ` +
     `2. Ensure 'NEXT_PUBLIC_FIREBASE_DATABASE_URL' is correctly set to your Firebase Realtime Database URL (e.g., 'https://your-project.firebaseio.com' or 'https://your-project.region.firebasedatabase.app'). ` +
