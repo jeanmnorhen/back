@@ -1,2 +1,10 @@
-
-{}
+{
+  "MinimalPage": {
+    "title": "Título Mínimo em Português (de JSON)",
+    "greeting": "Olá da Página Mínima em Português! (de JSON)"
+  },
+  "Layout": {
+    "title": "Layout (PT - de JSON)"
+  },
+  "Locale": "pt"
+}

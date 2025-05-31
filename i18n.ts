@@ -1,47 +1,31 @@
-// i18n.ts (AT PROJECT ROOT - HARDCODED MESSAGES TEST with unstable_setRequestLocale)
+// i18n.ts (AT PROJECT ROOT - DYNAMIC_JSON_TEST_WITH_UNSTABLE_SET_REQUEST_LOCALE)
 import {getRequestConfig} from 'next-intl/server';
+import {notFound} from 'next/navigation';
 
 const locales = ['en', 'pt'];
 
-console.log(`[i18n.ts - ROOT - HARDCODED_SET_REQUEST_LOCALE_TEST] TOP LEVEL: File imported/evaluated. Timestamp:`, new Date().toISOString());
+console.log(`[i18n.ts - ROOT - DYNAMIC_JSON_FINAL_ATTEMPT] TOP LEVEL: File imported/evaluated. Timestamp:`, new Date().toISOString());
 
-export default getRequestConfig(({locale}) => {
-  console.log(`[i18n.ts - ROOT - HARDCODED_SET_REQUEST_LOCALE_TEST] getRequestConfig CALLED for locale: "${locale}". Timestamp:`, new Date().toISOString());
+export default getRequestConfig(async ({locale}) => {
+  console.log(`[i18n.ts - ROOT - DYNAMIC_JSON_FINAL_ATTEMPT] getRequestConfig CALLED for locale: "${locale}". Timestamp:`, new Date().toISOString());
 
+  // Validate that the incoming `locale` parameter is valid
   if (!locales.includes(locale as any)) {
-    console.error(`[i18n.ts - ROOT - HARDCODED_SET_REQUEST_LOCALE_TEST] Invalid locale: "${locale}".`);
-    // For simplicity in this test, we won't call notFound() here,
-    // as the primary goal is to see if getMessages() works.
-    // In a real scenario, you would call notFound().
+    console.error(`[i18n.ts - ROOT - DYNAMIC_JSON_FINAL_ATTEMPT] Invalid locale: "${locale}". Calling notFound().`);
+    notFound();
   }
 
-  // Using hardcoded messages for this test
   let messages;
-  if (locale === 'en') {
-    messages = {
-      MinimalPage: {
-        title: "Minimal English Title (Hardcoded)",
-        greeting: "Hello from Minimal English Page! (Hardcoded)"
-      },
-      Layout: {
-        title: "Layout (EN - Hardcoded)"
-      }
-    };
-  } else if (locale === 'pt') {
-    messages = {
-      MinimalPage: {
-        title: "Título Mínimo em Português (Hardcoded)",
-        greeting: "Olá da Página Mínima em Português! (Hardcoded)"
-      },
-      Layout: {
-        title: "Layout (PT - Hardcoded)"
-      }
-    };
-  } else {
-    messages = {}; // Should not happen if locale validation is robust
+  try {
+    console.log(`[i18n.ts - ROOT - DYNAMIC_JSON_FINAL_ATTEMPT] Attempting to import messages for locale "${locale}" from "./src/messages/${locale}.json"`);
+    messages = (await import(`./src/messages/${locale}.json`)).default;
+    console.log(`[i18n.ts - ROOT - DYNAMIC_JSON_FINAL_ATTEMPT] Successfully loaded messages for locale "${locale}". Keys: ${Object.keys(messages || {}).join(', ')}`);
+  } catch (error) {
+    const errorMessage = error instanceof Error ? `${error.name}: ${error.message}` : String(error);
+    console.error(`[i18n.ts - ROOT - DYNAMIC_JSON_FINAL_ATTEMPT] FAILED to load messages for locale "${locale}" from "./src/messages/${locale}.json". Error: ${errorMessage}. Calling notFound().`);
+    notFound();
   }
   
-  console.log(`[i18n.ts - ROOT - HARDCODED_SET_REQUEST_LOCALE_TEST] Returning hardcoded messages for locale "${locale}".`);
   return {
     messages
   };
