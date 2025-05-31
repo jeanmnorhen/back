@@ -30,6 +30,9 @@ console.log("[Firebase Setup] Valor bruto de NEXT_PUBLIC_FIREBASE_DATABASE_URL d
 
 const dbURL = rawDbURLFromEnv;
 
+// Adicionando um log extra para máxima clareza sobre o valor que está sendo testado:
+console.log(`[Firebase Setup] DIAGNOSTIC: VALOR SENDO VERIFICADO PARA dbURL (derivado de NEXT_PUBLIC_FIREBASE_DATABASE_URL): "${dbURL}"`);
+
 if (typeof dbURL !== 'string' || !dbURL.startsWith('https://')) {
   const detailedErrorMessage = `
     --------------------------------------------------------------------------------------
@@ -56,8 +59,8 @@ if (typeof dbURL !== 'string' || !dbURL.startsWith('https://')) {
     5. Após corrigir quaisquer problemas, você DEVE FAZER UM NOVO DEPLOY da sua aplicação na Vercel (uma nova implantação, não apenas uma reinicialização) para que as alterações entrem em vigor.
     --------------------------------------------------------------------------------------
   `;
-  console.error(detailedErrorMessage); // Este é o log detalhado que aparece no console do servidor da Vercel.
-  // A mensagem de erro lançada para a aplicação agora é mais direta.
+  console.error(detailedErrorMessage); // This is the detailed log that appears in Vercel's server console.
+  // The error message thrown to the application is now more direct.
   throw new Error(
     `Firebase setup halted. CRITICAL: The NEXT_PUBLIC_FIREBASE_DATABASE_URL environment variable is missing, empty, or invalid in your Vercel deployment (received: "${dbURL}"). ` +
     `ACTION REQUIRED: 1. Go to your Vercel Project Settings -> Environment Variables. ` +
