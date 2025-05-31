@@ -1,14 +1,14 @@
-import type {Metadata} from 'next';
-import {NextIntlClientProvider} from 'next-intl';
-import {getMessages} from 'next-intl/server'; // getTranslations removed for now
+// src/app/[locale]/layout.tsx (MINIMAL TEST - REMOVED TRY-CATCH)
+import type { Metadata } from 'next';
+import { NextIntlClientProvider } from 'next-intl';
+import { getMessages } from 'next-intl/server';
 import { GeistSans } from 'geist/font/sans';
 import { GeistMono } from 'geist/font/mono';
 import '../globals.css';
 import { Toaster } from "@/components/ui/toaster";
-// AuthProvider removed for minimal test
+// AuthProvider, generateMetadata, generateStaticParams are TEMPORARILY REMOVED for this minimal test
 
-// generateMetadata and generateStaticParams are TEMPORARILY REMOVED for this minimal test
-// to reduce variables affecting the i18n setup.
+console.log(`[LocaleLayout - MINIMAL_TEST_NO_TRY_CATCH] TOP LEVEL: File imported/evaluated. Timestamp:`, new Date().toISOString());
 
 export default async function LocaleLayout({
   children,
@@ -17,23 +17,19 @@ export default async function LocaleLayout({
   children: React.ReactNode;
   params: {locale: string};
 }>) {
-  let messages;
-  try {
-    console.log(`[LocaleLayout - MINIMAL_TEST] Attempting to get messages for locale: ${locale}`);
-    messages = await getMessages();
-    console.log(`[LocaleLayout - MINIMAL_TEST] Successfully got messages for locale: ${locale}. Message keys: ${Object.keys(messages || {}).join(', ')}`);
-  } catch (error) {
-    console.error(`[LocaleLayout - MINIMAL_TEST] CRITICAL ERROR calling getMessages() for locale ${locale}:`, error);
-    // Fallback messages to allow rendering something, but the error is the key.
-    messages = { MinimalPage: { greeting: "Error loading messages.", title: "Error" }, Layout: { title: "Error", description: "Error"}};
-    // Re-throwing might be better in some cases to see the original error stack clearly in Vercel.
-    // throw error;
-  }
+  // Log before calling getMessages
+  console.log(`[LocaleLayout - MINIMAL_TEST_NO_TRY_CATCH] Attempting to get messages for locale: ${locale}. Timestamp:`, new Date().toISOString());
+  
+  // Directly call getMessages without a try-catch.
+  // If this function is the source of the "Couldn't find config file" error,
+  // its original stack trace should now be more prominent.
+  const messages = await getMessages();
+  
+  console.log(`[LocaleLayout - MINIMAL_TEST_NO_TRY_CATCH] Successfully got messages for locale: ${locale}. Message keys: ${Object.keys(messages || {}).join(', ')}. Timestamp:`, new Date().toISOString());
 
   return (
     <html lang={locale} className={`${GeistSans.variable} ${GeistMono.variable}`}>
       <body className="antialiased">
-        {/* AuthProvider removed for minimal test */}
         <NextIntlClientProvider locale={locale} messages={messages}>
           {children}
           <Toaster />
