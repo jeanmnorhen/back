@@ -30,7 +30,7 @@ This prompt outlines the complete plan and requirements for developing and maint
    - **UC14:** Admins can interact with a "Superagent de Análise" via a chat interface for project insights (chat interface with placeholder Genkit flow responses completed).
 
 ## 5. Technical Stack
-   - **Frontend:** Next.js (App Router, version 15.x), React, TypeScript
+   - **Frontend:** Next.js (App Router, version 14.x), React, TypeScript
    - **UI Components:** ShadCN UI
    - **Styling:** Tailwind CSS
    - **Generative AI:** Genkit (with Google Gemini models, version 1.x API)
@@ -54,7 +54,7 @@ This prompt outlines the complete plan and requirements for developing and maint
    - **`/productAvailability/{productId}/{storeId}` (Old Structure):**
      - `currentPrice`, `currency`, `inStock`.
      - (Needs evaluation for replacement/complement by `/advertisements`).
-   - **`/priceHistory/{productId}` or `/productPriceTrends/{productId}` (Pending):**
+   - **`/priceHistory/{productId}` ou `/productPriceTrends/{productId}` (Pending):**
      - To be populated by expired advertisements for trend analysis.
      - Structure: `"{timestamp}": { price, currency, storeId, countryCode }`.
    - **`/userProfiles/{userId}` (Consumer Profiles - Pending):**
@@ -444,7 +444,7 @@ Esses superagentes representam uma evolução significativa e exigirão desenvol
 ```
 
 ## 12. Instructions for AI Development Partner
-   - Adhere strictly to the specified technical stack: Next.js (App Router), React, TypeScript, ShadCN UI, Tailwind CSS, Genkit (for AI functionalities with Google Gemini), and Firebase (Realtime Database, Authentication). Do not introduce other frameworks (e.g., Angular, other CSS frameworks) or AI libraries unless explicitly discussed and approved.
+   - Adhere strictly to the specified technical stack: Next.js (App Router, version 14.x), React, TypeScript, ShadCN UI, Tailwind CSS, Genkit (for AI functionalities with Google Gemini), and Firebase (Realtime Database, Authentication). Do not introduce other frameworks (e.g., Angular, other CSS frameworks) or AI libraries unless explicitly discussed and approved.
    - Follow Next.js App Router best practices, including the use of Server Components by default, TypeScript with `import type` for type imports, and Server Actions for data mutations where appropriate.
    - Leverage ShadCN UI components for building the user interface. Style customizations should primarily be done via Tailwind CSS and by updating the ShadCN theme file (`src/app/globals.css`) for color schemes. Ensure UI is aesthetically pleasing, functional, and production-ready, incorporating rounded corners and shadows.
    - Implement Genkit flows as described in `memo.md` and this prompt. Ensure proper schema definitions (Zod), tool usage, and adherence to Genkit 1.x API syntax (e.g., `ai.generate().text`, `ai.generateStream()`). Prompts within Genkit flows should use Handlebars templating.
@@ -454,12 +454,12 @@ Esses superagentes representam uma evolução significativa e exigirão desenvol
    - For new Genkit flows or tools, ensure they are registered in `src/ai/dev.ts` and follow established patterns for schema definition and wrapper functions.
    - Image Handling: Use `next/image` for optimization. Use `https://placehold.co/<width>x<height>.png` for placeholders, and always include a `data-ai-hint` attribute with one or two keywords for Unsplash search.
    - Error Handling: Implement proper error boundaries (`error.js` files in Next.js) and user-friendly error messages/toasts.
-   - Internationalization (`next-intl`): Ensure all user-facing text is internationalized. The configuration is currently being debugged but aims for `i18n.ts` at the project root loading messages from `src/messages/[locale].json`.
+   - Internationalization (`next-intl`): Ensure all user-facing text is internationalized. The configuration uses `i18n.ts` at the project root loading messages from `src/messages/[locale].json`.
    - Avoid hydration errors by deferring browser-specific operations or random value generation to `useEffect` hooks.
    - Address any warnings or errors from the build process or runtime promptly.
 
 ## 13. Current Debugging Focus (If applicable, otherwise remove or replace)
-   - **Primary Issue:** The application is currently facing a persistent "Error: Couldn't find next-intl config file." when `getMessages()` is called in `src/app/[locale]/layout.tsx`, despite various attempts to simplify and reconfigure `i18n.ts` (both in `src/` and project root, with hardcoded and dynamically loaded messages). This occurs both locally and on Vercel with Next.js 15.2.3 and next-intl 3.17.2.
-   - **Next Steps:** Systematically test minimal configurations of `next-intl`, potentially trying `unstable_setRequestLocale`, and ensuring the correct interaction between `getRequestConfig` and `getMessages`.
+   - **Primary Issue:** The application is currently facing a persistent "Error: Couldn't find next-intl config file." when `getMessages()` is called in `src/app/[locale]/layout.tsx`. This occurs both locally and on Vercel with Next.js 14.x and next-intl 3.17.2, even with minimal configurations (hardcoded messages in `i18n.ts` at root, `unstable_setRequestLocale` used).
+   - **Next Steps:** Investigate deeper incompatibilities, check `next-intl` GitHub issues for similar problems with Next.js 14 App Router, or consider creating a minimal reproduction case.
 
 This master prompt should serve as a comprehensive guide for the "Preço Real" project.

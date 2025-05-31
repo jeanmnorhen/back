@@ -94,7 +94,7 @@
 ## 3. Estado Atual
 
 O aplicativo "Preço Real" está em um estágio funcional, com as seguintes tecnologias:
-- **Frontend:** Next.js (App Router), React, TypeScript.
+- **Frontend:** Next.js (App Router, versão 14.x), React, TypeScript.
 - **UI Components:** ShadCN UI.
 - **Estilização:** Tailwind CSS.
 - **Funcionalidades AI (Genkit, Gemini):**
@@ -108,7 +108,7 @@ O aplicativo "Preço Real" está em um estágio funcional, com as seguintes tecn
 - **Deployment:** Configurado para Vercel (funciona bem em produção com as variáveis de ambiente corretas).
 - **Geolocalização:** Frontend obtém localização do usuário.
 - **Página de Monitoramento:** Exibe valor médio de produtos por país (baseado na estrutura de dados `productAvailability`).
-- **Internacionalização (i18n):** Suporte para Português ("Preço Real") e Inglês ("Real Price") com `next-intl`, incluindo metadados e seletor de idioma.
+- **Internacionalização (i18n):** Suporte para Português ("Preço Real") e Inglês ("Real Price") com `next-intl`, incluindo metadados e seletor de idioma. (ATUALMENTE ENFRENTANDO PROBLEMAS COM "Couldn't find next-intl config file").
 - **Layout da Página Principal:** Reformulado para usar abas (Ofertas, Identificar, Mapa - desabilitado, Conta), inspirado no layout do WhatsApp. O feed de ofertas na aba "Ofertas" agora busca dados reais do nó `/advertisements` do Firebase, filtrando por status "active" e calculando tempo de expiração. Busca textual e filtros de categoria (client-side) funcionam sobre os dados carregados.
 - **Funcionalidade de Captura de Foto via Câmera:** Adicionada e integrada na aba "Identificar" (UC15).
 - **Página de Chat com Superagente:** Criada em `/admin/super-agent-chat` e agora permite interação básica (envio de mensagens e recebimento de respostas placeholder do fluxo Genkit).
@@ -258,7 +258,7 @@ Mantém estrutura similar à anterior (preferências, localização).
         - Exibir feed ordenado por data de postagem ou, se possível com geohash, por proximidade estimada. (ORDENAÇÃO POR DATA DE EXPIRAÇÃO IMPLEMENTADA, PROXIMIDADE PENDENTE).
     - **Filtros para o Feed (com Dados Reais):** Implementar filtros por categoria de produto no feed, consultando o nó `/advertisements`. (CONCLUÍDO - FILTROS CLIENT-SIDE).
 - **Prioridade Contínua/Melhorias:**
-    - **Internacionalização (i18n) e Localização (L10n):** (CONTÍNUO)
+    - **Internacionalização (i18n) e Localização (L10n):** (CONTÍNUO - Atualmente depurando "Couldn't find next-intl config file").
     - **Implementação da Funcionalidade de Câmera (UC6/UC15):** (CONCLUÍDO)
     - **Chat com Superagente de Análise (UC14):** (INTERFACE INTERATIVA COM RESPOSTAS PLACEHOLDER CONCLUÍDA).
     - **Histórico de Preços:** Implementar lógica (ex: Cloud Function) para mover dados de anúncios expirados para o histórico de preços. (PENDENTE)
@@ -340,4 +340,5 @@ Esses superagentes representam uma evolução significativa e exigirão desenvol
 - O `LanguageSwitcher` está implementado (CONCLUÍDO).
 - Metadados traduzidos (CONCLUÍDO).
 - Textos básicos da UI das páginas principal, de monitoramento e de chat do superagente estão traduzidos (CONTÍNUO).
-- Próximos passos: Traduzir novos textos da UI para o feed, perfis de lojistas, etc., à medida que são adicionados.
+- Próximos passos: Traduzir novos textos da UI para o feed, perfis de lojistas, etc., à medida que são adicionados. (ATUALMENTE BLOQUEADO PELO ERRO "Couldn't find next-intl config file").
+```
