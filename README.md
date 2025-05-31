@@ -1,4 +1,4 @@
-
+wnpm install 
 # Preço Real
 
 Preço Real é um aplicativo NextJS para encontrar ofertas locais e produtos anunciados por lojas próximas.
