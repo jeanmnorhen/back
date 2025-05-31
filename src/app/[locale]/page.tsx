@@ -4,7 +4,27 @@
 import type { ChangeEvent, FormEvent } from 'react';
 import { useState, useEffect } from 'react';
 import NextImage from 'next/image';
-import { UploadCloud, Image as ImageIcon, Loader2, AlertTriangle, Wand2, ScanSearch, ShoppingBag, Tags, PackageSearch, Languages, Store, MapPin } from 'lucide-react';
+import { 
+  UploadCloud, 
+  Image as ImageIcon, 
+  Loader2, 
+  AlertTriangle, 
+  Wand2, 
+  ScanSearch, 
+  ShoppingBag, 
+  Tags, 
+  PackageSearch, 
+  Languages, 
+  Store, 
+  MapPin,
+  Search,
+  Utensils,
+  Pizza,
+  Beer,
+  ShoppingCart,
+  BadgePercent,
+  Clock
+} from 'lucide-react';
 import {useTranslations} from 'next-intl';
 
 import { Button } from '@/components/ui/button';
@@ -23,7 +43,6 @@ import { identifyObjects, type IdentifyObjectsOutput, type TranslatedObjectType 
 import { searchRelatedProducts, type SearchRelatedProductsOutput } from '@/ai/flows/search-related-products';
 import { extractProductProperties, type ExtractProductPropertiesOutput } from '@/ai/flows/extract-product-properties';
 import { findProductStores, type FindProductStoresInput, type FindProductStoresOutput } from '@/ai/flows/find-product-stores-flow';
-
 
 type ProductSearchResultItem = {
   objectName: string;
@@ -57,8 +76,30 @@ const initialResultsState: AnalysisResults = {
   storeSearch: {},
 };
 
-export default function ImageInsightExplorerPage() {
-  const t = useTranslations('ImageInsightExplorerPage');
+interface Deal {
+  id: string;
+  productName: string;
+  price: string;
+  storeName: string;
+  distance: string;
+  imageUrl: string;
+  dataAiHint: string;
+  expiresIn: string;
+  category?: string; // For filtering
+}
+
+// Mock Data for Deals Feed - will be replaced by Firebase data
+const mockDeals: Deal[] = [
+  { id: '1', productName: 'Super Hamburguer X', price: 'R$ 29,99', storeName: 'Lanchonete do Zé', distance: '500m', imageUrl: 'https://placehold.co/600x400.png', dataAiHint: 'hamburger burger', expiresIn: '23h restantes', category: 'Lanches' },
+  { id: '2', productName: 'Pizza Grande Calabresa', price: 'R$ 45,00', storeName: 'Pizzaria da Esquina', distance: '1.2km', imageUrl: 'https://placehold.co/600x400.png', dataAiHint: 'pizza food', expiresIn: '12h restantes', category: 'Pizzas' },
+  { id: '3', productName: 'Refrigerante Coca-Cola 2L', price: 'R$ 8,50', storeName: 'Mercadinho Central', distance: '300m', imageUrl: 'https://placehold.co/600x400.png', dataAiHint: 'soda drink', expiresIn: '48h restantes', category: 'Bebidas' },
+  { id: '4', productName: 'Pão Francês (unidade)', price: 'R$ 0,75', storeName: 'Padaria Pão Quente', distance: '800m', imageUrl: 'https://placehold.co/600x400.png', dataAiHint: 'bread bakery', expiresIn: '5h restantes', category: 'Mercado' },
+  { id: '5', productName: 'Hot Dog Especial da Casa', price: 'R$ 15,00', storeName: 'Dogão do Bairro', distance: '250m', imageUrl: 'https://placehold.co/600x400.png', dataAiHint: 'hotdog snack', expiresIn: '8h restantes', category: 'Lanches' },
+];
+
+
+export default function PrecoRealPage() {
+  const t = useTranslations('ImageInsightExplorerPage'); // Namespace remains for now
   const tLang = useTranslations('Languages');
 
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -75,8 +116,27 @@ export default function ImageInsightExplorerPage() {
   const [locationError, setLocationError] = useState<string | null>(null);
   const [isRequestingLocation, setIsRequestingLocation] = useState(false);
 
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [displayedDeals, setDisplayedDeals] = useState<Deal[]>(mockDeals);
 
   const { toast } = useToast();
+
+  useEffect(() => {
+    // Filter deals based on search term and category
+    let filtered = mockDeals;
+    if (selectedCategory) {
+      filtered = filtered.filter(deal => deal.category === selectedCategory);
+    }
+    if (searchTerm) {
+      filtered = filtered.filter(deal => 
+        deal.productName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        deal.storeName.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
+    setDisplayedDeals(filtered);
+  }, [searchTerm, selectedCategory]);
+
 
   useEffect(() => {
     return () => {
@@ -97,7 +157,7 @@ export default function ImageInsightExplorerPage() {
 
     const file = event.target.files?.[0];
     if (file) {
-      if (file.size > 5 * 1024 * 1024) { // 5MB limit
+      if (file.size > 5 * 1024 * 1024) { 
         const err = t('fileSizeError');
         setError(err);
         toast({ title: t('errorToastTitle'), description: err, variant: 'destructive' });
@@ -189,7 +249,7 @@ export default function ImageInsightExplorerPage() {
     }
   };
 
-  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+  const handleSubmitImageAnalysis = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (!selectedFile) {
       const err = t('selectImageError');
@@ -211,7 +271,7 @@ export default function ImageInsightExplorerPage() {
     reader.readAsDataURL(selectedFile);
   };
 
-  const handleFindStores = async (productName: string) => {
+  const handleFindStoresForAnalyzedProduct = async (productName: string) => {
     setResults(prev => ({
       ...prev,
       storeSearch: {
@@ -220,9 +280,7 @@ export default function ImageInsightExplorerPage() {
       }
     }));
 
-    const input: FindProductStoresInput = { 
-      productName 
-    };
+    const input: FindProductStoresInput = { productName };
     if (userLocation) {
       input.latitude = userLocation.latitude;
       input.longitude = userLocation.longitude;
@@ -292,16 +350,22 @@ export default function ImageInsightExplorerPage() {
     );
   };
 
+  const hasImageAnalysisResults = (results.objects && results.objects.length > 0) || 
+                                 (results.relatedProducts && results.relatedProducts.length > 0) || 
+                                 results.productProperties;
 
-  const hasResults = (results.objects && results.objects.length > 0) || 
-                     (results.relatedProducts && results.relatedProducts.length > 0) || 
-                     results.productProperties;
+  const categories = [
+    { name: t('categorySnacks'), icon: Utensils, value: 'Lanches' },
+    { name: t('categoryPizzas'), icon: Pizza, value: 'Pizzas' },
+    { name: t('categoryDrinks'), icon: Beer, value: 'Bebidas' },
+    { name: t('categoryGrocery'), icon: ShoppingCart, value: 'Mercado' },
+  ];
 
   return (
     <div className="flex flex-col items-center min-h-screen p-4 sm:p-8 selection:bg-primary/20">
-      <header className="mb-10 text-center w-full max-w-4xl">
+      <header className="mb-10 text-center w-full max-w-5xl">
         <div className="flex items-center justify-center gap-3 mb-2">
-         <Wand2 className="w-10 h-10 text-primary" />
+         <BadgePercent className="w-10 h-10 text-primary" />
          <h1 className="text-4xl font-bold sm:text-5xl tracking-tight bg-gradient-to-r from-primary via-purple-500 to-accent bg-clip-text text-transparent">
             {t('title')}
           </h1>
@@ -314,66 +378,8 @@ export default function ImageInsightExplorerPage() {
         </div>
       </header>
 
-      <main className="w-full max-w-4xl space-y-8">
-        <Card className="shadow-lg">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-2xl">
-              <UploadCloud className="w-7 h-7 text-primary" />
-              {t('uploadCardTitle')}
-            </CardTitle>
-            <CardDescription>{t('uploadCardDescription')}</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-6">
-              <div>
-                <Label htmlFor="image-upload" className="sr-only">Escolher imagem</Label>
-                <Input
-                  id="image-upload"
-                  type="file"
-                  accept="image/*"
-                  onChange={handleFileChange}
-                  className="file:text-primary file:font-semibold hover:file:bg-primary/10"
-                  disabled={isLoading || isRequestingLocation}
-                />
-              </div>
-              {previewUrl && (
-                <div className="mt-4 border rounded-lg p-2 bg-muted/50 overflow-hidden aspect-video relative w-full max-w-md mx-auto">
-                  <NextImage
-                    src={previewUrl}
-                    alt="Pré-visualização da imagem selecionada"
-                    layout="fill"
-                    objectFit="contain"
-                    className="rounded"
-                    data-ai-hint="uploaded image"
-                  />
-                </div>
-              )}
-              {error && !isLoading && (
-                 <p className="text-sm text-destructive flex items-center gap-2"><AlertTriangle className="w-4 h-4"/> {error}</p>
-              )}
-              <Button type="submit" className="w-full sm:w-auto bg-accent hover:bg-accent/90 text-accent-foreground" disabled={isLoading || !selectedFile || isRequestingLocation}>
-                {isLoading ? (
-                  <>
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    {t('processingButton')}
-                  </>
-                ) : (
-                  <>
-                    <Wand2 className="w-4 h-4 mr-2" />
-                    {t('analyzeButton')}
-                  </>
-                )}
-              </Button>
-            </form>
-          </CardContent>
-          {isLoading && currentStep && (
-            <CardFooter className="flex flex-col gap-2 pt-4 border-t">
-                <Progress value={progressValue} className="w-full h-2" />
-                <p className="text-sm text-muted-foreground">{t('progressMessage', {step: currentStep, progressValue})}</p>
-            </CardFooter>
-          )}
-        </Card>
-
+      <main className="w-full max-w-5xl space-y-8">
+        {/* Location Card */}
         {!userLocation && (
           <Card className="shadow-md">
             <CardHeader>
@@ -390,15 +396,9 @@ export default function ImageInsightExplorerPage() {
                 variant="outline"
               >
                 {isRequestingLocation ? (
-                  <>
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    {t('gettingLocationButton')}
-                  </>
+                  <><Loader2 className="w-4 h-4 mr-2 animate-spin" />{t('gettingLocationButton')}</>
                 ) : (
-                  <>
-                    <MapPin className="w-4 h-4 mr-2" />
-                    {t('getLocationButton')}
-                  </>
+                  <><MapPin className="w-4 h-4 mr-2" />{t('getLocationButton')}</>
                 )}
               </Button>
               {locationError && (
@@ -413,11 +413,171 @@ export default function ImageInsightExplorerPage() {
                 <span>{t('locationAcquiredCard', {latitude: userLocation.latitude.toFixed(4), longitude: userLocation.longitude.toFixed(4)})}</span>
             </div>
         )}
+        <Separator />
+
+        {/* Search and Filters Card */}
+        <Card className="shadow-lg">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-2xl">
+              <Search className="w-7 h-7 text-primary" />
+              {t('searchSectionTitle')}
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <Input 
+              type="search"
+              placeholder={t('searchPlaceholder')}
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="text-base"
+            />
+            <div>
+              <h3 className="text-sm font-medium text-muted-foreground mb-2">{t('categoryFiltersTitle')}</h3>
+              <div className="flex flex-wrap gap-2">
+                <Button 
+                  variant={selectedCategory === null ? "default": "outline"}
+                  onClick={() => setSelectedCategory(null)}
+                  size="sm"
+                >
+                  Todos
+                </Button>
+                {categories.map(cat => (
+                  <Button 
+                    key={cat.value}
+                    variant={selectedCategory === cat.value ? "default" : "outline"}
+                    onClick={() => setSelectedCategory(cat.value)}
+                    size="sm"
+                  >
+                    <cat.icon className="w-4 h-4 mr-2" />
+                    {cat.name}
+                  </Button>
+                ))}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Deals Feed Section */}
+        <section>
+          <h2 className="text-3xl font-semibold text-primary mb-6 flex items-center gap-2">
+            <BadgePercent className="w-8 h-8"/>
+            {t('dealsFeedTitle')}
+          </h2>
+          {displayedDeals.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {displayedDeals.map(deal => (
+                <Card key={deal.id} className="shadow-md hover:shadow-xl transition-shadow duration-300 flex flex-col">
+                  <div className="aspect-video w-full relative overflow-hidden rounded-t-lg">
+                    <NextImage 
+                        src={deal.imageUrl} 
+                        alt={deal.productName} 
+                        layout="fill" 
+                        objectFit="cover"
+                        data-ai-hint={deal.dataAiHint}
+                    />
+                  </div>
+                  <CardHeader>
+                    <CardTitle className="text-xl">{deal.productName}</CardTitle>
+                  </CardHeader>
+                  <CardContent className="flex-grow space-y-2">
+                    <p className="text-2xl font-bold text-primary">{deal.price}</p>
+                    <div className="text-sm text-muted-foreground space-y-1">
+                      <p className="flex items-center gap-1"><Store className="w-4 h-4"/> {t('dealCardStoreLabel')}: <span className="font-medium text-foreground">{deal.storeName}</span></p>
+                      {userLocation && <p className="flex items-center gap-1"><MapPin className="w-4 h-4"/> {t('dealCardDistanceLabel')}: <span className="font-medium text-foreground">{deal.distance}</span></p>}
+                      <p className="flex items-center gap-1"><Clock className="w-4 h-4"/> {t('dealCardExpiresLabel')}: <span className="font-medium text-foreground">{deal.expiresIn}</span></p>
+                    </div>
+                  </CardContent>
+                  <CardFooter>
+                    <Button className="w-full bg-accent hover:bg-accent/90 text-accent-foreground">
+                      <ShoppingBag className="w-4 h-4 mr-2"/>
+                      {t('viewDealButton')}
+                    </Button>
+                  </CardFooter>
+                </Card>
+              ))}
+            </div>
+          ) : (
+            <Card>
+              <CardContent className="pt-6">
+                <p className="text-muted-foreground text-center py-8">{t('noDealsFound')}</p>
+              </CardContent>
+            </Card>
+          )}
+        </section>
+        
+        <Separator />
+
+        {/* Image Analysis Section (Accordion) */}
+        <Accordion type="single" collapsible className="w-full">
+            <AccordionItem value="image-analysis-tool">
+                <AccordionTrigger className="text-2xl font-semibold hover:text-primary py-4">
+                    <div className="flex items-center gap-2">
+                        <Wand2 className="w-7 h-7 text-primary" />
+                        {t('uploadCardTitle')}
+                    </div>
+                </AccordionTrigger>
+                <AccordionContent>
+                    <Card className="shadow-lg border-none">
+                        <CardHeader>
+                            <CardDescription>{t('uploadCardDescription')}</CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                            <form onSubmit={handleSubmitImageAnalysis} className="space-y-6">
+                            <div>
+                                <Label htmlFor="image-upload" className="sr-only">Escolher imagem</Label>
+                                <Input
+                                id="image-upload"
+                                type="file"
+                                accept="image/*"
+                                onChange={handleFileChange}
+                                className="file:text-primary file:font-semibold hover:file:bg-primary/10"
+                                disabled={isLoading || isRequestingLocation}
+                                />
+                            </div>
+                            {previewUrl && (
+                                <div className="mt-4 border rounded-lg p-2 bg-muted/50 overflow-hidden aspect-video relative w-full max-w-md mx-auto">
+                                <NextImage
+                                    src={previewUrl}
+                                    alt="Pré-visualização da imagem selecionada"
+                                    layout="fill"
+                                    objectFit="contain"
+                                    className="rounded"
+                                    data-ai-hint="uploaded image"
+                                />
+                                </div>
+                            )}
+                            {error && !isLoading && (
+                                <p className="text-sm text-destructive flex items-center gap-2"><AlertTriangle className="w-4 h-4"/> {error}</p>
+                            )}
+                            <Button type="submit" className="w-full sm:w-auto bg-accent hover:bg-accent/90 text-accent-foreground" disabled={isLoading || !selectedFile || isRequestingLocation}>
+                                {isLoading && currentStep ? (
+                                <>
+                                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                    {t('processingButton')}
+                                </>
+                                ) : (
+                                <>
+                                    <Wand2 className="w-4 h-4 mr-2" />
+                                    {t('analyzeButton')}
+                                </>
+                                )}
+                            </Button>
+                            </form>
+                        </CardContent>
+                        {isLoading && currentStep && (
+                            <CardFooter className="flex flex-col gap-2 pt-4 border-t">
+                                <Progress value={progressValue} className="w-full h-2" />
+                                <p className="text-sm text-muted-foreground">{t('progressMessage', {step: currentStep, progressValue})}</p>
+                            </CardFooter>
+                        )}
+                    </Card>
+                </AccordionContent>
+            </AccordionItem>
+        </Accordion>
 
 
-        {hasResults && !isLoading && (
-          <div className="space-y-8">
-            <Separator />
+        {hasImageAnalysisResults && !isLoading && (
+          <div className="space-y-8 mt-8">
             <h2 className="text-3xl font-semibold text-center text-primary">{t('resultsTitle')}</h2>
             
             {results.objects && results.objects.length > 0 && (
@@ -474,7 +634,6 @@ export default function ImageInsightExplorerPage() {
                  </Card>
             )}
 
-
             {results.relatedProducts && results.relatedProducts.length > 0 && (
               <Card className="shadow-md">
                 <CardHeader>
@@ -505,7 +664,7 @@ export default function ImageInsightExplorerPage() {
                                             <Button 
                                                 size="sm" 
                                                 variant="outline" 
-                                                onClick={() => handleFindStores(product)}
+                                                onClick={() => handleFindStoresForAnalyzedProduct(product)}
                                                 disabled={results.storeSearch[product]?.isLoading || isLoading || isRequestingLocation}
                                             >
                                                 {results.storeSearch[product]?.isLoading ? (
@@ -598,7 +757,7 @@ export default function ImageInsightExplorerPage() {
           </div>
         )}
         
-        {!isLoading && !hasResults && selectedFile && !error && !(results.objects && results.objects.length === 0) && (
+        {!isLoading && !hasImageAnalysisResults && selectedFile && !error && !(results.objects && results.objects.length === 0) && (
             <Card className="shadow-md">
                 <CardHeader>
                     <CardTitle className="flex items-center gap-2 text-xl">{t('analysisCompleteToastTitle')}</CardTitle>
@@ -608,11 +767,11 @@ export default function ImageInsightExplorerPage() {
                 </CardContent>
             </Card>
         )}
-
       </main>
-      <footer className="mt-12 py-6 text-center text-sm text-muted-foreground border-t w-full max-w-4xl">
+      <footer className="mt-12 py-6 text-center text-sm text-muted-foreground border-t w-full max-w-5xl">
         <p>{t('footerText', {year: new Date().getFullYear()})}</p>
-        <p>{t('translationsProvidedFor')}</p>
+        {/* A linha abaixo pode ser removida ou ajustada se as traduções não forem mais um foco principal da análise de imagem */}
+        {/* <p>{t('translationsProvidedFor')}</p> */}
       </footer>
     </div>
   );

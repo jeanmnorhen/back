@@ -58,7 +58,21 @@
     "propertiesExtractedToastDescription": "Product properties extracted from image!",
     "noProductsToExtractPropertiesToastDescription": "No products to extract properties from. Property extraction step skipped.",
     "errorToastTitle": "Error",
-    "imageReadError": "Failed to read image file."
+    "imageReadError": "Failed to read image file.",
+    "searchSectionTitle": "Find Local Deals",
+    "searchPlaceholder": "Search for products, services, or stores...",
+    "categoryFiltersTitle": "Filter by Category",
+    "dealsFeedTitle": "Deals Near You",
+    "noDealsFound": "No deals found nearby at the moment. Check back later!",
+    "dealCardPriceLabel": "Price",
+    "dealCardStoreLabel": "Store",
+    "dealCardDistanceLabel": "Distance",
+    "dealCardExpiresLabel": "Expires in",
+    "categorySnacks": "Snacks",
+    "categoryPizzas": "Pizzas",
+    "categoryDrinks": "Drinks",
+    "categoryGrocery": "Grocery",
+    "viewDealButton": "View Deal"
   },
   "MonitoringPage": {
     "title": "Price Monitoring - Real Price",
