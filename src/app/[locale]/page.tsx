@@ -1,17 +1,16 @@
-
 'use client';
 
-// Este componente de página agora usará AppLayout, que precisa do AuthContext.
-// Apenas certifique-se de que AppLayout está corretamente importado e usado.
-// Nenhuma mudança direta é necessária aqui se AppLayout já consome o AuthContext
-// e este page.tsx está simplesmente renderizando AppLayout.
+import {useTranslations} from 'next-intl';
 
-import AppLayout from '@/components/AppLayout';
+export default function MinimalLocalePage() {
+  const t = useTranslations('MinimalPage');
 
-export default function LocalePage() {
-  // O AppLayout será renderizado aqui e terá acesso ao AuthContext
-  // porque AuthProvider está no LocaleLayout acima dele.
-  return <AppLayout />;
+  return (
+    <div style={{ padding: '20px', fontFamily: 'sans-serif' }}>
+      <h1>{t('title')}</h1>
+      <p>{t('greeting')}</p>
+      <p>Current Locale: {useTranslations()('Locale') === 'pt' ? 'Português' : 'English (or other)'}</p>
+      <p>Testing another key (expect fallback or error if not defined): {t('nonExistentKey', {defaultValue: 'Fallback for nonExistentKey'})}</p>
+    </div>
+  );
 }
-
-    
