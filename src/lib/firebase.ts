@@ -6,173 +6,160 @@ import { getDatabase, type Database } from "firebase/database";
 // import { getFirestore } from "firebase/firestore"; // Descomente se for usar Firestore
 // import { getStorage } from "firebase/storage"; // Descomente se for usar Storage
 
-// Log all NEXT_PUBLIC_FIREBASE_ prefixed environment variables for diagnostics
 console.log("--------------------------------------------------------------------------------------");
-console.log("[Firebase Setup] Iniciando Diagnóstico de Variáveis de Ambiente Firebase...");
+console.log("[Firebase Setup V2] Iniciando Diagnóstico Detalhado de Variáveis de Ambiente Firebase...");
 console.log("--------------------------------------------------------------------------------------");
-let foundFirebaseVars = false;
-for (const key in process.env) {
-  if (key.startsWith("NEXT_PUBLIC_FIREBASE_")) {
-    console.log(`[Firebase Setup] Variável de Ambiente Encontrada: ${key} = "${process.env[key]}"`);
-    foundFirebaseVars = true;
+
+const firebaseEnvVars = {
+  NEXT_PUBLIC_FIREBASE_API_KEY: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
+  NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
+  NEXT_PUBLIC_FIREBASE_PROJECT_ID: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+  NEXT_PUBLIC_FIREBASE_DATABASE_URL: process.env.NEXT_PUBLIC_FIREBASE_DATABASE_URL,
+  NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
+  NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+  NEXT_PUBLIC_FIREBASE_APP_ID: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
+  NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID,
+};
+
+let allCriticalVarsPresent = true;
+for (const [key, value] of Object.entries(firebaseEnvVars)) {
+  console.log(`[Firebase Setup V2] Variável de Ambiente Lida: ${key} = "${value === undefined ? 'UNDEFINED' : (value === '' ? 'EMPTY_STRING' : value)}"`);
+  if (key === 'NEXT_PUBLIC_FIREBASE_API_KEY' || key === 'NEXT_PUBLIC_FIREBASE_PROJECT_ID' || key === 'NEXT_PUBLIC_FIREBASE_DATABASE_URL') {
+    if (value === undefined || value === '') {
+      console.error(`[Firebase Setup V2] ERRO CRÍTICO IMEDIATO: Variável de ambiente OBRIGATÓRIA "${key}" está ausente ou vazia.`);
+      allCriticalVarsPresent = false;
+    }
   }
 }
-if (!foundFirebaseVars) {
-  console.log("[Firebase Setup] NENHUMA variável de ambiente com prefixo NEXT_PUBLIC_FIREBASE_ foi encontrada em process.env.");
-}
-console.log("--------------------------------------------------------------------------------------");
-console.log("[Firebase Setup] --- Fim do Diagnóstico de Variáveis de Ambiente Firebase ---");
-console.log("--------------------------------------------------------------------------------------");
 
-
-const rawDbURLFromEnv = process.env.NEXT_PUBLIC_FIREBASE_DATABASE_URL;
-console.log("[Firebase Setup] Valor bruto de NEXT_PUBLIC_FIREBASE_DATABASE_URL do ambiente (não deve estar vazio ou indefinido):", `"${rawDbURLFromEnv}"`);
-
-const dbURL = rawDbURLFromEnv;
-
-// Adicionando um log extra para máxima clareza sobre o valor que está sendo testado:
-console.log(`[Firebase Setup] DIAGNOSTIC: VALOR SENDO VERIFICADO PARA dbURL (derivado de NEXT_PUBLIC_FIREBASE_DATABASE_URL): "${dbURL}"`);
-
-if (typeof dbURL !== 'string' || !dbURL.startsWith('https://')) {
-  let serverLogErrorMessage = `
+if (!allCriticalVarsPresent) {
+  const criticalErrorMessage = `
     --------------------------------------------------------------------------------------
-    [Firebase Setup] ERRO CRÍTICO DE CONFIGURAÇÃO DO FIREBASE (Server Log)
+    [Firebase Setup V2] ERRO CRÍTICO DE CONFIGURAÇÃO DO FIREBASE (Server Log Pré-Inicialização)
     --------------------------------------------------------------------------------------
-    A variável de ambiente NEXT_PUBLIC_FIREBASE_DATABASE_URL está ausente, com valor inválido, ou não começa com "https://".
-    Valor recebido para NEXT_PUBLIC_FIREBASE_DATABASE_URL que causou o erro: "${dbURL}"
-    Isso impede a inicialização do Firebase Realtime Database.
-    
+    UMA OU MAIS variáveis de ambiente CRÍTICAS do Firebase (API_KEY, PROJECT_ID, DATABASE_URL) estão AUSENTES ou VAZIAS.
+    Isso impede a inicialização do Firebase.
+    Consulte os logs acima para ver qual(is) variável(is) específica(s) está(ão) faltando.
+
     >>> VERIFIQUE IMEDIATAMENTE AS VARIÁVEIS DE AMBIENTE NO SEU PROJETO VERCEL: <<<
     1. Acesse: Vercel Dashboard -> Seu Projeto -> Settings -> Environment Variables.
-    2. Confirme que 'NEXT_PUBLIC_FIREBASE_DATABASE_URL' existe, está escrita corretamente e possui o URL HTTPS completo do seu Firebase Realtime Database.
-       Exemplo: "https://seu-projeto-id-default-rtdb.firebaseio.com" ou "https://seu-projeto-id-default-rtdb.sua-regiao.firebasedatabase.app"
-    3. Garanta que a variável está disponível para o ambiente correto (Production, Preview, Development).
+    2. Confirme que TODAS as variáveis NEXT_PUBLIC_FIREBASE_* necessárias (especialmente API_KEY, PROJECT_ID, DATABASE_URL) existem, estão escritas corretamente e possuem valores válidos.
+    3. Garanta que as variáveis estão disponíveis para o ambiente correto (Production, Preview, Development).
     4. FAÇA UM NOVO DEPLOY após qualquer correção.
     --------------------------------------------------------------------------------------
   `;
-
-  if (dbURL === "") {
-    serverLogErrorMessage = `
-    --------------------------------------------------------------------------------------
-    [Firebase Setup] ERRO CRÍTICO: NEXT_PUBLIC_FIREBASE_DATABASE_URL ESTÁ VAZIA (Server Log)
-    --------------------------------------------------------------------------------------
-    A variável de ambiente NEXT_PUBLIC_FIREBASE_DATABASE_URL foi recebida como uma STRING VAZIA ("").
-    Isso impede a inicialização do Firebase Realtime Database.
-    
-    >>> AÇÃO IMEDIATA NECESSÁRIA NAS CONFIGURAÇÕES DO SEU PROJETO VERCEL: <<<
-    1. Acesse: Vercel Dashboard -> Seu Projeto -> Settings -> Environment Variables.
-    2. VERIFIQUE O VALOR de 'NEXT_PUBLIC_FIREBASE_DATABASE_URL'. NÃO PODE ESTAR VAZIO.
-       Deve ser o URL HTTPS completo do seu Firebase Realtime Database (ex: https://<seu-projeto>.firebaseio.com).
-    3. Garanta que a variável está disponível para o ambiente correto (Production, Preview, Development).
-    4. FAÇA UM NOVO DEPLOY após corrigir o VALOR da variável.
-    --------------------------------------------------------------------------------------
-    `;
-  }
-  console.error(serverLogErrorMessage); // Este é o log detalhado que aparece no console do servidor da Vercel.
-  // A mensagem de erro lançada para a aplicação (que aparece no overlay do Next.js) permanece a mesma,
-  // pois já é clara e contém as instruções corretas para o usuário.
-  throw new Error( // Esta é a linha 61 no arquivo original, que corresponde à localização do erro que você está vendo
-    `Firebase setup halted. CRITICAL: The NEXT_PUBLIC_FIREBASE_DATABASE_URL environment variable is missing, empty, or invalid in your Vercel deployment (received: "${dbURL}"). ` +
-    `ACTION REQUIRED: 1. Go to your Vercel Project Settings -> Environment Variables. ` +
-    `2. Ensure 'NEXT_PUBLIC_FIREBASE_DATABASE_URL' is correctly set to your Firebase Realtime Database URL (e.g., 'https://your-project.firebaseio.com' or 'https://your-project.region.firebasedatabase.app'). ` +
-    `3. Ensure it's available to the correct Vercel environment (Production, Preview, Development). ` +
-    `4. Redeploy your application on Vercel after making changes. ` +
-    `For more detailed diagnostic steps, check the FULL SERVER CONSOLE LOGS on Vercel.`
+  console.error(criticalErrorMessage);
+  throw new Error(
+    `Firebase setup halted due to missing critical environment variables. Check Vercel server logs for details. ` +
+    `ACTION REQUIRED: Verify NEXT_PUBLIC_FIREBASE_API_KEY, NEXT_PUBLIC_FIREBASE_PROJECT_ID, and NEXT_PUBLIC_FIREBASE_DATABASE_URL in your Vercel project settings.`
   );
 }
 
-// Outras verificações para problemas comuns, registradas como avisos se a URL for estruturalmente plausível
+const dbURL = firebaseEnvVars.NEXT_PUBLIC_FIREBASE_DATABASE_URL;
+
+console.log(`[Firebase Setup V2] Valor sendo usado para databaseURL (de NEXT_PUBLIC_FIREBASE_DATABASE_URL): "${dbURL}"`);
+
+if (typeof dbURL !== 'string' || !dbURL.startsWith('https://')) {
+  const dbUrlErrorMessage = `
+    --------------------------------------------------------------------------------------
+    [Firebase Setup V2] ERRO CRÍTICO DE CONFIGURAÇÃO DO FIREBASE (Server Log - Validação DATABASE_URL)
+    --------------------------------------------------------------------------------------
+    A variável de ambiente NEXT_PUBLIC_FIREBASE_DATABASE_URL ("${dbURL}") é inválida. Deve ser uma string começando com "https://".
+    Isso impede a inicialização do Firebase Realtime Database.
+    
+    >>> VERIFIQUE IMEDIATAMENTE A VARIÁVEL 'NEXT_PUBLIC_FIREBASE_DATABASE_URL' NO SEU PROJETO VERCEL: <<<
+    1. Acesse: Vercel Dashboard -> Seu Projeto -> Settings -> Environment Variables.
+    2. Confirme que 'NEXT_PUBLIC_FIREBASE_DATABASE_URL' possui o URL HTTPS completo do seu Firebase Realtime Database.
+       Exemplo: "https://seu-projeto-id-default-rtdb.firebaseio.com" ou "https://seu-projeto-id-default-rtdb.sua-regiao.firebasedatabase.app"
+    3. FAÇA UM NOVO DEPLOY após qualquer correção.
+    --------------------------------------------------------------------------------------
+  `;
+  console.error(dbUrlErrorMessage);
+  throw new Error(
+    `Firebase setup halted. CRITICAL: The NEXT_PUBLIC_FIREBASE_DATABASE_URL environment variable is invalid (received: "${dbURL}", expected format: "https://..."). ` +
+    `ACTION REQUIRED: Correct this in your Vercel project settings.`
+  );
+}
+
+
 if (dbURL && !dbURL.endsWith('.firebaseio.com') && !dbURL.endsWith('.firebasedatabase.app')) {
   console.warn(
-    `[Firebase Setup] POTENCIAL_INCOMPATIBILIDADE_DE_CONFIG: Sua NEXT_PUBLIC_FIREBASE_DATABASE_URL ("${dbURL}") NÃO termina com '.firebaseio.com' ou '.firebasedatabase.app'. 
-    Embora isso possa ser válido para algumas configurações mais novas do Firebase ou regiões específicas, se você encontrar erros "Cannot parse Firebase url" do SDK
-    que mencionam especificamente um formato particular (por exemplo, ".firebaseio.com"), pode ser necessário garantir que sua URL corresponda a esse formato.
-    Verifique no seu console do Firebase o URL exato do Realtime Database.`
+    `[Firebase Setup V2] POTENCIAL_INCOMPATIBILIDADE_DE_CONFIG: Sua NEXT_PUBLIC_FIREBASE_DATABASE_URL ("${dbURL}") NÃO termina com '.firebaseio.com' ou '.firebasedatabase.app'. 
+    Embora possa ser válido para configurações Firebase mais novas, se encontrar erros "Cannot parse Firebase url" do SDK que mencionem especificamente um formato (ex: ".firebaseio.com"),
+    pode ser necessário garantir que sua URL corresponda a esse formato. Verifique no seu console Firebase o URL exato do Realtime Database.`
   );
 }
 
 
 const firebaseConfig = {
-  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
-  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
-  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
-  databaseURL: dbURL, 
-  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
-  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
-  measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID, // Opcional
+  apiKey: firebaseEnvVars.NEXT_PUBLIC_FIREBASE_API_KEY,
+  authDomain: firebaseEnvVars.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
+  projectId: firebaseEnvVars.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+  databaseURL: dbURL,
+  storageBucket: firebaseEnvVars.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: firebaseEnvVars.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+  appId: firebaseEnvVars.NEXT_PUBLIC_FIREBASE_APP_ID,
+  measurementId: firebaseEnvVars.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID,
 };
 
 // Inicializa o Firebase
 let app: FirebaseApp;
 if (!getApps().length) {
   try {
-    console.log("[Firebase Setup] Tentando inicializar o app Firebase com a configuração (chave de API omitida):", { ...firebaseConfig, apiKey: firebaseConfig.apiKey ? "[OMITIDA]" : undefined, databaseURL: dbURL });
+    console.log("[Firebase Setup V2] Tentando inicializar o app Firebase com a configuração (apiKey e databaseURL mostrados para depuração em Vercel logs, serão omitidos em outros contextos):", { ...firebaseConfig, apiKey: firebaseConfig.apiKey ? firebaseConfig.apiKey : "API_KEY_AUSENTE_NA_CONFIG", databaseURL: firebaseConfig.databaseURL });
     app = initializeApp(firebaseConfig);
-    console.log("[Firebase Setup] App Firebase inicializado com sucesso.");
+    console.log("[Firebase Setup V2] App Firebase inicializado com sucesso.");
   } catch (error: any) {
-    console.error(`[Firebase Setup] FIREBASE_INIT_APP_ERROR: Erro durante a inicialização do app Firebase. Isso pode ocorrer se outros valores de configuração (como projectId) também estiverem incorretos ou ausentes. URL fornecida para a configuração: "${firebaseConfig.databaseURL}". Erro original:`, error.message, error.stack);
-    // Fornece um erro mais amigável que orienta o usuário.
+    console.error(`[Firebase Setup V2] FIREBASE_INIT_APP_ERROR: Erro durante initializeApp. Configuração usada:`, { ...firebaseConfig, apiKey: "[OMITIDO_NO_LOG_DE_ERRO]" }, `Erro original:`, error.message, error.stack);
     throw new Error(
-      `A inicialização do app Firebase falhou. Isso pode ser devido a problemas com NEXT_PUBLIC_FIREBASE_PROJECT_ID ou outras variáveis de configuração do Firebase na Vercel. A databaseURL usada foi "${firebaseConfig.databaseURL}". Erro original: ${error.message}. ` +
-      `Por favor, verifique todas as variáveis de ambiente NEXT_PUBLIC_FIREBASE_* nas configurações do seu projeto Vercel e verifique os logs do servidor para detalhes.`
+      `A inicialização do app Firebase falhou (initializeApp). Isso geralmente ocorre devido a valores ausentes ou incorretos em NEXT_PUBLIC_FIREBASE_PROJECT_ID ou NEXT_PUBLIC_FIREBASE_API_KEY. Verifique os logs do servidor Vercel. Erro original: ${error.message}.`
       );
   }
 } else {
   app = getApp();
-  console.log("[Firebase Setup] Usando instância existente do app Firebase.");
+  console.log("[Firebase Setup V2] Usando instância existente do app Firebase.");
 }
 
 let db: Database;
 try {
   const effectiveDbURLFromApp = app.options.databaseURL;
-  console.log("[Firebase Setup] Tentando obter instância do Database. databaseURL efetiva das opções do app Firebase:", effectiveDbURLFromApp);
+  console.log("[Firebase Setup V2] Tentando obter instância do Database. databaseURL efetiva das opções do app Firebase:", effectiveDbURLFromApp);
 
   if (!effectiveDbURLFromApp || typeof effectiveDbURLFromApp !== 'string' || !effectiveDbURLFromApp.startsWith('https://') ) {
-      const configErrorMsg = `[Firebase Setup] FIREBASE_GET_DATABASE_PRE_CHECK_ERROR: A databaseURL efetiva ('${effectiveDbURLFromApp}') da instância do app Firebase inicializada é inválida ou está ausente. Esta URL é derivada da variável de ambiente NEXT_PUBLIC_FIREBASE_DATABASE_URL. Por favor, certifique-se de que está configurada corretamente na Vercel. O formato esperado geralmente começa com "https://" e frequentemente termina com ".firebaseio.com" ou ".firebasedatabase.app". O erro do SDK do Firebase fornecerá a orientação mais específica.`;
-      console.error(configErrorMsg);
-      throw new Error(configErrorMsg); 
+      const getDbConfigErrorMsg = `[Firebase Setup V2] FIREBASE_GET_DATABASE_PRE_CHECK_ERROR: A databaseURL efetiva ('${effectiveDbURLFromApp}') da instância do app Firebase é inválida ou ausente. Isso é derivado de NEXT_PUBLIC_FIREBASE_DATABASE_URL. Verifique sua configuração na Vercel.`;
+      console.error(getDbConfigErrorMsg);
+      throw new Error(getDbConfigErrorMsg);
   }
-  
-  db = getDatabase(app); 
-  console.log("[Firebase Setup] Instância do Firebase Database obtida com sucesso.");
+
+  db = getDatabase(app);
+  console.log("[Firebase Setup V2] Instância do Firebase Database obtida com sucesso.");
 } catch (error: any) {
-   const finalEffectiveDbURL = app.options.databaseURL; 
+   const finalEffectiveDbURL = app.options.databaseURL;
    const detailedErrorMessageForGetDatabase = `
     --------------------------------------------------------------------------------------
-    FALHA CRÍTICA NA INICIALIZAÇÃO DO BANCO DE DADOS FIREBASE (DURANTE GET_DATABASE)
-    (Provavelmente devido a um formato ou valor incorreto de NEXT_PUBLIC_FIREBASE_DATABASE_URL nas configurações de ambiente da Vercel, ou uma incompatibilidade do SDK com o formato de URL fornecido)
+    FALHA CRÍTICA NA INICIALIZAÇÃO DO BANCO DE DADOS FIREBASE (DURANTE GET_DATABASE) - V2
     --------------------------------------------------------------------------------------
-    Falha ao obter instância do Firebase Database usando getDatabase(app).
-    O SDK do Firebase lançou um erro: "${error.message}" (Código: ${error.code || 'N/A'})
-    Este erro quase sempre significa que a 'databaseURL' que o SDK está tentando usar está incorreta, malformada ou inacessível.
-    
-    databaseURL efetiva usada pela instância do app Firebase durante esta tentativa: '${finalEffectiveDbURL}'
-    Esta URL foi derivada da variável de ambiente NEXT_PUBLIC_FIREBASE_DATABASE_URL (Valor inicial registrado como: '${rawDbURLFromEnv}').
+    Falha ao obter instância do Firebase Database: getDatabase(app).
+    Erro SDK: "${error.message}" (Código: ${error.code || 'N/A'})
+    Isto geralmente significa que 'databaseURL' está incorreta, malformada, ou o SDK não consegue acessá-la.
 
-    >>> PASSOS PARA SOLUÇÃO DE PROBLEMAS (VERIFIQUE NOVAMENTE AS VARIÁVEIS DE AMBIENTE DA VERCEL): <<<
-    1. REVEJA COM MUITO CUIDADO o valor de NEXT_PUBLIC_FIREBASE_DATABASE_URL nas "Settings" -> "Environment Variables" do seu projeto Vercel.
-    2. Certifique-se de que foi copiado EXATAMENTE da seção Realtime Database do seu projeto Firebase no Console do Firebase.
-    3. A própria mensagem de erro do Firebase (como "Cannot parse Firebase url. Please use https://<YOUR FIREBASE>.firebaseio.com") é UMA PISTA FORTE. Pode indicar que o formato da URL DEVE corresponder a esse padrão específico para sua versão/região do SDK, mesmo que seu console mostre uma URL ligeiramente diferente.
-    4. Erros comuns:
-        - Erros de digitação ou espaços/caracteres extras no NOME ou VALOR da variável.
-        - Usar a URL do ID do projeto (project.firebaseapp.com) ou URL do Hosting em vez da URL do REALTIME DATABASE.
-        - Prefixo "https://" ausente.
-        - Usar um sufixo incorreto (por exemplo, ".firebasedatabase.app" quando o SDK espera ".firebaseio.com" devido à sua lógica interna de análise ou configuração regional).
+    URL efetiva usada pelo SDK nesta tentativa: '${finalEffectiveDbURL}'
+    (Esta URL veio de NEXT_PUBLIC_FIREBASE_DATABASE_URL, cujo valor inicial foi: '${firebaseEnvVars.NEXT_PUBLIC_FIREBASE_DATABASE_URL}')
 
-    Se a URL do seu console do Firebase for, por exemplo, "https://projeto.regiao.firebasedatabase.app", mas o erro do SDK mencionar *especificamente* ".firebaseio.com", 
-    o analisador interno do SDK pode estar esperando o formato mais antigo. Priorize o formato sugerido pela mensagem de erro do SDK ou pela documentação oficial do Firebase para sua versão do SDK.
-    Certifique-se de que a variável está disponível para os ambientes corretos da Vercel (Production, Preview, Development).
-    Um novo deploy é necessário após alterar as variáveis de ambiente na Vercel.
+    >>> AÇÃO NECESSÁRIA - VERIFIQUE AS VARIÁVEIS DE AMBIENTE DA VERCEL <<<
+    1. REVEJA CUIDADOSAMENTE 'NEXT_PUBLIC_FIREBASE_DATABASE_URL' nas "Environment Variables" do seu projeto Vercel.
+    2. COPIE EXATAMENTE da seção Realtime Database do seu Firebase Console.
+    3. A mensagem de erro do Firebase (ex: "Cannot parse Firebase url. Please use https://<YOUR FIREBASE>.firebaseio.com") é uma PISTA IMPORTANTE. Pode indicar que o SDK espera um formato específico de URL.
+    4. Erros comuns: typos, URL de Hosting/Project ID em vez de Database URL, "https://" ausente, sufixo incorreto (.firebasedatabase.app vs .firebaseio.com).
+    5. Se a URL do seu console Firebase é, por exemplo, "https://projeto.regiao.firebasedatabase.app", mas o erro do SDK menciona ".firebaseio.com", o SDK pode esperar o formato mais antigo.
+    Priorize o formato sugerido pela mensagem de erro do SDK ou documentação oficial.
+    Garanta que a variável está disponível para os ambientes corretos da Vercel. Redeploy após corrigir.
     --------------------------------------------------------------------------------------
     `;
-    console.error(detailedErrorMessageForGetDatabase); 
+    console.error(detailedErrorMessageForGetDatabase);
     throw new Error(
-      `A configuração do Firebase Database falhou devido a NEXT_PUBLIC_FIREBASE_DATABASE_URL inválida (URL efetiva usada pelo SDK: '${finalEffectiveDbURL}'). Erro do SDK Firebase: ${error.message}. ` +
-      `AÇÃO NECESSÁRIA: 1. Vá para as Configurações do seu Projeto Vercel -> Variáveis de Ambiente. ` +
-      `2. Certifique-se de que 'NEXT_PUBLIC_FIREBASE_DATABASE_URL' está configurada corretamente. ` +
-      `3. VERIFIQUE OS LOGS COMPLETOS DO CONSOLE DO SERVIDOR na Vercel para INSTRUÇÕES DETALHADAS. ` +
-      `4. Faça um novo deploy após corrigir.`
+      `A configuração do Firebase Database falhou em getDatabase() devido a NEXT_PUBLIC_FIREBASE_DATABASE_URL inválida (URL efetiva: '${finalEffectiveDbURL}'). Erro SDK: ${error.message}. ` +
+      `AÇÃO: Verifique 'NEXT_PUBLIC_FIREBASE_DATABASE_URL' nas config. da Vercel e os LOGS COMPLETOS DO SERVIDOR para detalhes.`
       );
 }
 
