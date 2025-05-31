@@ -32,65 +32,64 @@
 - **UC1 (Principal): Descoberta de Ofertas Próximas (Feed Geolocalizado):**
     - O usuário (consumidor) abre o aplicativo Preço Real.
     - O aplicativo solicita e utiliza a localização GPS do usuário (com consentimento).
-    - O sistema exibe um feed de produtos/ofertas que estão sendo anunciados por lojas próximas ao usuário.
-    - Os anúncios são apresentados com informações como nome do produto, preço, nome da loja e distância.
+    - O sistema exibe um feed de produtos/ofertas que estão sendo anunciados por lojas próximas ao usuário. (DADOS REAIS DO FIREBASE SENDO BUSCADOS, SEM GEOLOCALIZAÇÃO AVANÇADA AINDA)
+    - Os anúncios são apresentados com informações como nome do produto, preço, nome da loja e distância (calculada se localizações disponíveis).
     - O usuário pode rolar o feed para ver mais ofertas.
 - **UC2 (Principal): Filtragem e Busca de Produto Específico por Proximidade:**
     - (Continuando do UC1 ou como uma ação separada) O usuário deseja um produto específico (ex: "hot dog").
-    - O usuário utiliza um filtro de categoria (ex: toca no ícone "hot dog") ou uma barra de busca.
-    - O sistema exibe uma lista de todas as lojas próximas que anunciaram "hot dogs" (ou o produto buscado), ordenadas pela proximidade em relação ao usuário.
+    - O usuário utiliza um filtro de categoria (ex: toca no ícone "hot dog") ou uma barra de busca. (FILTROS E BUSCA FUNCIONAM COM DADOS REAIS, CLIENT-SIDE)
+    - O sistema exibe uma lista de todas as lojas próximas que anunciaram "hot dogs" (ou o produto buscado), ordenadas pela proximidade em relação ao usuário (ORDENAÇÃO POR PROXIMIDADE PENDENTE, REQUER GEOLOCALIZAÇÃO AVANÇADA).
     - Cada item da lista mostra o nome da loja, o produto, o preço anunciado e a distância.
 - **UC3 (Lojista): Cadastro e Gerenciamento de Perfil de Loja:**
-    - Um proprietário de loja se cadastra no Preço Real como "lojista" (requer autenticação).
-    - O lojista preenche o perfil da sua loja, incluindo nome, endereço, tipo de estabelecimento e, crucialmente, define sua localização geográfica (que pode ser validada ou inserida manualmente).
+    - Um proprietário de loja se cadastra no Preço Real como "lojista" (requer autenticação - AUTENTICAÇÃO IMPLEMENTADA).
+    - O lojista preenche o perfil da sua loja, incluindo nome, endereço, tipo de estabelecimento e, crucialmente, define sua localização geográfica. (CRIAÇÃO/VISUALIZAÇÃO DE PERFIL DE LOJA IMPLEMENTADA).
 - **UC4 (Lojista): Publicação de Anúncios/Ofertas:**
-    - O lojista autenticado acessa a interface para criar um novo anúncio.
+    - O lojista autenticado acessa a interface para criar um novo anúncio. (PENDENTE)
     - Ele informa o nome do produto, preço, categoria, opcionalmente uma descrição e imagem.
     - O sistema define automaticamente a validade do anúncio (ex: 24 horas a partir da publicação).
     - O anúncio publicado aparece no feed de usuários próximos que se encaixam na categoria do produto.
 - **UC5 (Sistema): Gerenciamento de Anúncios e Histórico de Preços:**
-    - Anúncios publicados têm um tempo de vida limitado (ex: 24 horas).
-    - Após a expiração, o anúncio desaparece do feed ativo dos usuários.
-    - Os dados do anúncio expirado (produto, preço, loja, data) são registrados no sistema de histórico de preços associado ao produto (se for um produto catalogado) e/ou à loja.
+    - Anúncios publicados têm um tempo de vida limitado (ex: 24 horas). (VERIFICAÇÃO DE EXPIRAÇÃO NO CLIENTE IMPLEMENTADA AO BUSCAR ANÚNCIOS).
+    - Após a expiração, o anúncio desaparece do feed ativo dos usuários. (LÓGICA DE ATUALIZAÇÃO DE STATUS NO BD PENDENTE).
+    - Os dados do anúncio expirado (produto, preço, loja, data) são registrados no sistema de histórico de preços associado ao produto (se for um produto catalogado) e/ou à loja. (PENDENTE)
 - **UC6: Análise de Imagem (Upload ou Câmera) para Busca de Ofertas:**
     - Um usuário (consumidor), como o de Formosa, Goiás, está com fome e quer um "hot dog".
     - Ele abre o app Preço Real, que atualiza o feed de ofertas locais.
-    - O usuário pode opcionalmente tocar no ícone da câmera, **tirar uma foto de um hot dog** (ou selecionar uma imagem do seu dispositivo).
-    - O sistema identifica "hot dog" na imagem.
-    - O sistema então busca e exibe uma lista de todas as lojas que vendem "hot dogs", ordenadas por proximidade (esta busca de lojas ainda precisa ser adaptada para usar o feed de anúncios `/advertisements` em vez do antigo `productAvailability`).
-    - (Original) O usuário (consumidor) tem um item físico mas não sabe o nome exato para buscar ofertas. O usuário seleciona uma imagem do item do seu dispositivo e faz o upload (ou tira uma foto). O sistema identifica objetos na imagem (ex: "lata de refrigerante"). O usuário pode então usar o nome do objeto identificado para buscar ofertas no Preço Real (ver UC2). O sistema pode, opcionalmente, exibir traduções dos nomes dos objetos.
+    - O usuário pode opcionalmente tocar no ícone da câmera, **tirar uma foto de um hot dog** (ou selecionar uma imagem do seu dispositivo). (FUNCIONALIDADE DE CÂMERA E UPLOAD IMPLEMENTADA NA ABA "IDENTIFICAR")
+    - O sistema identifica "hot dog" na imagem. (FLUXO DE IDENTIFICAÇÃO EXISTENTE)
+    - O sistema então busca e exibe uma lista de todas as lojas que vendem "hot dogs", ordenadas por proximidade (esta busca de lojas ainda precisa ser adaptada para usar o feed de anúncios `/advertisements` em vez do antigo `productAvailability`). (BUSCA DE LOJAS USA `findProductStoresFlow` QUE CONSULTA `productAvailability`).
 - **UC7 (Apoio à busca via imagem): Descoberta de Produtos Relacionados (IA):**
-    - Após a identificação de objetos (UC6), se o usuário desejar, o sistema (via IA) pode sugerir produtos comercialmente disponíveis que são relevantes (usando nomes em inglês/idioma base).
+    - Após a identificação de objetos (UC6), se o usuário desejar, o sistema (via IA) pode sugerir produtos comercialmente disponíveis que são relevantes (usando nomes em inglês/idioma base). (IMPLEMENTADO NA ABA "IDENTIFICAR")
 - **UC8 (Apoio à informação via imagem): Extração de Propriedades de Produtos (IA):**
-    - Para produtos identificados (UC6) ou encontrados (UC7), o sistema (via IA) pode extrair e apresentar características importantes (ex: cor, material, marca), se aplicável e útil para o contexto de "Preço Real".
+    - Para produtos identificados (UC6) ou encontrados (UC7), o sistema (via IA) pode extrair e apresentar características importantes (ex: cor, material, marca), se aplicável e útil para o contexto de "Preço Real". (IMPLEMENTADO NA ABA "IDENTIFICAR")
 - **UC9 (Para análise de imagem): Feedback Visual do Processamento:**
-    - O usuário visualiza o progresso da análise da imagem em etapas.
-    - O usuário recebe notificações (toasts) sobre o status e erros.
+    - O usuário visualiza o progresso da análise da imagem em etapas. (IMPLEMENTADO NA ABA "IDENTIFICAR")
+    - O usuário recebe notificações (toasts) sobre o status e erros. (IMPLEMENTADO)
 - **UC10: Consulta de Produtos no Banco de Dados (Catálogo - via análise de imagem):**
     - O usuário (ou o sistema através da análise de imagem) pode pesquisar produtos existentes no catálogo de produtos canônicos do Preço Real.
-    - O sistema exibe informações do produto, incluindo dados multilíngues e, potencialmente, um resumo do histórico de preços. Esta busca é atualmente feita pelo `findStoresTool` com base em um `canonicalName`.
+    - O sistema exibe informações do produto, incluindo dados multilíngues e, potencialmente, um resumo do histórico de preços. Esta busca é atualmente feita pelo `findStoresTool` com base em um `canonicalName`. (IMPLEMENTADO VIA `findProductStoresFlow`)
 - **UC11: Gerenciamento de Dados de Produtos e Perfis de Consumidor (com Autenticação):**
-    - Usuários consumidores autenticados poderão salvar preferências, locais frequentes, etc.
-    - Administradores do Preço Real (se houver) poderão gerenciar o catálogo de produtos canônicos, categorias, etc.
+    - Usuários consumidores autenticados poderão salvar preferências, locais frequentes, etc. (PERFIS DE USUÁRIO PENDENTE, AUTENTICAÇÃO IMPLEMENTADA)
+    - Administradores do Preço Real (se houver) poderão gerenciar o catálogo de produtos canônicos, categorias, etc. (PENDENTE)
 - **UC12: Definição de Idioma da Interface:**
     - O sistema pode tentar detectar o idioma preferido do usuário.
-    - O usuário terá a opção de selecionar manually o idioma da interface (Português/Inglês) (CONCLUÍDO).
-    - A interface suporta i18n (CONCLUÍDO para textos básicos, metadados e seletor de idioma).
+    - O usuário terá a opção de selecionar manually o idioma da interface (Português/Inglês). (CONCLUÍDO)
+    - A interface suporta i18n. (CONCLUÍDO)
 - **UC13: Monitoramento de Dados Agregados:**
-    - O usuário (administrador ou analista do Preço Real) acessa uma página de monitoramento.
+    - O usuário (administrador ou analista do Preço Real) acessa uma página de monitoramento. (PÁGINA EXISTENTE)
     - O usuário seleciona um produto ou categoria.
-    - O sistema exibe o valor médio desse produto/categoria em diferentes regiões/países onde há anúncios registrados, com base nos dados de anúncios expirados e perfis de lojas.
+    - O sistema exibe o valor médio desse produto/categoria em diferentes regiões/países onde há anúncios registrados, com base nos dados de anúncios expirados e perfis de lojas. (PÁGINA DE MONITORAMENTO USA `productAvailability`, PRECISA ADAPTAR PARA `/advertisements` E HISTÓRICO)
 - **UC14 (Administrador): Interação com Superagente de Análise via Chat:**
     - O administrador acessa uma página de chat dedicada (ex: `/admin/super-agent-chat`).
-    - O administrador interage com o "Superagente de Análise e Relatórios" para obter insights sobre o projeto, uso do banco de dados, atividade de usuários, possíveis falhas ou pontos de atenção. (Interface placeholder CONCLUÍDA; interação básica com respostas placeholder CONCLUÍDA).
+    - O administrador interage com o "Superagente de Análise e Relatórios" para obter insights sobre o projeto, uso do banco de dados, atividade de usuários, possíveis falhas ou pontos de atenção. (INTERFACE DE CHAT INTERATIVA COM RESPOSTAS PLACEHOLDER DO FLUXO GENKIT CONCLUÍDA).
 - **UC15 (Variação de UC6): Uso da Câmera para Identificação e Busca Rápida:**
     - Um usuário abre o Preço Real.
     - O aplicativo exibe o feed de ofertas locais.
-    - O usuário toca no ícone da câmera (dentro da seção "Identificar Produto por Imagem").
+    - O usuário toca no ícone da câmera (na aba "Identificar").
     - O aplicativo solicita permissão para usar a câmera.
     - O usuário tira uma foto de um item (ex: um hot dog).
     - A imagem capturada é usada para identificar o objeto ("hot dog").
-    - O sistema busca e exibe uma lista de lojas que anunciam "hot dogs", ordenadas por proximidade. (CONCLUÍDO o uso da câmera; a busca de ofertas ainda usa o modelo antigo).
+    - O sistema busca e exibe uma lista de lojas que anunciam "hot dogs", ordenadas por proximidade. (CONCLUÍDO o uso da câmera; a busca de ofertas ainda usa o modelo antigo de `findProductStoresFlow`).
 
 ## 3. Estado Atual
 
@@ -105,37 +104,43 @@ O aplicativo "Preço Real" está em um estágio funcional, com as seguintes tecn
     - `findProductStoresFlow` (com `findStoresTool`): Busca lojas (atualmente consulta o Firebase para um modelo de produto/loja mais estático, baseado em `productAvailability` e `products`).
     - `superAgentAnalyticsChatFlow`: Fluxo para o chat com o superagente de análise (retorna respostas placeholder).
 - **Testes:** Configuração de Jest.
-- **Banco de Dados:** Firebase Realtime Database (estrutura inicial para produtos e lojas; necessita ser expandida para anúncios e perfis de lojistas).
+- **Banco de Dados:** Firebase Realtime Database (estrutura inicial para produtos e lojas; estrutura para anúncios (`/advertisements`) sendo utilizada para o feed).
 - **Deployment:** Configurado para Vercel (funciona bem em produção com as variáveis de ambiente corretas).
 - **Geolocalização:** Frontend obtém localização do usuário.
-- **Página de Monitoramento:** Exibe valor médio de produtos por país (baseado na estrutura de dados atual).
+- **Página de Monitoramento:** Exibe valor médio de produtos por país (baseado na estrutura de dados `productAvailability`).
 - **Internacionalização (i18n):** Suporte para Português ("Preço Real") e Inglês ("Real Price") com `next-intl`, incluindo metadados e seletor de idioma.
-- **Layout da Página Principal:** Reformulado para ser um "Feed de Ofertas" com busca, filtros de categoria (mockados) e exibição de ofertas (mockadas). A funcionalidade de análise de imagem (upload e captura pela câmera) foi mantida como uma ferramenta de apoio na mesma página, dentro de um acordeão.
-- **Funcionalidade de Captura de Foto via Câmera:** Adicionada (UC15).
+- **Layout da Página Principal:** Reformulado para usar abas (Ofertas, Identificar, Mapa - desabilitado, Conta), inspirado no layout do WhatsApp. O feed de ofertas na aba "Ofertas" agora busca dados reais do nó `/advertisements` do Firebase, filtrando por status "active" e calculando tempo de expiração. Busca textual e filtros de categoria (client-side) funcionam sobre os dados carregados.
+- **Funcionalidade de Captura de Foto via Câmera:** Adicionada e integrada na aba "Identificar" (UC15).
 - **Página de Chat com Superagente:** Criada em `/admin/super-agent-chat` e agora permite interação básica (envio de mensagens e recebimento de respostas placeholder do fluxo Genkit).
+- **Autenticação:** Implementado sistema de autenticação com Firebase (Email/Senha). Usuários podem se cadastrar, fazer login e logout.
+- **Perfis de Lojistas:** Usuários autenticados podem criar e visualizar/editar um perfil básico de loja (nome, descrição, categoria, localização, moeda) que é salvo no Firebase em `/stores/{userId}`.
 
 Principais funcionalidades implementadas:
-- Feed de ofertas na página principal (com dados mockados).
-- Busca e filtros de categoria na página principal (filtram os dados mockados).
-- Upload de imagens e **captura de foto via câmera** para análise básica pela IA (identificação, produtos relacionados, propriedades).
+- Layout principal com navegação por abas (Ofertas, Identificar, Mapa (desabilitado), Conta).
+- Feed de ofertas na aba "Ofertas" buscando dados reais de `/advertisements` do Firebase (filtrando por `status: "active"`).
+- Cálculo de tempo de expiração para ofertas.
+- Cálculo de distância para ofertas (se localização do usuário e da loja disponíveis).
+- Busca textual e filtros de categoria (client-side) na aba "Ofertas" sobre os dados carregados.
+- Aba "Identificar" com upload de imagens e **captura de foto via câmera** para análise básica pela IA (identificação, produtos relacionados, propriedades).
 - Exibição de resultados da IA (relacionados à análise de imagem).
 - Interface para buscar lojas para produtos identificados por imagem (usa `findProductStoresFlow`).
 - Obtenção de localização GPS do usuário.
 - Notificações e feedback de progresso.
 - Design responsivo e tema customizado.
 - Configuração Firebase e Vercel.
-- Página de monitoramento básica.
+- Página de monitoramento básica (precisa ser adaptada para `/advertisements`).
 - Suporte i18n (PT/EN) para textos e metadados, incluindo seletor de idioma.
 - Página de chat com Superagente de Análise com interação básica (mensagens e respostas placeholder).
+- Autenticação de usuários (cadastro, login, logout com Firebase).
+- Criação e visualização de Perfis de Loja para usuários autenticados.
 
 **Desafios com a Mudança de Escopo (e próximos passos):**
 A transição para "Preço Real" com foco em anúncios de lojistas e feed geolocalizado requer:
-- Implementação de autenticação para lojistas.
-- Criação de uma interface para lojistas gerenciarem perfis e anúncios.
-- Desenvolvimento do sistema de feed geolocalizado (consultas espaciais no Firebase ou sistema RAG), substituindo os dados mockados.
-- Nova modelagem de dados para anúncios/ofertas com prazo de validade no Firebase.
-- Adaptação/criação dos fluxos de IA e ferramentas para o novo modelo de anúncios e busca no feed.
+- Implementação da interface para lojistas gerenciarem (CRUD completo) seus anúncios.
+- Desenvolvimento do sistema de feed geolocalizado com Geohashes ou RAG para buscas por proximidade eficientes, substituindo a busca atual que carrega todos os anúncios ativos.
+- Adaptação/criação dos fluxos de IA e ferramentas para o novo modelo de anúncios e busca no feed (ex: `findProductStoresFlow` precisa ser atualizado).
 - Desenvolvimento dos Superagentes de IA (ver seção 8).
+- Lógica para o sistema mover anúncios expirados para o histórico de preços.
 
 ## 4. Arquitetura do Banco de Dados (Firebase Realtime Database) - Proposta para "Preço Real"
 
@@ -152,7 +157,8 @@ Pode ser mantido para produtos comuns que lojistas podem referenciar, ou focar a
 - `createdAt`, `updatedAt`.
 *(Nota: Atualmente, o `findStoresTool` busca `canonicalName` aqui para encontrar um `productId` e depois usa `productAvailability`.)*
 
-### `/stores/{storeId}` (Perfis de Lojistas/Estabelecimentos)
+### `/stores/{storeId}` (Perfis de Lojistas/Estabelecimentos) - **IMPLEMENTADO CRUD BÁSICO**
+O `storeId` pode ser o `userId` do proprietário.
 - `ownerUserId` (string): ID do usuário Firebase autenticado que é o proprietário.
 - `name` (string): Nome do estabelecimento.
 - `description` (string, opcional): Descrição da loja.
@@ -165,15 +171,15 @@ Pode ser mantido para produtos comuns que lojistas podem referenciar, ou focar a
     - `coordinates` (objeto): Coordenadas GPS.
         - `lat` (number)
         - `lng` (number)
-    - `geohash` (string, opcional): Para consultas de proximidade no Firebase.
+    - `geohash` (string, opcional): Para consultas de proximidade no Firebase. (PENDENTE DE IMPLEMENTAÇÃO)
 - `logoUrl` (string, opcional).
 - `phone` (string, opcional).
 - `openingHours` (objeto, opcional).
 - `defaultCurrency` (string): "BRL".
 - `createdAt`, `updatedAt`.
-*(Nota: Atualmente usado pelo `findStoresTool` e pela página de Monitoramento para obter `name` e `countryCode`.)*
+*(Nota: Atualmente usado pelo `findStoresTool` e pela página de Monitoramento para obter `name` e `countryCode`. Também usado para salvar/carregar perfis de loja.)*
 
-### `/advertisements/{advertisementId}` (Anúncios/Ofertas dos Lojistas) - **NOVO NÓ PRINCIPAL PARA O FEED**
+### `/advertisements/{advertisementId}` (Anúncios/Ofertas dos Lojistas) - **UTILIZADO PARA O FEED ATUAL**
 Nó principal para o feed.
 - `storeId` (string): ID da loja que publicou (referência a `/stores/{storeId}`).
 - `productName` (string): Nome do produto/oferta anunciado (pode ser texto livre do lojista).
@@ -183,32 +189,33 @@ Nó principal para o feed.
 - `currency` (string): Moeda (ex: "BRL").
 - `category` (string): Categoria do produto/oferta (para filtros, ex: "Lanches", "Pizzas").
 - `imageUrl` (string, opcional): Imagem do produto/oferta.
+- `dataAiHint` (string, opcional): Dica para busca de imagem placeholder.
 - `postedAt` (timestamp): Quando o anúncio foi publicado.
 - `expiresAt` (timestamp): Quando o anúncio expira (ex: postedAt + 24 horas). Indexar por `expiresAt` para limpeza.
 - `location` (objeto): Coordenadas da loja (pode ser duplicado aqui para facilitar consultas geoespaciais ou referenciar `/stores/{storeId}/location`).
     - `lat` (number)
     - `lng` (number)
-    - `geohash` (string)
-- `status` (string): "active", "expired", "deleted". Indexar por `status` e `geohash`.
+    - `geohash` (string, opcional) (PENDENTE DE IMPLEMENTAÇÃO)
+- `status` (string): "active", "expired", "deleted". Indexar por `status` e `geohash`. (BUSCANDO POR "active")
 
 **Indexação para `/advertisements`:**
 Para otimizar o feed geolocalizado:
 - Firebase não suporta consultas geoespaciais complexas nativamente em Realtime DB de forma eficiente para grandes datasets.
-- **Opção 1 (Simplificada com Geohashes):** Armazenar `geohash` para a localização do anúncio (derivado das coordenadas da loja). Consultar por faixas de geohash próximas à localização do usuário. Requer lógica no cliente/servidor para calcular geohashes e faixas de consulta.
+- **Opção 1 (Simplificada com Geohashes):** Armazenar `geohash` para a localização do anúncio (derivado das coordenadas da loja). Consultar por faixas de geohash próximas à localização do usuário. Requer lógica no cliente/servidor para calcular geohashes e faixas de consulta. (PENDENTE)
 - **Opção 2 (RAG Geospacial - Visão Futura):** Como discutido, usar um sistema externo com banco de dados vetorial para buscas de proximidade mais avançadas.
 - **Opção 3 (Cloud Functions + Indexação Manual):** Usar Cloud Functions para manter índices secundários, por exemplo, por região/cidade e categoria, mas ainda limitado para proximidade fina.
 
-Consultas típicas para o feed: "buscar anúncios ativos dentro de uma área geográfica (via geohash/faixa) e opcionalmente por categoria, ordenados por `postedAt` descendente ou por proximidade (se a consulta geospacial permitir)".
+Consultas típicas para o feed: "buscar anúncios ativos dentro de uma área geográfica (via geohash/faixa) e opcionalmente por categoria, ordenados por `postedAt` descendente ou por proximidade (se a consulta geospacial permitir)". (ATUALMENTE BUSCA TODOS OS ATIVOS, FILTRA CLIENT-SIDE, SEM ORDENAÇÃO GEOSPACIAL).
 
-### `/productAvailability/{productId}/{storeId}` (Disponibilidade - Estrutura Atual)
+### `/productAvailability/{productId}/{storeId}` (Disponibilidade - Estrutura Antiga)
 - `currentPrice` (number)
 - `currency` (string)
 - `inStock` (boolean, opcional)
 - `productUrl` (string, opcional)
 - `lastSeen` (timestamp, opcional)
-*(Nota: Atualmente usado pelo `findStoresTool` e pela página de Monitoramento. Precisará ser avaliado se será substituído ou complementado pela estrutura `/advertisements`.)*
+*(Nota: Atualmente usado pelo `findStoresTool` e pela página de Monitoramento. Precisa ser avaliado se será substituído ou complementado pela estrutura `/advertisements`.)*
 
-### `/priceHistory/{productId}` ou `/productPriceTrends/{productId}`
+### `/priceHistory/{productId}` ou `/productPriceTrends/{productId}` (PENDENTE)
 Alimentado por anúncios expirados do nó `/advertisements`.
 - `"{timestamp}"`:
     - `price` (number)
@@ -216,15 +223,15 @@ Alimentado por anúncios expirados do nó `/advertisements`.
     - `storeId` (string) // Para saber de qual loja era o preço
     - `countryCode` (string) // Derivado da loja, para a página de monitoramento
 
-### `/userProfiles/{userId}` (Consumidores)
+### `/userProfiles/{userId}` (Consumidores) (PENDENTE)
 Mantém estrutura similar à anterior (preferências, localização).
 
 ## 5. Pontos de Atenção
 
 - **Escopo da Mudança:** O novo foco em "Preço Real" é uma mudança substancial que exigirá desenvolvimento significativo de novas funcionalidades (autenticação de lojistas, interface de anúncios, feed geolocalizado com dados reais).
-- **Consultas Geoespaciais:** Implementar buscas por proximidade eficientes no Firebase Realtime Database é desafiador. Geohashes são uma aproximação. RAG é uma solução mais robusta, mas complexa.
-- **Validade dos Anúncios:** Um sistema para gerenciar o ciclo de vida dos anúncios (ativação, expiração, remoção do feed, movimentação para histórico) será necessário (provavelmente via Cloud Functions ou agendamento).
-- **Dois Tipos de Usuário:** Gerenciar perfis e interfaces distintas para consumidores e lojistas.
+- **Consultas Geoespaciais:** Implementar buscas por proximidade eficientes no Firebase Realtime Database é desafiador. Geohashes são uma aproximação. RAG é uma solução mais robusta, mas complexa. (FEED ATUAL NÃO USA GEOHASHES AINDA).
+- **Validade dos Anúncios:** Um sistema para gerenciar o ciclo de vida dos anúncios (ativação, expiração, remoção do feed, movimentação para histórico) será necessário (provavelmente via Cloud Functions ou agendamento). (VERIFICAÇÃO DE EXPIRAÇÃO CLIENT-SIDE IMPLEMENTADA, LÓGICA DE ATUALIZAÇÃO DE STATUS NO BD PENDENTE).
+- **Dois Tipos de Usuário:** Gerenciar perfis e interfaces distintas para consumidores e lojistas. (PERFIS DE LOJISTAS EM ANDAMENTO).
 - **Moderação de Conteúdo:** Considerar como o conteúdo dos anúncios será monitorado.
 - **Precisão da IA (para função de apoio):** Continua relevante se a análise de imagem for mantida.
 - **Limites da API e Custo:** O uso de IA e Firebase tem custos. O volume de anúncios e consultas geoespaciais pode impactar os custos do Firebase.
@@ -235,29 +242,27 @@ Mantém estrutura similar à anterior (preferências, localização).
 ## 6. Próximos Passos (Revisado para "Preço Real")
 
 - **Prioridade Imediata (Fundação para Lojistas e Anúncios):**
-    - **Autenticação de Usuários:** Implementar Firebase Authentication para consumidores e, crucialmente, para lojistas.
-    - **Perfis de Lojistas (CRUD):**
+    - **Autenticação de Usuários:** (CONCLUÍDO - Email/Senha).
+    - **Perfis de Lojistas (CRUD):** (CRIAÇÃO/VISUALIZAÇÃO CONCLUÍDA. Edição básica também. Exclusão pendente).
         - Desenvolver UI e lógica para lojistas se cadastrarem, criarem e gerenciarem seus perfis de loja (nome, localização/coordenadas, categoria, etc.).
         - Definir regras de segurança do Firebase para perfis de loja.
-    - **Sistema de Anúncios/Ofertas (CRUD para Lojistas):**
+    - **Sistema de Anúncios/Ofertas (CRUD para Lojistas):** (PENDENTE)
         - Desenvolver UI e lógica para lojistas criarem, visualizarem, editarem (se aplicável antes de expirar) e excluírem seus anúncios (produto, preço, categoria, validade).
         - Definir regras de segurança para anúncios.
 - **Prioridade Média (Feed para Consumidores com Dados Reais):**
     - **Implementação do Feed Geolocalizado (com Dados Reais):**
-        - Utilizar geolocalização do consumidor.
-        - Implementar busca de anúncios ativos no Firebase (do nó `/advertisements`) usando Geohashes para filtrar por proximidade (requer que lojas/anúncios tenham geohash).
-        - Substituir os dados mockados do feed por dados reais do Firebase.
-        - Exibir feed ordenado por data de postagem ou, se possível com geohash, por proximidade estimada.
-    - **Filtros para o Feed (com Dados Reais):** Implementar filtros por categoria de produto no feed, consultando o nó `/advertisements`.
+        - Utilizar geolocalização do consumidor. (CONCLUÍDO)
+        - Implementar busca de anúncios ativos no Firebase (do nó `/advertisements`). (CONCLUÍDO - BUSCA TODOS OS ATIVOS, SEM FILTRO GEO AVANÇADO).
+        - Usar Geohashes para filtrar por proximidade (requer que lojas/anúncios tenham geohash). (PENDENTE)
+        - Substituir os dados mockados do feed por dados reais do Firebase. (CONCLUÍDO)
+        - Exibir feed ordenado por data de postagem ou, se possível com geohash, por proximidade estimada. (ORDENAÇÃO POR DATA DE EXPIRAÇÃO IMPLEMENTADA, PROXIMIDADE PENDENTE).
+    - **Filtros para o Feed (com Dados Reais):** Implementar filtros por categoria de produto no feed, consultando o nó `/advertisements`. (CONCLUÍDO - FILTROS CLIENT-SIDE).
 - **Prioridade Contínua/Melhorias:**
-    - **Internacionalização (i18n) e Localização (L10n):**
-        - Expandir traduções para todos os textos da UI (CONTÍNUO).
-        - Traduzir títulos de metadados (CONCLUÍDO).
-        - Adicionar seletor de idioma na UI (CONCLUÍDO).
-    - **Implementação da Funcionalidade de Câmera (UC6/UC15):** Permitir que o usuário tire fotos diretamente pelo app para identificar produtos (CONCLUÍDO).
-    - **Chat com Superagente de Análise (UC14):** Interface básica de chat funcional, permitindo envio de mensagens e recebimento de respostas placeholder do fluxo Genkit (CONCLUÍDO).
-    - **Histórico de Preços:** Implementar lógica (ex: Cloud Function) para mover dados de anúncios expirados para o histórico de preços.
-    - **Página de Monitoramento:** Adaptar para usar dados do novo sistema de anúncios/histórico.
+    - **Internacionalização (i18n) e Localização (L10n):** (CONTÍNUO)
+    - **Implementação da Funcionalidade de Câmera (UC6/UC15):** (CONCLUÍDO)
+    - **Chat com Superagente de Análise (UC14):** (INTERFACE INTERATIVA COM RESPOSTAS PLACEHOLDER CONCLUÍDA).
+    - **Histórico de Preços:** Implementar lógica (ex: Cloud Function) para mover dados de anúncios expirados para o histórico de preços. (PENDENTE)
+    - **Página de Monitoramento:** Adaptar para usar dados do novo sistema de anúncios/histórico. (PENDENTE)
     - **Refinamento da Busca de Produtos (Análise de Imagem):** A função de análise de imagens (`identifyObjects`, `searchRelatedProducts`, `extractProductProperties`) pode ser mantida. O fluxo `findProductStoresFlow` (que usa `productAvailability`) precisará ser reavaliado ou adaptado/substituído pela lógica de busca no feed de anúncios `/advertisements` se o objetivo for encontrar ofertas atuais em vez de apenas lojas que *geralmente* têm o produto.
     - **Implementação de RAG Geospacial (Visão de Longo Prazo):** Para otimizar buscas por proximidade.
     - **Desenvolvimento dos Superagentes de IA (Visão de Longo Prazo - Seção 8).**
@@ -267,15 +272,19 @@ Mantém estrutura similar à anterior (preferências, localização).
 ## 7. Histórico de Configurações de Layout da UI (Tema Atual para "Preço Real")
 
 - O nome do aplicativo nos cabeçalhos, rodapés e títulos de página será "Preço Real" (em português) e "Real Price" (em inglês).
-- A página principal (`src/app/[locale]/page.tsx`) foi **redesenhada para ser um feed de ofertas**. Ela inclui:
-    - Obtenção de localização do usuário.
-    - Seção de busca de ofertas (input de texto).
-    - Seção de filtros por categoria (botões, atualmente filtrando dados mockados).
-    - Seção de feed de ofertas (lista de cards, atualmente com dados mockados).
-    - A funcionalidade de análise de imagem (upload de arquivo e **captura pela câmera**) foi mantida como uma ferramenta de apoio, dentro de um componente `Accordion`.
+- A página principal (`src/app/[locale]/page.tsx`) foi **redesenhada para utilizar um layout de abas (Ofertas, Identificar, Mapa, Conta)**, inspirado no WhatsApp.
+    - **Aba "Ofertas":**
+        - Obtenção de localização do usuário.
+        - Barra de busca de ofertas (input de texto) no Header da aba.
+        - Seção de filtros por categoria (botões).
+        - Seção de feed de ofertas (lista de cards), agora buscando dados reais do Firebase (`/advertisements`).
+    - **Aba "Identificar":**
+        - A funcionalidade de análise de imagem (upload de arquivo e **captura pela câmera**) está aqui. O acordeão anterior foi removido.
+    - **Aba "Mapa":** Visualmente desabilitada por enquanto.
+    - **Aba "Conta":** Espaço para perfil do usuário e acesso ao perfil da loja.
 - A página de monitoramento (`src/app/[locale]/monitoring/page.tsx`) será adaptada.
-- Novas rotas/páginas serão necessárias para perfis de lojistas e gerenciamento de anúncios.
-- Uma nova página de administração (`src/app/[locale]/admin/super-agent-chat/page.tsx`) foi criada e agora possui interatividade básica para o chat com o superagente de análise (Funcionalidade Futura para análise real).
+- Novas rotas/páginas foram criadas para login, cadastro e perfil da loja.
+- Uma nova página de administração (`src/app/[locale]/admin/super-agent-chat/page.tsx`) foi criada e possui interatividade básica para o chat com o superagente de análise.
 
 **Cores Principais do Tema Atual (Modo Claro e Escuro):**
 (Mantidas conforme definido anteriormente, podem ser ajustadas se necessário para a nova marca "Preço Real")
@@ -322,7 +331,7 @@ Esses superagentes representam uma evolução significativa e exigirão desenvol
 
 - Mantido: "Sempre que for identificado um ponto final "." ... o arquivo `memo.md` deve ser analisado e atualizado..."
 - Mantido: "Dois pontos finais seguidos ".." significam que o sistema deve continuar..."
-- Mantido: Criação de snapshots do `memo.md` na pasta `historico/` após conclusões de etapas. (Último snapshot: `09_memo_md_post_camera_feature.md`)
+- Mantido: Criação de snapshots do `memo.md` na pasta `historico/` após conclusões de etapas. (Último snapshot: `13_memo_md_post_whatsapp_inspired_layout.md`)
 
 ## 10. Internacionalização (i18n) com `next-intl`
 
@@ -332,7 +341,3 @@ Esses superagentes representam uma evolução significativa e exigirão desenvol
 - Metadados traduzidos (CONCLUÍDO).
 - Textos básicos da UI das páginas principal, de monitoramento e de chat do superagente estão traduzidos (CONTÍNUO).
 - Próximos passos: Traduzir novos textos da UI para o feed, perfis de lojistas, etc., à medida que são adicionados.
-
-    
-
-    
